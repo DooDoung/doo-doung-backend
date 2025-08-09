@@ -1,0 +1,30 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: doodoung_db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: doodoung
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  #     - ./seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
+
+  # seed:
+  #   image: postgres:16
+  #   depends_on:
+  #     - postgres
+  #   volumes:
+  #     - ./seed.sql:/seed.sql:ro
+  #   environment:
+  #     PGPASSWORD: admin
+  #   command: >
+  #     psql -h postgres -U admin -d doodoung -f /seed.sql
+
+volumes:
+  postgres_data:

@@ -22,6 +22,7 @@ All commit messages must start with one of the following prefixes followed by a 
 ## Examples
 
 ✅ **Valid commit messages:**
+
 ```
 add: user authentication system
 chore: update dependencies to latest versions
@@ -31,6 +32,7 @@ docs: update API documentation
 ```
 
 ❌ **Invalid commit messages:**
+
 ```
 added new feature
 Update README
@@ -43,6 +45,7 @@ WIP: working on auth
 The commit message validation is automatically enforced through Husky git hooks. If your commit message doesn't follow the convention, the commit will be rejected and you'll need to amend your message.
 
 To amend your last commit message:
+
 ```bash
 git commit --amend -m "add: your corrected message here"
 ```

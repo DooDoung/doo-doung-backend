@@ -1,0 +1,8 @@
+#!/bin/sh
+echo "🔍 Running pre-commit checks..."
+
+# Check if Prisma schema is valid
+echo "Checking Prisma schema..."
+npx prisma validate
+
+echo "✅ Pre-commit checks passed!"

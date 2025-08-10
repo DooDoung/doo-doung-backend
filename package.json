@@ -1,8 +1,19 @@
 {
+  "name": "doo-doung-backend",
+  "version": "1.0.0",
+  "description": "Backend for DooDoung project",
+  "scripts": {
+    "prepare": "husky",
+    "seed": "node seed.js",
+    "db:generate": "npx prisma generate",
+    "db:migrate": "npx prisma migrate dev",
+    "db:reset": "npx prisma migrate reset"
+  },
   "dependencies": {
     "@prisma/client": "^6.13.0"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "prisma": "^6.13.0"
   }
 }

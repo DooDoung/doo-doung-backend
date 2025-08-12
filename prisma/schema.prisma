@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -14,8 +8,172 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Account {
-  account_id String  @id @db.VarChar(16)
-  username   String  @db.VarChar(16)
-  password   String  @db.VarChar(45)
+model account {
+  id          String       @id @db.VarChar(16)
+  username    String       @db.VarChar(16)
+  password    String       @db.VarChar(45)
+  admint      admint[]
+  customer    customer[]
+  prophet     prophet[]
+  user_detail user_detail?
+}
+
+model admint {
+  id         String   @id @db.VarChar(16)
+  account_id String   @db.VarChar(16)
+  account    account  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  report     report[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model course {
+  id               String         @id @db.VarChar(16)
+  prophet_id       String         @db.VarChar(16)
+  course_name      String         @db.VarChar(100)
+  method           method
+  horoscope_sector horoscope
+  price            Decimal        @db.Decimal(7, 2)
+  prophet          prophet        @relation(fields: [prophet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  course_order     course_order[]
+  review           review[]
+}
+
+model course_order {
+  course_id String @db.VarChar(16)
+  order_id  String @db.VarChar(16)
+  course    course @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ordert    ordert @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([course_id, order_id])
+}
+
+model customer {
+  id          String   @id @db.VarChar(16)
+  account_id  String   @db.VarChar(16)
+  birth_date  DateTime @db.Date
+  birth_time  DateTime @db.Time(6)
+  zodiac_sign String   @db.VarChar(11)
+  account     account  @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ordert      ordert[]
+  report      report[]
+  review      review[]
+}
+
+model ordert {
+  id           String         @id @db.VarChar(16)
+  customer_id  String         @db.VarChar(16)
+  timestamp    DateTime?      @default(now()) @db.Timestamp(6)
+  status       statustype
+  course_order course_order[]
+  customer     customer       @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  transactiont transactiont[]
+}
+
+model prophet {
+  id                  String                @id @db.VarChar(16)
+  account_id          String                @db.VarChar(16)
+  line_id             String?               @db.VarChar(30)
+  course              course[]
+  account             account               @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  prophet_method      prophet_method[]
+  transaction_account transaction_account[]
+}
+
+model prophet_method {
+  id         String  @id @db.VarChar(16)
+  prophet_id String  @db.VarChar(16)
+  method     method
+  prophet    prophet @relation(fields: [prophet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model report {
+  id            String       @id @db.VarChar(16)
+  customer_id   String       @db.VarChar(16)
+  admin_id      String?      @db.VarChar(16)
+  report_type   reporttype
+  description   String?      @db.VarChar(255)
+  report_status reportstatus
+  admint        admint?      @relation(fields: [admin_id], references: [id], onUpdate: NoAction)
+  customer      customer     @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model review {
+  id          String   @id @db.VarChar(16)
+  customer_id String   @db.VarChar(16)
+  course_id   String   @db.VarChar(16)
+  score       Int?
+  description String?  @db.VarChar(255)
+  course      course   @relation(fields: [course_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  customer    customer @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model transaction_account {
+  id             String  @id @db.VarChar(16)
+  prophet_id     String  @db.VarChar(16)
+  account_name   String  @db.VarChar(45)
+  account_number String  @db.Char(10)
+  bank           String  @db.VarChar(45)
+  prophet        prophet @relation(fields: [prophet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model transactiont {
+  id        String     @id @db.VarChar(16)
+  order_id  String     @db.VarChar(16)
+  timestamp DateTime?  @default(now()) @db.Timestamp(6)
+  status    statustype
+  ordert    ordert     @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model user_detail {
+  id           String  @id @db.VarChar(16)
+  account_id   String  @unique @db.VarChar(16)
+  name         String  @db.VarChar(45)
+  lastname     String  @db.VarChar(45)
+  gender       sex?
+  phone_number String? @db.Char(10)
+  email        String  @db.VarChar(45)
+  account      account @relation(fields: [account_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+enum horoscope {
+  Love
+  Work
+  Study
+  Money
+  Luck
+}
+
+enum method {
+  Tarot_reading
+  Palmistry
+  Thai_zodiac
+  Physiognomy
+}
+
+enum reportstatus {
+  PENDING
+  FIXING
+  DONE
+}
+
+enum reporttype {
+  Course_issue
+  Prophet_issue
+  Payment_issue
+  Website_issue
+  Other
+}
+
+enum sex {
+  Male
+  Female
+  LGBTQ_    @map("LGBTQ+")
+  Undefined
+}
+
+enum statustype {
+  PENDING
+  SUCCESS
+  FAILED
 }

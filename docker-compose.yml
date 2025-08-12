@@ -13,18 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  #     - ./seed.sql:/docker-entrypoint-initdb.d/seed.sql:ro
-
-  # seed:
-  #   image: postgres:16
-  #   depends_on:
-  #     - postgres
-  #   volumes:
-  #     - ./seed.sql:/seed.sql:ro
-  #   environment:
-  #     PGPASSWORD: admin
-  #   command: >
-  #     psql -h postgres -U admin -d doodoung -f /seed.sql
+      - ./initialize.sql:/docker-entrypoint-initdb.d/initialize.sql:ro
 
 volumes:
   postgres_data:

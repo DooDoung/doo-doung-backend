@@ -102,14 +102,14 @@ model UserDetail {
   accountId   String  @unique @db.VarChar(16)
   name        String  @db.VarChar(45)
   lastname    String  @db.VarChar(45)
-  profileUrl  String? @map("profile_url")
+  profileUrl  String? @map("profile_url") @db.VarChar(255)
   phoneNumber String  @map("phone_number") @db.VarChar(20)
   gender      Sex
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  account Account @relation(fields: [accountId], references: [id])
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Customer {
@@ -122,7 +122,7 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  account  Account   @relation(fields: [accountId], references: [id])
+  account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   bookings Booking[]
   reviews  Review[]
   reports  Report[]
@@ -136,10 +136,11 @@ model Prophet {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  account      Account               @relation(fields: [accountId], references: [id])
+  account      Account               @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   availability ProphetAvailability[]
   methods      ProphetMethod[]
   courses      Course[]
+  bookings     Booking[]
   txAccounts   TransactionAccount[]
 }
 
@@ -155,6 +156,7 @@ model ProphetAvailability {
 
   prophet Prophet @relation(fields: [prophetId], references: [id])
 
+  @@unique([prophetId, date, startTime, endTime])
   @@index([prophetId, date])
 }
 
@@ -163,7 +165,6 @@ model HoroscopeMethod {
   slug String @unique @db.VarChar(32)
   name String @db.VarChar(64)
 
-  // master/lookup → no audit fields
   prophetMethods ProphetMethod[]
   courses        Course[]
 }
@@ -172,8 +173,8 @@ model ProphetMethod {
   prophetId String @db.VarChar(16)
   methodId  Int
 
-  prophet Prophet         @relation(fields: [prophetId], references: [id])
-  method  HoroscopeMethod @relation(fields: [methodId], references: [id])
+  prophet Prophet         @relation(fields: [prophetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  method  HoroscopeMethod @relation(fields: [methodId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([prophetId, methodId])
   @@index([methodId])
@@ -195,42 +196,41 @@ model Course {
   prophet         Prophet         @relation(fields: [prophetId], references: [id])
   horoscopeMethod HoroscopeMethod @relation(fields: [horoscopeMethodId], references: [id])
   bookings        Booking[]
-  reviews         Review[]
 
   @@index([prophetId])
   @@index([horoscopeMethodId])
-  @@index([isActive])
 }
 
 model Booking {
-  id         String        @id @db.VarChar(16)
-  customerId String        @db.VarChar(16)
-  courseId   String        @db.VarChar(16)
-  startDate  DateTime      @map("start_datetime")
-  endDate    DateTime      @map("end_datetime")
-  createdAt  DateTime      @default(now()) @map("created_at")
-  status     BookingStatus
+  id            String        @id @db.VarChar(16)
+  customerId    String        @db.VarChar(16)
+  courseId      String        @db.VarChar(16)
+  prophetId     String        @db.VarChar(16)
+  startDateTime DateTime      @map("start_datetime")
+  endDateTime   DateTime      @map("end_datetime")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  status        BookingStatus
 
   customer    Customer     @relation(fields: [customerId], references: [id])
   course      Course       @relation(fields: [courseId], references: [id])
+  prophet     Prophet      @relation(fields: [prophetId], references: [id])
   transaction Transaction?
   reviews     Review[]
 
+  @@unique([prophetId, startDateTime, endDateTime])
   @@index([customerId])
-  @@index([courseId])
-  @@index([status])
+  @@index([prophetId, startDateTime, endDateTime, status])
 }
 
 model Transaction {
   id        String            @id @db.VarChar(16)
   bookingId String            @unique @db.VarChar(16)
-  timestamp DateTime          @default(now())
   status    TransactionStatus
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  booking Booking @relation(fields: [bookingId], references: [id])
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model TransactionAccount {
@@ -243,7 +243,7 @@ model TransactionAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  prophet Prophet @relation(fields: [prophetId], references: [id])
+  prophet Prophet @relation(fields: [prophetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([prophetId, bank, accountNumber])
   @@index([prophetId])
@@ -252,19 +252,16 @@ model TransactionAccount {
 model Review {
   id          String  @id @db.VarChar(16)
   customerId  String  @db.VarChar(16)
-  bookingId   String  @db.VarChar(16)
+  bookingId   String  @unique @db.VarChar(16)
   score       Int
-  description String?
+  description String? @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  customer Customer @relation(fields: [customerId], references: [id])
-  booking  Booking  @relation(fields: [bookingId], references: [id])
-  Course   Course?  @relation(fields: [courseId], references: [id])
-  courseId String?  @db.VarChar(16)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@unique([customerId, bookingId])
   @@index([bookingId])
 }
 
@@ -275,7 +272,7 @@ model Admin {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  account Account  @relation(fields: [accountId], references: [id])
+  account Account  @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   reports Report[]
 }
 
@@ -285,7 +282,7 @@ model Report {
   adminId      String?      @db.VarChar(16)
   reportType   ReportType
   topic        String       @db.VarChar(100)
-  description  String
+  description  String       @db.Text
   reportStatus ReportStatus
 
   createdAt DateTime @default(now())

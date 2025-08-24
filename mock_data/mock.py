@@ -1,312 +1,517 @@
 import csv
 import random
-from faker import Faker
+import string
+import uuid
 from datetime import datetime, timedelta, timezone, time
 from decimal import Decimal
-from pathlib import Path
+import os
 
-fake = Faker()
-output_dir = Path("./csv_output")
-output_dir.mkdir(exist_ok=True)
+# Output directory setup
+output_dir = "./csv_output"
+os.makedirs(output_dir, exist_ok=True)
 
-# ENUMS
-SEX = ['Male', 'Female', 'LGBTQ_Plus', 'Undefined']
-HOROSCOPE_SECTORS = ['love', 'work', 'study', 'money', 'luck', 'family']
+# ENUMS - EXACTLY MATCHING PRISMA SCHEMA
+SEX = ['MALE', 'FEMALE', 'LGBTQ_PLUS', 'UNDEFINED']
+HOROSCOPE_SECTORS = ['LOVE', 'WORK', 'STUDY', 'MONEY', 'LUCK', 'FAMILY']
 BOOKING_STATUSES = ['SCHEDULED', 'COMPLETED', 'FAILED']
 TRANSACTION_STATUSES = ['PROCESSING', 'COMPLETED', 'FAILED']
-REPORT_TYPES = ['Course_issue', 'Prophet_issue', 'Payment_issue', 'Website_issue', 'Other']
+REPORT_TYPES = ['COURSE_ISSUE', 'PROPHET_ISSUE', 'PAYMENT_ISSUE', 'WEBSITE_ISSUE', 'OTHER']
 REPORT_STATUSES = ['PENDING', 'FIXING', 'DONE']
-ZODIAC_SIGNS = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
+ZODIAC_SIGNS = ['ARIES', 'TAURUS', 'GEMINI', 'CANCER', 'LEO', 'VIRGO', 'LIBRA', 'SCORPIO', 'SAGITTARIUS', 'CAPRICORN', 'AQUARIUS', 'PISCES']
 BANKS = ['BBL', 'KTB', 'KBANK', 'SCB', 'BAY', 'TTB', 'CIMB', 'UOB', 'GSB', 'BAAC']
-ROLES = ['prophet', 'customer', 'admin']
+ROLES = ['PROPHET', 'CUSTOMER', 'ADMIN']
 
-# Helpers
+# Names for consistent generation
+FIRST_NAMES = ["John", "Jane", "Alice", "Bob", "Charlie", "Emma", "David", "Sarah", 
+               "Michael", "Emily", "Daniel", "Olivia", "James", "Sophia", "William", "Isabella"]
+LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", 
+              "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson"]
+
 def short_id():
-    return fake.uuid4()[:16]
+    """Generate a 16-character UUID"""
+    return str(uuid.uuid4()).replace('-', '')[:16]
 
-def iso_datetime(dt=None):
-    """Return clean ISO-8601 DateTime string"""
-    if dt is None:
-        dt = datetime.now(timezone.utc)
-    elif isinstance(dt, str):
-        return dt
-    elif isinstance(dt, datetime):
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        # Return clean ISO format: 2025-08-23T15:30:45.123Z
-        return dt.isoformat().replace('+00:00', 'Z')
-    raise ValueError("Expected datetime.datetime object for ISO formatting")
+def random_email(used_emails=None, base_username=""):
+    """Generate a unique email address"""
+    if used_emails is None:
+        used_emails = set()
+    
+    # Use base_username if provided for more uniqueness
+    if base_username:
+        base = base_username.lower()
+    else:
+        base = ''.join(random.choices(string.ascii_lowercase, k=6))
+    
+    attempts = 0
+    while attempts < 100:
+        suffix = ''.join(random.choices(string.digits, k=4))
+        domain_part = ''.join(random.choices(string.ascii_lowercase, k=5))
+        email = f"{base}{suffix}@{domain_part}.com"
+        
+        if email not in used_emails:
+            used_emails.add(email)
+            return email
+        attempts += 1
+    
+    # Fallback with timestamp if all attempts fail
+    timestamp = str(int(datetime.now().timestamp() * 1000000))
+    return f"user{timestamp}@example.com"
 
-def random_datetime_today():
-    """Generate a random datetime for today"""
-    base_date = datetime.now(timezone.utc).date()
-    random_hour = random.randint(8, 20)
-    random_minute = random.choice([0, 15, 30, 45])
-    return datetime.combine(base_date, time(random_hour, random_minute), tzinfo=timezone.utc)
+def random_name():
+    return random.choice(FIRST_NAMES), random.choice(LAST_NAMES)
 
-def save_csv(name, data):
+def save_csv(filename, data):
+    """Save data to a CSV file"""
     if not data:
-        print(f"Warning: No data to save for {name}")
+        print(f"Warning: No data to save for {filename}")
         return
-    with open(output_dir / f"{name}.csv", "w", newline='', encoding='utf-8') as f:
+    
+    filepath = os.path.join(output_dir, f"{filename}.csv")
+    with open(filepath, "w", newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=data[0].keys())
         writer.writeheader()
         writer.writerows(data)
+    
+    print(f"Saved {len(data)} records to {filepath}")
 
 now = datetime.now(timezone.utc)
 
-# Accounts
-print("Generating Accounts...")
-used_emails = set()
-used_usernames = set()
-accounts = []
+def generate_accounts():
+    accounts = []
+    used_emails = set()
+    used_usernames = set()
 
-for role in (["customer"] * 100 + ["prophet"] * 50 + ["admin"] * 10):
-    while True:
-        email = fake.email()
-        if email not in used_emails:
-            used_emails.add(email)
-            break
-    while True:
-        username = fake.user_name()
-        if username not in used_usernames:
-            used_usernames.add(username)
-            break
-    accounts.append({
-        "id": short_id(),
-        "email": email,
-        "username": username,
-        "passwordHash": fake.sha256(),
-        "role": role,
-        "createdAt": iso_datetime(now),
-        "updatedAt": iso_datetime(now)
-    })
+    for i, role in enumerate(["CUSTOMER"] * 100 + ["PROPHET"] * 50 + ["ADMIN"] * 10):
+        base_username = f"{role.lower()}{i}"
+        email = random_email(used_emails, base_username)
+        
+        # Generate unique username
+        username = base_username
+        counter = 1
+        while username in used_usernames:
+            username = f"{base_username}_{counter}"
+            counter += 1
+        
+        used_usernames.add(username)
+        used_emails.add(email)
+        
+        accounts.append({
+            "id": short_id(),
+            "email": email,
+            "username": username,
+            "password_hash": ''.join(random.choices(string.hexdigits.lower(), k=60)),
+            "role": role,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        })
 
-save_csv("accounts", accounts)
+    return accounts
 
-# UserDetails
-print("Generating UserDetails...")
-user_details = [{
-    "id": i + 1,
-    "accountId": acc["id"],
-    "name": fake.first_name(),
-    "lastname": fake.last_name(),
-    "profileUrl": fake.image_url(),
-    "phoneNumber": fake.phone_number()[:20],
-    "gender": random.choice(SEX),
-    "createdAt": iso_datetime(now),
-    "updatedAt": iso_datetime(now)
-} for i, acc in enumerate(accounts)]
-save_csv("user_details", user_details)
+def generate_horoscope_methods():
+    method_names = [
+        "Tarot Reading", "Astrology Chart", "Palm Reading", "Crystal Ball", 
+        "Numerology", "Dream Analysis", "Rune Casting", "Tea Leaf Reading",
+        "Pendulum Divination", "Aura Reading"
+    ]
 
-# Role splits
-customers_accounts = [acc for acc in accounts if acc["role"] == "customer"]
-prophets_accounts = [acc for acc in accounts if acc["role"] == "prophet"]
-admins_accounts = [acc for acc in accounts if acc["role"] == "admin"]
+    return [
+        {
+            "id": i + 1,  # Explicitly set auto-increment ID
+            "slug": name.lower().replace(' ', '_').replace('-', '_'),
+            "name": name
+        } for i, name in enumerate(method_names)
+    ]
 
-# Customers
-print("Generating Customers...")
-customer_rows = [{
-    "id": short_id(),
-    "accountId": acc["id"],
-    "birthDate": iso_datetime(datetime.combine(fake.date_of_birth(minimum_age=18, maximum_age=70), datetime.min.time(), tzinfo=timezone.utc)),
-    "birthTime": iso_datetime(random_datetime_today()),  # Full datetime for time field
-    "zodiacSign": random.choice(ZODIAC_SIGNS),
-    "createdAt": iso_datetime(now),
-    "updatedAt": iso_datetime(now)
-} for acc in customers_accounts]
-save_csv("customers", customer_rows)
+def generate_user_details(accounts):
+    user_details = []
+    for i, acc in enumerate(accounts):
+        first, last = random_name()
+        user_details.append({
+            "id": i + 1,  # Explicitly set auto-increment ID
+            "account_id": acc["id"],
+            "name": first,
+            "lastname": last,
+            "profile_url": f"https://example.com/profile/{short_id()}.jpg",
+            "phone_number": f"+66{random.randint(100000000, 999999999)}",
+            "gender": random.choice(SEX),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        })
+    return user_details
 
-# Prophets
-print("Generating Prophets...")
-prophet_rows = [{
-    "id": short_id(),
-    "accountId": acc["id"],
-    "lineId": fake.user_name()[:50],
-    "createdAt": iso_datetime(now),
-    "updatedAt": iso_datetime(now)
-} for acc in prophets_accounts]
-save_csv("prophets", prophet_rows)
+def generate_customers(customer_accounts):
+    customers = []
+    for acc in customer_accounts:
+        birth_date = datetime(random.randint(1950, 2005), random.randint(1, 12), random.randint(1, 28))
+        birth_time = datetime.combine(datetime.today(), time(random.randint(0, 23), random.randint(0, 59)))
+        
+        customers.append({
+            "id": acc["id"],
+            "account_id": acc["id"],
+            "birth_date": birth_date.date().isoformat(),
+            "birth_time": birth_time.time().strftime("%H:%M:%S"),
+            "zodiac_sign": random.choice(ZODIAC_SIGNS),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        })
+    return customers
 
-# Admins
-print("Generating Admins...")
-admin_rows = [{
-    "id": short_id(),
-    "accountId": acc["id"],
-    "createdAt": iso_datetime(now),
-    "updatedAt": iso_datetime(now)
-} for acc in admins_accounts]
-save_csv("admins", admin_rows)
+def generate_prophets(prophet_accounts):
+    prophets = []
+    for acc in prophet_accounts:
+        prophets.append({
+            "id": acc["id"],
+            "account_id": acc["id"],
+            "line_id": ''.join(random.choices(string.ascii_lowercase + string.digits, k=20)),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        })
+    return prophets
 
-# HoroscopeMethods
-print("Generating HoroscopeMethods...")
-method_rows = [{
-    "id": i + 1,
-    "slug": fake.slug()[:50],
-    "name": f"{fake.word().capitalize()} method"[:100]
-} for i in range(10)]
-save_csv("horoscope_methods", method_rows)
+def generate_admins(admin_accounts):
+    admins = []
+    for acc in admin_accounts:
+        admins.append({
+            "id": acc["id"],
+            "account_id": acc["id"],
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        })
+    return admins
 
-# ProphetMethods
-print("Generating ProphetMethods...")
-prophet_method_rows = []
-used_combinations = set()
-for prophet in prophet_rows:
-    num_methods = random.randint(1, min(3, len(method_rows)))
-    selected_methods = random.sample(method_rows, num_methods)
-    for method in selected_methods:
-        combination = (prophet["id"], method["id"])
-        if combination not in used_combinations:
-            used_combinations.add(combination)
-            prophet_method_rows.append({
-                "prophetId": prophet["id"],
-                "methodId": method["id"]
+def generate_prophet_methods(prophets, horoscope_methods):
+    prophet_methods = []
+    for prophet in prophets:
+        num_methods = random.randint(1, 3)
+        selected_methods = random.sample(horoscope_methods, min(num_methods, len(horoscope_methods)))
+        
+        # No explicit ID for this table, as it uses a composite primary key
+        prophet_methods.extend([
+            {
+                "prophet_id": prophet["id"],
+                "method_id": method["id"]
+            } for method in selected_methods
+        ])
+    
+    return prophet_methods
+
+def generate_prophet_availabilities(prophets):
+    prophet_availabilities = []
+    unique_availabilities = set()
+
+    for prophet in prophets:
+        for day_offset in range(0, 30, random.randint(1, 3)):
+            date = datetime.now().date() + timedelta(days=day_offset)
+            
+            num_slots = random.randint(1, 3)
+            used_times = set()
+            
+            for _ in range(num_slots):
+                attempts = 0
+                while attempts < 10:
+                    start_hour = random.randint(8, 18)
+                    start_minute = random.choice([0, 30])
+                    duration_hours = random.randint(1, 4)
+                    
+                    start_time = time(start_hour, start_minute)
+                    end_time = (datetime.combine(date, start_time) + timedelta(hours=duration_hours)).time()
+                    
+                    time_key = (start_time, end_time)
+                    unique_key = (prophet["id"], date.isoformat(), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
+                    
+                    if (time_key not in used_times and 
+                        end_time.hour <= 22 and 
+                        unique_key not in unique_availabilities):
+                        
+                        used_times.add(time_key)
+                        unique_availabilities.add(unique_key)
+                        
+                        prophet_availabilities.append({
+                            # Remove the manual id
+                            "prophet_id": prophet["id"],
+                            "date": date.isoformat(),
+                            "start_time": start_time.strftime("%H:%M:%S"),
+                            "end_time": end_time.strftime("%H:%M:%S"),
+                            "created_at": now.isoformat(),
+                            "updated_at": now.isoformat()
+                        })
+                        break
+                    attempts += 1
+
+    return prophet_availabilities
+
+def generate_courses(prophets, horoscope_methods):
+    courses = []
+    for prophet in prophets:
+        prophet_method_ids = [pm["method_id"] for pm in generate_prophet_methods([prophet], horoscope_methods)]
+        
+        if not prophet_method_ids:
+            method = random.choice(horoscope_methods)
+            prophet_method_ids = [method["id"]]
+        
+        num_courses = random.randint(1, 3)
+        for _ in range(num_courses):
+            method_id = random.choice(prophet_method_ids)
+            method_name = next(m["name"] for m in horoscope_methods if m["id"] == method_id)
+            
+            courses.append({
+                "id": short_id(),
+                "prophet_id": prophet["id"],
+                "course_name": f"{random.choice(['Basic', 'Advanced', 'Premium', 'Deluxe'])} {method_name} Session",
+                "horoscope_method_id": method_id,
+                "horoscope_sector": random.choice(HOROSCOPE_SECTORS),
+                "duration_min": random.choice([30, 45, 60, 90]),
+                "price": f"{random.uniform(300, 2000):.2f}",
+                "is_active": random.choice([True, True, True, False]),
+                "created_at": now.isoformat(),
+                "updated_at": now.isoformat()
             })
-save_csv("prophet_methods", prophet_method_rows)
 
-# ProphetAvailabilities
-print("Generating ProphetAvailabilities...")
-availability_rows = []
-for i in range(min(50, len(prophet_rows) * 5)):
-    # Generate start and end times as full datetimes
-    start_hour = random.randint(8, 16)  # Start between 8 AM and 4 PM
-    end_hour = start_hour + random.randint(2, 8)  # 2-8 hours later
-    end_hour = min(end_hour, 22)  # Don't go past 10 PM
-    
-    base_date = fake.date_this_year()
-    start_datetime = datetime.combine(base_date, time(start_hour, 0), tzinfo=timezone.utc)
-    end_datetime = datetime.combine(base_date, time(end_hour, 0), tzinfo=timezone.utc)
-    
-    availability_rows.append({
-        "id": i + 1,
-        "prophetId": random.choice(prophet_rows)["id"],
-        "date": iso_datetime(datetime.combine(base_date, datetime.min.time(), tzinfo=timezone.utc)),
-        "startTime": iso_datetime(start_datetime),  # Full datetime
-        "endTime": iso_datetime(end_datetime),      # Full datetime
-        "createdAt": iso_datetime(now),
-        "updatedAt": iso_datetime(now)
-    })
-save_csv("prophet_availabilities", availability_rows)
+    return courses
 
-# Courses
-print("Generating Courses...")
-course_rows = []
-for _ in range(min(150, len(prophet_rows) * 10)):
-    prophet = random.choice(prophet_rows)
-    method = random.choice(method_rows)
-    course_rows.append({
-        "id": short_id(),
-        "prophetId": prophet["id"],
-        "courseName": fake.catch_phrase()[:200],
-        "horoscopeMethodId": method["id"],
-        "horoscopeSector": random.choice(HOROSCOPE_SECTORS),
-        "durationMin": random.choice([30, 45, 60]),
-        "price": float(round(Decimal(random.uniform(300, 999)), 2)),
-        "isActive": random.choice([True, True, False]),
-        "createdAt": iso_datetime(now),
-        "updatedAt": iso_datetime(now)
-    })
-save_csv("courses", course_rows)
+def generate_bookings(customers, active_courses, prophet_availabilities):
+    bookings = []
+    used_booking_slots = set()
 
-# Bookings
-print("Generating Bookings...")
-booking_rows = []
-active_courses = [c for c in course_rows if c["isActive"]]
-for i in range(min(100, len(customer_rows) * 2)):
-    if not active_courses:
-        break
-    course = random.choice(active_courses)
-    customer = random.choice(customer_rows)
-    start_time = fake.date_time_between(start_date='-2M', end_date='+1M')
-    if start_time.tzinfo is None:
-        start_time = start_time.replace(tzinfo=timezone.utc)
-    end_time = start_time + timedelta(minutes=course["durationMin"])
-    booking_rows.append({
-        "id": short_id(),
-        "customerId": customer["id"],
-        "courseId": course["id"],
-        "startDate": iso_datetime(start_time),
-        "endDate": iso_datetime(end_time),
-        "createdAt": iso_datetime(now),
-        "status": random.choice(BOOKING_STATUSES)
-    })
-save_csv("bookings", booking_rows)
+    for customer in customers:
+        num_bookings = random.randint(0, 2)
+        
+        for _ in range(num_bookings):
+            if not active_courses:
+                break
+                
+            attempts = 0
+            while attempts < 50:
+                course = random.choice(active_courses)
+                prophet_id = course["prophet_id"]
+                
+                available_slots = [slot for slot in prophet_availabilities if slot["prophet_id"] == prophet_id]
+                
+                if not available_slots:
+                    attempts += 1
+                    continue
+                    
+                slot = random.choice(available_slots)
+                
+                slot_date = datetime.strptime(slot["date"], "%Y-%m-%d").date()
+                slot_start = datetime.strptime(slot["start_time"], "%H:%M:%S").time()
+                slot_end = datetime.strptime(slot["end_time"], "%H:%M:%S").time()
+                
+                start_datetime = datetime.combine(slot_date, slot_start)
+                course_duration = timedelta(minutes=int(course["duration_min"]))
+                end_datetime = start_datetime + course_duration
+                
+                if end_datetime.time() <= slot_end:
+                    slot_key = (prophet_id, start_datetime, end_datetime)
+                    
+                    if slot_key not in used_booking_slots:
+                        used_booking_slots.add(slot_key)
+                        
+                        bookings.append({
+                            "id": short_id(),
+                            "customer_id": customer["id"],
+                            "course_id": course["id"],
+                            "prophet_id": prophet_id,
+                            "start_datetime": start_datetime.isoformat(),
+                            "end_datetime": end_datetime.isoformat(),
+                            "status": random.choice(BOOKING_STATUSES),
+                            "created_at": now.isoformat()
+                        })
+                        break
+                attempts += 1
 
-# Transactions
-print("Generating Transactions...")
-transaction_rows = []
-sample_size = min(80, len(booking_rows))
-for booking in random.sample(booking_rows, sample_size):
-    transaction_rows.append({
-        "id": short_id(),
-        "bookingId": booking["id"],
-        "timestamp": iso_datetime(now),
-        "status": random.choice(TRANSACTION_STATUSES),
-        "createdAt": iso_datetime(now),
-        "updatedAt": iso_datetime(now)
-    })
-save_csv("transactions", transaction_rows)
+    return bookings
 
-# TransactionAccounts
-print("Generating TransactionAccounts...")
-tx_account_rows = []
-sample_size = min(40, len(prophet_rows))
-for prophet in random.sample(prophet_rows, sample_size):
-    tx_account_rows.append({
-        "id": short_id(),
-        "prophetId": prophet["id"],
-        "accountName": fake.name()[:100],
-        "accountNumber": fake.bban()[:50],
-        "bank": random.choice(BANKS),
-        "createdAt": iso_datetime(now),
-        "updatedAt": iso_datetime(now)
-    })
-save_csv("transaction_accounts", tx_account_rows)
+def generate_transactions(bookings):
+    transactions = []
+    for booking in bookings:
+        transactions.append({
+            "id": short_id(),
+            "booking_id": booking["id"],
+            "status": random.choice(TRANSACTION_STATUSES),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        })
 
-# Reviews
-print("Generating Reviews...")
-review_rows = []
-completed_bookings = [b for b in booking_rows if b["status"] == "COMPLETED"]
-available_bookings = completed_bookings if completed_bookings else booking_rows
-sample_size = min(70, len(available_bookings))
-for booking in random.sample(available_bookings, sample_size):
-    review_rows.append({
-        "id": short_id(),
-        "customerId": booking["customerId"],
-        "bookingId": booking["id"],
-        "score": random.randint(1, 5),
-        "description": fake.sentence()[:500],
-        "createdAt": iso_datetime(now),
-        "updatedAt": iso_datetime(now),
-        "courseId": booking["courseId"]
-    })
-save_csv("reviews", review_rows)
+    return transactions
 
-# Reports
-print("Generating Reports...")
-report_rows = []
-for _ in range(50):
-    customer = random.choice(customer_rows)
-    admin = random.choice(admin_rows) if random.random() > 0.3 and admin_rows else None
-    report_rows.append({
-        "id": short_id(),
-        "customerId": customer["id"],
-        "adminId": admin["id"] if admin else None,
-        "reportType": random.choice(REPORT_TYPES),
-        "topic": fake.bs()[:200],
-        "description": fake.text(max_nb_chars=500),
-        "reportStatus": random.choice(REPORT_STATUSES),
-        "createdAt": iso_datetime(now),
-        "updatedAt": iso_datetime(now)
-    })
-save_csv("reports", report_rows)
+def generate_transaction_accounts(prophets):
+    transaction_accounts = []
+    used_account_combinations = set()
 
-print("\n✅ CSV files generated successfully!")
-print(f"Generated files in {output_dir}:")
-for csv_file in sorted(output_dir.glob("*.csv")):
-    with open(csv_file, 'r', encoding='utf-8') as f:
-        line_count = sum(1 for _ in f) - 1
-    print(f"  - {csv_file.name}: {line_count} records")
+    for prophet in prophets:
+        num_accounts = random.randint(1, 2)
+        
+        for _ in range(num_accounts):
+            attempts = 0
+            while attempts < 20:
+                first, last = random_name()
+                bank = random.choice(BANKS)
+                account_number = ''.join(random.choices(string.digits, k=random.randint(10, 12)))
+                
+                combo_key = (prophet["id"], bank, account_number)
+                
+                if combo_key not in used_account_combinations:
+                    used_account_combinations.add(combo_key)
+                    
+                    transaction_accounts.append({
+                        "id": short_id(),
+                        "prophet_id": prophet["id"],
+                        "account_name": f"{first} {last}",
+                        "account_number": account_number,
+                        "bank": bank,
+                        "created_at": now.isoformat(),
+                        "updated_at": now.isoformat()
+                    })
+                    break
+                attempts += 1
 
-print("\n📝 IMPORTANT: When importing to Prisma, convert DateTime strings to Date objects:")
-print("Example: new Date(record.birthTime) for DateTime fields")
+    return transaction_accounts
+
+def generate_reviews(completed_bookings):
+    reviews = []
+    for booking in completed_bookings:
+        if random.random() < 0.8:
+            reviews.append({
+                "id": short_id(),
+                "customer_id": booking["customer_id"],
+                "booking_id": booking["id"],
+                "score": random.randint(3, 5),
+                "description": random.choice([
+                    "Amazing reading! Very insightful and accurate.",
+                    "Great experience, highly recommend this prophet.",
+                    "Professional service and detailed explanations.",
+                    "Wonderful session, helped me understand many things.",
+                    "Excellent guidance and spiritual insight.",
+                    ""  # Empty string instead of None for CSV compatibility
+                ]) if random.random() < 0.7 else "",
+                "created_at": now.isoformat(),
+                "updated_at": now.isoformat()
+            })
+
+    return reviews
+
+def generate_reports(customers, admins):
+    reports = []
+    for customer in customers:
+        if random.random() < 0.2:
+            num_reports = random.randint(1, 2)
+            for _ in range(num_reports):
+                admin = random.choice(admins) if random.random() < 0.7 and admins else None
+                
+                reports.append({
+                    "id": short_id(),
+                    "customer_id": customer["id"],
+                    "admin_id": admin["id"] if admin else "",  # Empty string instead of None
+                    "report_type": random.choice(REPORT_TYPES),
+                    "topic": random.choice([
+                        "Booking Issue", "Payment Problem", "Technical Error",
+                        "Service Quality", "Prophet Behavior", "Website Bug"
+                    ]),
+                    "description": random.choice([
+                        "Had trouble with the booking system.",
+                        "Payment was processed but booking wasn't confirmed.",
+                        "Prophet was late for the session.",
+                        "Website crashed during payment.",
+                        "Received poor quality service.",
+                        "Technical issues during the session."
+                    ]),
+                    "report_status": random.choice(REPORT_STATUSES),
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat()
+                })
+
+    return reports
+
+def main():
+    # Generate base data
+    accounts = generate_accounts()
+    save_csv("accounts", accounts)
+
+    # Generate horoscope methods first (for referencing)
+    horoscope_methods = generate_horoscope_methods()
+    save_csv("horoscope_methods", horoscope_methods)
+
+    # User Details with explicit auto-increment ID
+    user_details = generate_user_details(accounts)
+    save_csv("user_details", user_details)
+
+    # Customers (only from CUSTOMER accounts)
+    customer_accounts = [a for a in accounts if a["role"] == "CUSTOMER"]
+    customers = generate_customers(customer_accounts)
+    save_csv("customers", customers)
+
+    # Prophets (only from PROPHET accounts)
+    prophet_accounts = [a for a in accounts if a["role"] == "PROPHET"]
+    prophets = generate_prophets(prophet_accounts)
+    save_csv("prophets", prophets)
+
+    # Admins (only from ADMIN accounts)
+    admin_accounts = [a for a in accounts if a["role"] == "ADMIN"]
+    admins = generate_admins(admin_accounts)
+    save_csv("admins", admins)
+
+    # Prophet Methods
+    prophet_methods = generate_prophet_methods(prophets, horoscope_methods)
+    save_csv("prophet_methods", prophet_methods)
+
+    # Prophet Availabilities with explicit auto-increment ID
+    prophet_availabilities = generate_prophet_availabilities(prophets)
+    save_csv("prophet_availabilities", prophet_availabilities)
+
+    # Courses
+    courses = generate_courses(prophets, horoscope_methods)
+    save_csv("courses", courses)
+
+    # Active courses for booking generation
+    active_courses = [c for c in courses if c["is_active"]]
+
+    # Bookings
+    bookings = generate_bookings(customers, active_courses, prophet_availabilities)
+    save_csv("bookings", bookings)
+
+    # Transactions
+    transactions = generate_transactions(bookings)
+    save_csv("transactions", transactions)
+
+    # Transaction Accounts
+    transaction_accounts = generate_transaction_accounts(prophets)
+    save_csv("transaction_accounts", transaction_accounts)
+
+    # Reviews (only for completed bookings)
+    completed_bookings = [b for b in bookings if b["status"] == "COMPLETED"]
+    reviews = generate_reviews(completed_bookings)
+    save_csv("reviews", reviews)
+
+    # Reports
+    reports = generate_reports(customers, admins)
+    save_csv("reports", reports)
+
+    print("\n✅ Complete mock CSV files generated successfully in csv_output directory!")
+    print("\nGenerated Tables:")
+
+    # Show statistics
+    total_records = 0
+    for filename in sorted(os.listdir(output_dir)):
+        if filename.endswith('.csv'):
+            with open(os.path.join(output_dir, filename), 'r', encoding='utf-8') as f:
+                line_count = sum(1 for _ in f) - 1
+            print(f"  - {filename}: {line_count} records")
+            total_records += line_count
+
+    print(f"\nTotal records generated: {total_records}")
+
+    # Show relationship summary
+    print(f"\nRelationship Summary:")
+    print(f"  - Accounts: {len(accounts)}")
+    print(f"    - Customers: {len(customers)}")
+    print(f"    - Prophets: {len(prophets)}")
+    print(f"    - Admins: {len(admins)}")
+    print(f"  - Active Courses: {len(active_courses)}")
+    print(f"  - Bookings: {len(bookings)}")
+    print(f"    - Completed: {len([b for b in bookings if b['status'] == 'COMPLETED'])}")
+    print(f"  - Reviews: {len(reviews)}")
+    print(f"  - Reports: {len(reports)}")
+
+if __name__ == "__main__":
+    main()

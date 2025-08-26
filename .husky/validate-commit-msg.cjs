@@ -47,6 +47,11 @@ const descriptions = {
   revert: "for reverting changes",
 };
 
+// Allow raw merge commits to pass
+if (commitMessage.startsWith("Merge")) {
+  process.exit(0);
+}
+
 // Check if commit message starts with allowed prefix
 const hasValidPrefix = allowedPrefixes.some((prefix) =>
   commitMessage.startsWith(`${prefix}:`)

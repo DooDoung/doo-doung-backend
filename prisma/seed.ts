@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as bcrypt from 'bcrypt'
 import { fileURLToPath } from 'url'
 import Papa from 'papaparse'
 
@@ -12,9 +13,8 @@ const prisma = new PrismaClient()
 
 // Command line arguments parsing
 const args = process.argv.slice(2)
-const shouldClear = args.includes('--clear')
-const shouldSeed = args.includes('--seed') || args.length === 0
-const tableFilter = args.find(arg => arg.startsWith('--table='))?.split('=')[1]
+const isClear = args[0] === 'clear'
+const tableFilter = isClear ? args[1] : args[0]
 
 // Helper function to read CSV files
 function readCSV(filename: string): Promise<any[]> {
@@ -101,46 +101,46 @@ async function clearTable(tableName: string) {
   console.log(`🧹 Clearing table: ${tableName}`)
   
   switch (tableName.toLowerCase()) {
-    case 'accounts':
+    case 'account':
       await prisma.account.deleteMany()
       break
-    case 'user_details':
+    case 'user_detail':
       await prisma.userDetail.deleteMany()
       break
-    case 'customers':
+    case 'customer':
       await prisma.customer.deleteMany()
       break
-    case 'prophets':
+    case 'prophet':
       await prisma.prophet.deleteMany()
       break
-    case 'admins':
+    case 'admin':
       await prisma.admin.deleteMany()
       break
-    case 'horoscope_methods':
+    case 'horoscope_method':
       await prisma.horoscopeMethod.deleteMany()
       break
-    case 'prophet_availabilities':
+    case 'prophet_availability':
       await prisma.prophetAvailability.deleteMany()
       break
-    case 'prophet_methods':
+    case 'prophet_method':
       await prisma.prophetMethod.deleteMany()
       break
-    case 'courses':
+    case 'course':
       await prisma.course.deleteMany()
       break
-    case 'bookings':
+    case 'booking':
       await prisma.booking.deleteMany()
       break
-    case 'transactions':
+    case 'transaction':
       await prisma.transaction.deleteMany()
       break
-    case 'transaction_accounts':
+    case 'transaction_account':
       await prisma.transactionAccount.deleteMany()
       break
-    case 'reviews':
+    case 'review':
       await prisma.review.deleteMany()
       break
-    case 'reports':
+    case 'report':
       await prisma.report.deleteMany()
       break
     default:
@@ -149,6 +149,148 @@ async function clearTable(tableName: string) {
 }
 
 // Seed functions
+async function seedDevAccounts() {
+  console.log('🛠️ Seeding development accounts...')
+
+  // Dev Customer Account
+  const devCustomerAccountId = 'dev_customer_001'
+  const devCustomerAccount = await prisma.account.upsert({
+    where: { username: 'dev_customer' },
+    update: {},
+    create: {
+      id: devCustomerAccountId,
+      email: 'dev_customer@gmail.com',
+      username: 'dev_customer',
+      passwordHash: await bcrypt.hash('dev_password', 10),
+      role: 'CUSTOMER',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  // Dev Customer User Detail
+  await prisma.userDetail.upsert({
+    where: { accountId: devCustomerAccountId },
+    update: {},
+    create: {
+      accountId: devCustomerAccountId,
+      name: 'Dev',
+      lastname: 'Customer',
+      profileUrl: 'https://example.com/profile/dev_customer.jpg',
+      phoneNumber: '+66812345678',
+      gender: 'UNDEFINED',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  // Dev Customer Profile
+  await prisma.customer.upsert({
+    where: { accountId: devCustomerAccountId },
+    update: {},
+    create: {
+      id: devCustomerAccountId,
+      accountId: devCustomerAccountId,
+      birthDate: new Date('1990-01-01'),
+      birthTime: new Date('1970-01-01T12:00:00.000Z'),
+      zodiacSign: 'AQUARIUS',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  // Dev Prophet Account
+  const devProphetAccountId = 'dev_prophet_001'
+  const devProphetAccount = await prisma.account.upsert({
+    where: { username: 'dev_prophet' },
+    update: {},
+    create: {
+      id: devProphetAccountId,
+      email: 'dev_prophet@gmail.com',
+      username: 'dev_prophet',
+      passwordHash: await bcrypt.hash('dev_password', 10),
+      role: 'PROPHET',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  // Dev Prophet User Detail
+  await prisma.userDetail.upsert({
+    where: { accountId: devProphetAccountId },
+    update: {},
+    create: {
+      accountId: devProphetAccountId,
+      name: 'Dev',
+      lastname: 'Prophet',
+      profileUrl: 'https://example.com/profile/dev_prophet.jpg',
+      phoneNumber: '+66812345679',
+      gender: 'UNDEFINED',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  // Dev Prophet Profile
+  await prisma.prophet.upsert({
+    where: { accountId: devProphetAccountId },
+    update: {},
+    create: {
+      id: devProphetAccountId,
+      accountId: devProphetAccountId,
+      lineId: 'dev_prophet_line',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  // Dev Admin Account
+  const devAdminAccountId = 'dev_admin_001'
+  const devAdminAccount = await prisma.account.upsert({
+    where: { username: 'dev_admin' },
+    update: {},
+    create: {
+      id: devAdminAccountId,
+      email: 'dev_admin@gmail.com',
+      username: 'dev_admin',
+      passwordHash: await bcrypt.hash('dev_password', 10),
+      role: 'ADMIN',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  // Dev Admin User Detail
+  await prisma.userDetail.upsert({
+    where: { accountId: devAdminAccountId },
+    update: {},
+    create: {
+      accountId: devAdminAccountId,
+      name: 'Dev',
+      lastname: 'Admin',
+      profileUrl: 'https://example.com/profile/dev_admin.jpg',
+      phoneNumber: '+66812345680',
+      gender: 'UNDEFINED',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  // Dev Admin Profile
+  await prisma.admin.upsert({
+    where: { accountId: devAdminAccountId },
+    update: {},
+    create: {
+      id: devAdminAccountId,
+      accountId: devAdminAccountId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  })
+
+  console.log('✅ Development accounts seeded')
+}
+
 async function seedHoroscopeMethods() {
   console.log('🌟 Seeding horoscope methods...')
   const data = await readCSV('horoscope_methods.csv')
@@ -648,6 +790,7 @@ async function seedAllTables() {
   console.log('🌱 Starting full database seeding...')
   
   // Seed in dependency order
+  await seedDevAccounts()
   await seedHoroscopeMethods()
   await seedAccounts()
   await seedUserDetails()
@@ -670,46 +813,49 @@ async function seedTable(tableName: string) {
   console.log(`🌱 Seeding table: ${tableName}`)
   
   switch (tableName.toLowerCase()) {
-    case 'horoscope_methods':
+    case 'dev_account':
+      await seedDevAccounts()
+      break
+    case 'horoscope_method':
       await seedHoroscopeMethods()
       break
-    case 'accounts':
+    case 'account':
       await seedAccounts()
       break
-    case 'user_details':
+    case 'user_detail':
       await seedUserDetails()
       break
-    case 'customers':
+    case 'customer':
       await seedCustomers()
       break
-    case 'prophets':
+    case 'prophet':
       await seedProphets()
       break
-    case 'admins':
+    case 'admin':
       await seedAdmins()
       break
-    case 'prophet_availabilities':
+    case 'prophet_availability':
       await seedProphetAvailabilities()
       break
-    case 'prophet_methods':
+    case 'prophet_method':
       await seedProphetMethods()
       break
-    case 'courses':
+    case 'course':
       await seedCourses()
       break
-    case 'bookings':
+    case 'booking':
       await seedBookings()
       break
-    case 'transactions':
+    case 'transaction':
       await seedTransactions()
       break
-    case 'transaction_accounts':
+    case 'transaction_account':
       await seedTransactionAccounts()
       break
-    case 'reviews':
+    case 'review':
       await seedReviews()
       break
-    case 'reports':
+    case 'report':
       await seedReports()
       break
     default:
@@ -719,39 +865,22 @@ async function seedTable(tableName: string) {
 
 // Main execution
 async function main() {
-  try {
+try {
     console.log('🚀 Starting database operations...')
     
-    // Handle clearing
-    if (shouldClear) {
+    if (isClear) {
       if (tableFilter) {
         await clearTable(tableFilter)
       } else {
         await clearAllTables()
       }
-    }
-    
-    // Handle seeding
-    if (shouldSeed) {
+    } else {
       if (tableFilter) {
         await seedTable(tableFilter)
       } else {
         await seedAllTables()
       }
     }
-    
-    // Show usage if no valid arguments
-    if (!shouldClear && !shouldSeed) {
-      console.log(`
-Usage:
-  npm run db:seed                    # Seed all tables
-  npm run db:seed --clear            # Clear all tables
-  npm run db:seed --clear --seed     # Clear then seed all tables
-  npm run db:seed --table=accounts   # Seed specific table
-  npm run db:seed --clear --table=accounts  # Clear specific table
-      `)
-    }
-    
   } catch (error) {
     console.error('❌ Error during database operation:', error)
     process.exit(1)

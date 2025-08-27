@@ -87,7 +87,7 @@ enum Role {
 // MODELS
 model Account {
   id           String @id @map("id") @db.VarChar(16)
-  email        String @unique @map("email") @db.VarChar(100)
+  email        String @unique @map("email") @db.VarChar(50)
   username     String @unique @map("username") @db.VarChar(30)
   passwordHash String @map("password_hash") @db.VarChar(72)
   role         Role   @map("role")
@@ -200,7 +200,7 @@ model ProphetMethod {
 model Course {
   id                String          @id @map("id") @db.VarChar(16)
   prophetId         String          @map("prophet_id") @db.VarChar(16)
-  courseName        String          @map("course_name") @db.VarChar(100)
+  courseName        String          @map("course_name") @db.VarChar(50)
   horoscopeMethodId Int             @map("horoscope_method_id")
   horoscopeSector   HoroscopeSector @map("horoscope_sector")
   durationMin       Int             @map("duration_min")
@@ -295,7 +295,7 @@ model Report {
   reportType   ReportType   @map("report_type")
   topic        String       @map("topic") @db.VarChar(100)
   description  String       @map("description") @db.Text
-  reportStatus ReportStatus @map("report_status")
+  reportStatus ReportStatus @default(PENDING) @map("report_status")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

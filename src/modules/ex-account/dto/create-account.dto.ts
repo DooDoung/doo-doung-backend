@@ -1,6 +1,6 @@
 import { IsString, Length } from "class-validator"
 
-export class CreateAccountDto {
+export class EXCreateAccountDto {
   @IsString()
   @Length(1, 16)
   account_id!: string

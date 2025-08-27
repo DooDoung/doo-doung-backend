@@ -3,7 +3,7 @@ import { PrismaService } from "../../db/prisma.service"
 import { Prisma } from "@prisma/client"
 
 @Injectable()
-export class AccountRepository {
+export class EXAccountRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   create(data: Prisma.AccountCreateInput) {

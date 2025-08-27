@@ -16,7 +16,7 @@ HOROSCOPE_SECTORS = ['LOVE', 'WORK', 'STUDY', 'MONEY', 'LUCK', 'FAMILY']
 BOOKING_STATUSES = ['SCHEDULED', 'COMPLETED', 'FAILED']
 TRANSACTION_STATUSES = ['PROCESSING', 'COMPLETED', 'FAILED']
 REPORT_TYPES = ['COURSE_ISSUE', 'PROPHET_ISSUE', 'PAYMENT_ISSUE', 'WEBSITE_ISSUE', 'OTHER']
-REPORT_STATUSES = ['PENDING', 'FIXING', 'DONE']
+REPORT_STATUSES = ['PENDING', 'DISCARD', 'DONE']
 ZODIAC_SIGNS = ['ARIES', 'TAURUS', 'GEMINI', 'CANCER', 'LEO', 'VIRGO', 'LIBRA', 'SCORPIO', 'SAGITTARIUS', 'CAPRICORN', 'AQUARIUS', 'PISCES']
 BANKS = ['BBL', 'KTB', 'KBANK', 'SCB', 'BAY', 'TTB', 'CIMB', 'UOB', 'GSB', 'BAAC']
 ROLES = ['PROPHET', 'CUSTOMER', 'ADMIN']
@@ -146,13 +146,14 @@ def generate_customers(customer_accounts):
         birth_time = datetime.combine(datetime.today(), time(random.randint(0, 23), random.randint(0, 59)))
         
         customers.append({
-            "id": acc["id"],
+            "id": short_id(),
             "account_id": acc["id"],
             "birth_date": birth_date.date().isoformat(),
             "birth_time": birth_time.time().strftime("%H:%M:%S"),
             "zodiac_sign": random.choice(ZODIAC_SIGNS),
             "created_at": now.isoformat(),
-            "updated_at": now.isoformat()
+            "updated_at": now.isoformat(),
+            "is_public": random.choice([True, False]),
         })
     return customers
 
@@ -160,7 +161,7 @@ def generate_prophets(prophet_accounts):
     prophets = []
     for acc in prophet_accounts:
         prophets.append({
-            "id": acc["id"],
+            "id": short_id(),
             "account_id": acc["id"],
             "line_id": ''.join(random.choices(string.ascii_lowercase + string.digits, k=20)),
             "created_at": now.isoformat(),
@@ -172,7 +173,7 @@ def generate_admins(admin_accounts):
     admins = []
     for acc in admin_accounts:
         admins.append({
-            "id": acc["id"],
+            "id": short_id(),
             "account_id": acc["id"],
             "created_at": now.isoformat(),
             "updated_at": now.isoformat()

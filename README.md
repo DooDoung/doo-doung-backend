@@ -5,7 +5,7 @@ docker-compose up -d
 pnpm i
 pnpx prisma generate
 pnpx prisma migrate dev
-
+pnpm run db:seed
 ```
 
 # Others
@@ -13,6 +13,24 @@ pnpx prisma migrate dev
 ```
 docker-compose up -d
 pnpx prisma migrate dev (if there any change in backend schema)
+```
+
+# if ERROR
+
+if ERROR you may have to reset schema first
+
+```
+pnpx prisma migrate reset
+pnpx prisma migrate dev
+```
+
+# Reset DB
+
+```
+docker-compose up -d
+pnpx prisma migrate dev (if there any change in backend schema)
+pnpm run db:seed clear
+pnpm run db:seed
 ```
 
 # Seed

@@ -136,18 +136,6 @@ async function seedDevAccounts() {
     }
   })
 
-  // Dev Admin Profile
-  await prisma.admin.upsert({
-    where: { accountId: devAdminAccountId },
-    update: {},
-    create: {
-      id: devAdminAccountId,
-      accountId: devAdminAccountId,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
   console.log('✅ Development accounts seeded')
 }
 

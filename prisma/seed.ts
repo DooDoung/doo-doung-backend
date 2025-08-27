@@ -315,25 +315,6 @@ async function seedProphets() {
   console.log(`✅ Seeded ${successCount} prophets (${errorCount} skipped)`)
 }
 
-async function seedAdmins() {
-  console.log('👨‍💼 Seeding admins...')
-  const data = await readCSV('admins.csv')
-  
-  for (const row of data) {
-    await prisma.admin.upsert({
-      where: { id: parseValue(row.id, 'string') },
-      update: {},
-      create: {
-        id: parseValue(row.id, 'string'),
-        accountId: parseValue(row.account_id, 'string'),
-        createdAt: parseValue(row.created_at, 'datetime'),
-        updatedAt: parseValue(row.updated_at, 'datetime'),
-      }
-    })
-  }
-  console.log(`✅ Seeded ${data.length} admins`)
-}
-
 async function seedProphetAvailabilities() {
   console.log('📅 Seeding prophet availabilities...')
   const data = await readCSV('prophet_availabilities.csv')
@@ -614,7 +595,7 @@ async function seedReports() {
       
       // Check if admin exists (if adminId is provided)
       if (adminId) {
-        const adminExists = await prisma.admin.findUnique({
+        const adminExists = await prisma.account.findUnique({
           where: { id: adminId },
           select: { id: true }
         })
@@ -659,7 +640,6 @@ async function seedAllTables() {
   await seedUserDetails()
   await seedCustomers()
   await seedProphets()
-  await seedAdmins()
   await seedProphetAvailabilities()
   await seedProphetMethods()
   await seedCourses()
@@ -690,9 +670,6 @@ async function seedTable(tableName: string) {
       break
     case 'prophet':
       await seedProphets()
-      break
-    case 'admin':
-      await seedAdmins()
       break
     case 'prophet_availability':
       await seedProphetAvailabilities()

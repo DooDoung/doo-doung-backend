@@ -168,17 +168,6 @@ def generate_prophets(prophet_accounts):
         })
     return prophets
 
-def generate_admins(admin_accounts):
-    admins = []
-    for acc in admin_accounts:
-        admins.append({
-            "id": short_id(),
-            "account_id": acc["id"],
-            "created_at": now.isoformat(),
-            "updated_at": now.isoformat()
-        })
-    return admins
-
 def generate_prophet_methods(prophets, horoscope_methods):
     prophet_methods = []
     for prophet in prophets:
@@ -447,9 +436,7 @@ def main():
     save_csv("prophets", prophets)
 
     # Admins (only from ADMIN accounts)
-    admin_accounts = [a for a in accounts if a["role"] == "ADMIN"]
-    admins = generate_admins(admin_accounts)
-    save_csv("admins", admins)
+    admins = [a for a in accounts if a["role"] == "ADMIN"]
 
     # Prophet Methods
     prophet_methods = generate_prophet_methods(prophets, horoscope_methods)

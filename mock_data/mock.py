@@ -16,7 +16,7 @@ HOROSCOPE_SECTORS = ['LOVE', 'WORK', 'STUDY', 'MONEY', 'LUCK', 'FAMILY']
 BOOKING_STATUSES = ['SCHEDULED', 'COMPLETED', 'FAILED']
 TRANSACTION_STATUSES = ['PROCESSING', 'COMPLETED', 'FAILED']
 REPORT_TYPES = ['COURSE_ISSUE', 'PROPHET_ISSUE', 'PAYMENT_ISSUE', 'WEBSITE_ISSUE', 'OTHER']
-REPORT_STATUSES = ['PENDING', 'FIXING', 'DONE']
+REPORT_STATUSES = ['PENDING', 'DISCARD', 'DONE']
 ZODIAC_SIGNS = ['ARIES', 'TAURUS', 'GEMINI', 'CANCER', 'LEO', 'VIRGO', 'LIBRA', 'SCORPIO', 'SAGITTARIUS', 'CAPRICORN', 'AQUARIUS', 'PISCES']
 BANKS = ['BBL', 'KTB', 'KBANK', 'SCB', 'BAY', 'TTB', 'CIMB', 'UOB', 'GSB', 'BAAC']
 ROLES = ['PROPHET', 'CUSTOMER', 'ADMIN']
@@ -152,7 +152,8 @@ def generate_customers(customer_accounts):
             "birth_time": birth_time.time().strftime("%H:%M:%S"),
             "zodiac_sign": random.choice(ZODIAC_SIGNS),
             "created_at": now.isoformat(),
-            "updated_at": now.isoformat()
+            "updated_at": now.isoformat(),
+            "is_public": random.choice([True, False]),
         })
     return customers
 

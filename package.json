@@ -9,6 +9,7 @@
   "scripts": {
     "prepare": "husky",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:dev": "tsx prisma/dev-seed.ts",
     "db:generate": "npx prisma generate",
     "db:migrate": "npx prisma migrate dev",
     "db:reset": "npx prisma migrate reset"

@@ -33,6 +33,12 @@ pnpm run db:seed [tableName]
 
 pnpm run db:seed clear [tableName]
 
-### Seed dev accounts
+### Seed dev data
 
-pnpm run db:seed dev_accounts
+pnpm run db:seed:dev
+
+# Dev accounts
+
+dev_customer , pass : dev_password
+dev_prophet , pass : dev_password
+dev_admin , pass : dev_password

@@ -16,7 +16,7 @@ HOROSCOPE_SECTORS = ['LOVE', 'WORK', 'STUDY', 'MONEY', 'LUCK', 'FAMILY']
 BOOKING_STATUSES = ['SCHEDULED', 'COMPLETED', 'FAILED']
 TRANSACTION_STATUSES = ['PROCESSING', 'COMPLETED', 'FAILED']
 REPORT_TYPES = ['COURSE_ISSUE', 'PROPHET_ISSUE', 'PAYMENT_ISSUE', 'WEBSITE_ISSUE', 'OTHER']
-REPORT_STATUSES = ['PENDING', 'DISCARD', 'DONE']
+REPORT_STATUSES = ['DISCARD', 'DONE']
 ZODIAC_SIGNS = ['ARIES', 'TAURUS', 'GEMINI', 'CANCER', 'LEO', 'VIRGO', 'LIBRA', 'SCORPIO', 'SAGITTARIUS', 'CAPRICORN', 'AQUARIUS', 'PISCES']
 BANKS = ['BBL', 'KTB', 'KBANK', 'SCB', 'BAY', 'TTB', 'CIMB', 'UOB', 'GSB', 'BAAC']
 ROLES = ['PROPHET', 'CUSTOMER', 'ADMIN']
@@ -124,10 +124,9 @@ def generate_horoscope_methods():
 
 def generate_user_details(accounts):
     user_details = []
-    for i, acc in enumerate(accounts):
+    for acc in accounts:
         first, last = random_name()
         user_details.append({
-            "id": i + 1,  # Explicitly set auto-increment ID
             "account_id": acc["id"],
             "name": first,
             "lastname": last,
@@ -417,7 +416,7 @@ def generate_reports(customers, admins):
                         "Received poor quality service.",
                         "Technical issues during the session."
                     ]),
-                    "report_status": random.choice(REPORT_STATUSES),
+                    "report_status": random.choice(REPORT_STATUSES) if admin else "PENDING",
                     "created_at": now.isoformat(),
                     "updated_at": now.isoformat()
                 })

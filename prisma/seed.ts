@@ -149,148 +149,6 @@ async function clearTable(tableName: string) {
 }
 
 // Seed functions
-async function seedDevAccounts() {
-  console.log('🛠️ Seeding development accounts...')
-
-  // Dev Customer Account
-  const devCustomerAccountId = 'dev_customer_001'
-  const devCustomerAccount = await prisma.account.upsert({
-    where: { username: 'dev_customer' },
-    update: {},
-    create: {
-      id: devCustomerAccountId,
-      email: 'dev_customer@gmail.com',
-      username: 'dev_customer',
-      passwordHash: await bcrypt.hash('dev_password', 10),
-      role: 'CUSTOMER',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Customer User Detail
-  await prisma.userDetail.upsert({
-    where: { accountId: devCustomerAccountId },
-    update: {},
-    create: {
-      accountId: devCustomerAccountId,
-      name: 'Dev',
-      lastname: 'Customer',
-      profileUrl: 'https://example.com/profile/dev_customer.jpg',
-      phoneNumber: '+66812345678',
-      gender: 'UNDEFINED',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Customer Profile
-  await prisma.customer.upsert({
-    where: { accountId: devCustomerAccountId },
-    update: {},
-    create: {
-      id: devCustomerAccountId,
-      accountId: devCustomerAccountId,
-      birthDate: new Date('1990-01-01'),
-      birthTime: new Date('1970-01-01T12:00:00.000Z'),
-      zodiacSign: 'AQUARIUS',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Prophet Account
-  const devProphetAccountId = 'dev_prophet_001'
-  const devProphetAccount = await prisma.account.upsert({
-    where: { username: 'dev_prophet' },
-    update: {},
-    create: {
-      id: devProphetAccountId,
-      email: 'dev_prophet@gmail.com',
-      username: 'dev_prophet',
-      passwordHash: await bcrypt.hash('dev_password', 10),
-      role: 'PROPHET',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Prophet User Detail
-  await prisma.userDetail.upsert({
-    where: { accountId: devProphetAccountId },
-    update: {},
-    create: {
-      accountId: devProphetAccountId,
-      name: 'Dev',
-      lastname: 'Prophet',
-      profileUrl: 'https://example.com/profile/dev_prophet.jpg',
-      phoneNumber: '+66812345679',
-      gender: 'UNDEFINED',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Prophet Profile
-  await prisma.prophet.upsert({
-    where: { accountId: devProphetAccountId },
-    update: {},
-    create: {
-      id: devProphetAccountId,
-      accountId: devProphetAccountId,
-      lineId: 'dev_prophet_line',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Admin Account
-  const devAdminAccountId = 'dev_admin_001'
-  const devAdminAccount = await prisma.account.upsert({
-    where: { username: 'dev_admin' },
-    update: {},
-    create: {
-      id: devAdminAccountId,
-      email: 'dev_admin@gmail.com',
-      username: 'dev_admin',
-      passwordHash: await bcrypt.hash('dev_password', 10),
-      role: 'ADMIN',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Admin User Detail
-  await prisma.userDetail.upsert({
-    where: { accountId: devAdminAccountId },
-    update: {},
-    create: {
-      accountId: devAdminAccountId,
-      name: 'Dev',
-      lastname: 'Admin',
-      profileUrl: 'https://example.com/profile/dev_admin.jpg',
-      phoneNumber: '+66812345680',
-      gender: 'UNDEFINED',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Admin Profile
-  await prisma.admin.upsert({
-    where: { accountId: devAdminAccountId },
-    update: {},
-    create: {
-      id: devAdminAccountId,
-      accountId: devAdminAccountId,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  console.log('✅ Development accounts seeded')
-}
-
 async function seedHoroscopeMethods() {
   console.log('🌟 Seeding horoscope methods...')
   const data = await readCSV('horoscope_methods.csv')
@@ -366,10 +224,16 @@ async function seedUserDetails() {
   
   for (const row of data) {
     await prisma.userDetail.upsert({
-      where: { id: parseValue(row.id, 'number') },
-      update: {},
+      where: { accountId: parseValue(row.account_id, 'string') },
+      update: {
+        name: parseValue(row.name, 'string'),
+        lastname: parseValue(row.lastname, 'string'),
+        profileUrl: parseValue(row.profile_url, 'string'),
+        phoneNumber: parseValue(row.phone_number, 'string'),
+        gender: parseValue(row.gender, 'string') as any,
+        updatedAt: new Date()
+      },
       create: {
-        id: parseValue(row.id, 'number'),
         accountId: parseValue(row.account_id, 'string'),
         name: parseValue(row.name, 'string'),
         lastname: parseValue(row.lastname, 'string'),
@@ -790,7 +654,6 @@ async function seedAllTables() {
   console.log('🌱 Starting full database seeding...')
   
   // Seed in dependency order
-  await seedDevAccounts()
   await seedHoroscopeMethods()
   await seedAccounts()
   await seedUserDetails()
@@ -813,9 +676,6 @@ async function seedTable(tableName: string) {
   console.log(`🌱 Seeding table: ${tableName}`)
   
   switch (tableName.toLowerCase()) {
-    case 'dev_account':
-      await seedDevAccounts()
-      break
     case 'horoscope_method':
       await seedHoroscopeMethods()
       break

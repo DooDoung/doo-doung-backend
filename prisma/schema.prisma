@@ -98,7 +98,7 @@ model Account {
   userDetail UserDetail?
   customer   Customer?
   prophet    Prophet?
-  admin      Admin?
+  Report     Report[]
 
   @@map("account")
 }
@@ -288,19 +288,6 @@ model Review {
   @@map("review")
 }
 
-model Admin {
-  id        String @id @map("id") @db.VarChar(16)
-  accountId String @unique @map("account_id") @db.VarChar(16)
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  account Account  @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  reports Report[]
-
-  @@map("admin")
-}
-
 model Report {
   id           String       @id @map("id") @db.VarChar(16)
   customerId   String       @map("customer_id") @db.VarChar(16)
@@ -314,7 +301,7 @@ model Report {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   customer Customer @relation(fields: [customerId], references: [id])
-  admin    Admin?   @relation(fields: [adminId], references: [id])
+  admin    Account? @relation(fields: [adminId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([reportStatus])
   @@index([reportType])

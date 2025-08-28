@@ -13,6 +13,8 @@ export default tseslint.config(
       "*.config.js",
       "*.config.mjs",
       ".husky/**",
+      "prisma/**",
+      "generated/**",
     ],
   },
 

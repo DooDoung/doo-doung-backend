@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -17,8 +11,303 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ENUMS
+enum Sex {
+  MALE       @map("male")
+  FEMALE     @map("female")
+  LGBTQ_PLUS @map("lgbtq_plus")
+  UNDEFINED  @map("undefined")
+}
+
+enum HoroscopeSector {
+  LOVE   @map("love")
+  WORK   @map("work")
+  STUDY  @map("study")
+  MONEY  @map("money")
+  LUCK   @map("luck")
+  FAMILY @map("family")
+}
+
+enum BookingStatus {
+  SCHEDULED @map("scheduled")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+}
+
+enum TransactionStatus {
+  PROCESSING @map("processing")
+  COMPLETED  @map("completed")
+  FAILED     @map("failed")
+}
+
+enum ReportType {
+  COURSE_ISSUE  @map("course_issue")
+  PROPHET_ISSUE @map("prophet_issue")
+  PAYMENT_ISSUE @map("payment_issue")
+  WEBSITE_ISSUE @map("website_issue")
+  OTHER         @map("other")
+}
+
+enum ReportStatus {
+  PENDING @map("pending")
+  DONE    @map("done")
+  DISCARD @map("discard")
+}
+
+enum ZodiacSign {
+  ARIES       @map("aries")
+  TAURUS      @map("taurus")
+  GEMINI      @map("gemini")
+  CANCER      @map("cancer")
+  LEO         @map("leo")
+  VIRGO       @map("virgo")
+  LIBRA       @map("libra")
+  SCORPIO     @map("scorpio")
+  SAGITTARIUS @map("sagittarius")
+  CAPRICORN   @map("capricorn")
+  AQUARIUS    @map("aquarius")
+  PISCES      @map("pisces")
+}
+
+enum Bank {
+  BBL   @map("bbl") // Bangkok Bank
+  KTB   @map("ktb") // Krungthai Bank
+  KBANK @map("kbank") // Kasikorn Bank
+  SCB   @map("scb") // Siam Commercial Bank
+  BAY   @map("bay") // Krungsri
+  TTB   @map("ttb") // TMBThanachart
+  CIMB  @map("cimb") // CIMB Thai
+  UOB   @map("uob") // UOB Thai
+  GSB   @map("gsb") // Government Savings Bank
+  BAAC  @map("baac") // Bank for Agriculture
+}
+
+enum Role {
+  PROPHET  @map("prophet")
+  CUSTOMER @map("customer")
+  ADMIN    @map("admin")
+}
+
+// MODELS
 model Account {
-  account_id String  @id @db.VarChar(16)
-  username   String  @db.VarChar(16)
-  password   String  @db.VarChar(45)
+  id           String @id @map("id") @db.VarChar(16)
+  email        String @unique @map("email") @db.VarChar(50)
+  username     String @unique @map("username") @db.VarChar(30)
+  passwordHash String @map("password_hash") @db.VarChar(72)
+  role         Role   @map("role")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userDetail UserDetail?
+  customer   Customer?
+  prophet    Prophet?
+  Report     Report[]
+
+  @@map("account")
+}
+
+model UserDetail {
+  id          Int     @id @default(autoincrement()) @map("id")
+  accountId   String  @unique @map("account_id") @db.VarChar(16)
+  name        String  @map("name") @db.VarChar(45)
+  lastname    String  @map("lastname") @db.VarChar(45)
+  profileUrl  String? @map("profile_url") @db.VarChar(255)
+  phoneNumber String  @map("phone_number") @db.VarChar(20)
+  gender      Sex     @map("gender")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("user_detail")
+}
+
+model Customer {
+  id         String     @id @map("id") @db.VarChar(16)
+  accountId  String     @unique @map("account_id") @db.VarChar(16)
+  birthDate  DateTime   @map("birth_date") @db.Date
+  birthTime  DateTime   @map("birth_time") @db.Time
+  zodiacSign ZodiacSign @map("zodiac_sign")
+  isPublic   Boolean    @default(true) @map("is_public")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  account  Account   @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  bookings Booking[]
+  reviews  Review[]
+  reports  Report[]
+
+  @@map("customer")
+}
+
+model Prophet {
+  id        String @id @map("id") @db.VarChar(16)
+  accountId String @unique @map("account_id") @db.VarChar(16)
+  lineId    String @map("line_id") @db.VarChar(20)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  account      Account               @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  availability ProphetAvailability[]
+  methods      ProphetMethod[]
+  courses      Course[]
+  bookings     Booking[]
+  txAccounts   TransactionAccount[]
+
+  @@map("prophet")
+}
+
+model ProphetAvailability {
+  id        Int      @id @default(autoincrement()) @map("id")
+  prophetId String   @map("prophet_id") @db.VarChar(16)
+  date      DateTime @map("date") @db.Date
+  startTime DateTime @map("start_time") @db.Time
+  endTime   DateTime @map("end_time") @db.Time
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  prophet Prophet @relation(fields: [prophetId], references: [id])
+
+  @@unique([prophetId, date, startTime, endTime])
+  @@index([prophetId, date])
+  @@map("prophet_availability")
+}
+
+model HoroscopeMethod {
+  id   Int    @id @default(autoincrement()) @map("id")
+  slug String @unique @map("slug") @db.VarChar(32)
+  name String @map("name") @db.VarChar(64)
+
+  prophetMethods ProphetMethod[]
+  courses        Course[]
+
+  @@map("horoscope_method")
+}
+
+model ProphetMethod {
+  prophetId String @map("prophet_id") @db.VarChar(16)
+  methodId  Int    @map("method_id")
+
+  prophet Prophet         @relation(fields: [prophetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  method  HoroscopeMethod @relation(fields: [methodId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([prophetId, methodId])
+  @@index([methodId])
+  @@map("prophet_method")
+}
+
+model Course {
+  id                String          @id @map("id") @db.VarChar(16)
+  prophetId         String          @map("prophet_id") @db.VarChar(16)
+  courseName        String          @map("course_name") @db.VarChar(50)
+  horoscopeMethodId Int             @map("horoscope_method_id")
+  horoscopeSector   HoroscopeSector @map("horoscope_sector")
+  durationMin       Int             @map("duration_min")
+  price             Decimal         @map("price") @db.Decimal(7, 2)
+  isActive          Boolean         @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  prophet         Prophet         @relation(fields: [prophetId], references: [id])
+  horoscopeMethod HoroscopeMethod @relation(fields: [horoscopeMethodId], references: [id])
+  bookings        Booking[]
+
+  @@index([prophetId])
+  @@index([horoscopeMethodId])
+  @@map("course")
+}
+
+model Booking {
+  id            String        @id @map("id") @db.VarChar(16)
+  customerId    String        @map("customer_id") @db.VarChar(16)
+  courseId      String        @map("course_id") @db.VarChar(16)
+  prophetId     String        @map("prophet_id") @db.VarChar(16)
+  startDateTime DateTime      @map("start_datetime")
+  endDateTime   DateTime      @map("end_datetime")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  status        BookingStatus @map("status")
+
+  customer    Customer     @relation(fields: [customerId], references: [id])
+  course      Course       @relation(fields: [courseId], references: [id])
+  prophet     Prophet      @relation(fields: [prophetId], references: [id])
+  transaction Transaction?
+  reviews     Review[]
+
+  @@unique([prophetId, startDateTime, endDateTime])
+  @@index([customerId])
+  @@index([prophetId, startDateTime, endDateTime, status])
+  @@map("booking")
+}
+
+model Transaction {
+  id        String            @id @map("id") @db.VarChar(16)
+  bookingId String            @unique @map("booking_id") @db.VarChar(16)
+  status    TransactionStatus @map("status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("transaction")
+}
+
+model TransactionAccount {
+  id            String @id @map("id") @db.VarChar(16)
+  prophetId     String @map("prophet_id") @db.VarChar(16)
+  accountName   String @map("account_name") @db.VarChar(45)
+  accountNumber String @map("account_number") @db.VarChar(20)
+  bank          Bank   @map("bank")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  prophet Prophet @relation(fields: [prophetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([prophetId, bank, accountNumber])
+  @@index([prophetId])
+  @@map("transaction_account")
+}
+
+model Review {
+  id          String  @id @map("id") @db.VarChar(16)
+  customerId  String  @map("customer_id") @db.VarChar(16)
+  bookingId   String  @unique @map("booking_id") @db.VarChar(16)
+  score       Int     @map("score")
+  description String? @map("description") @db.Text
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  booking  Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([bookingId])
+  @@map("review")
+}
+
+model Report {
+  id           String       @id @map("id") @db.VarChar(16)
+  customerId   String       @map("customer_id") @db.VarChar(16)
+  adminId      String?      @map("admin_id") @db.VarChar(16)
+  reportType   ReportType   @map("report_type")
+  topic        String       @map("topic") @db.VarChar(100)
+  description  String       @map("description") @db.Text
+  reportStatus ReportStatus @default(PENDING) @map("report_status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  admin    Account? @relation(fields: [adminId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([reportStatus])
+  @@index([reportType])
+  @@map("report")
 }

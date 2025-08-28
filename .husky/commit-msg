@@ -1,2 +1,2 @@
 #!/bin/sh
-node .husky/validate-commit-msg.js "$1"
+node .husky/validate-commit-msg.cjs "$1"

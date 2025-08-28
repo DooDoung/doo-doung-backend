@@ -2,9 +2,13 @@
   "name": "doo-doung-backend",
   "version": "1.0.0",
   "description": "Backend for DooDoung project",
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "prepare": "husky",
-    "seed": "node seed.js",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:dev": "tsx prisma/dev-seed.ts",
     "start": "nest start",
     "dev": "nest start --watch",
     "build": "nest build",
@@ -23,7 +27,11 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "bcrypt": "^6.0.0",
+    "csv-parser": "^3.2.0",
+    "fast-csv": "^5.0.5",
+    "papaparse": "^5.5.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
@@ -35,11 +43,14 @@
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
+    "@types/bcrypt": "^6.0.0",
+    "@types/papaparse": "^5.3.16",
     "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "prisma": "^6.13.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.41.0"
+    "typescript-eslint": "^8.41.0",
+    "tsx": "^4.20.5"
   }
 }

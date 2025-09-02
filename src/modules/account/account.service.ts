@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { AccountRepository } from "./account.repository"
 import { Role } from "@prisma/client"
-import { MeResponse } from "./interface/get-account.interface"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
 
@@ -13,7 +12,7 @@ export class AccountService {
     private readonly prophetService: ProphetService
   ) {}
 
-  async getMyAccount(): Promise<MeResponse> {
+  async getMyAccount() {
     const tmpAccountId = "01f580f4e5ab4d0f"
     const account = await this.repo.findBaseById(tmpAccountId, {
       username: true,

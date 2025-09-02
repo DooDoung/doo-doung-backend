@@ -6,6 +6,7 @@ import { JwtModule } from "@nestjs/jwt"
 import { AuthController } from "./auth.controller"
 import { ConfigModule, ConfigService } from "@nestjs/config"
 
+// TO DO: include this module in app module to use
 @Module({
   imports: [
     UsersModule,

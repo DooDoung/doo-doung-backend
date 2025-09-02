@@ -4,7 +4,7 @@ import { AuthService } from "./auth.service"
 import { LoginResult } from "./interface/login-result.interface"
 import { TransformInterceptor } from "../common/interceptors/transform.interceptor"
 
-@UseInterceptors(TransformInterceptor) // use in local first, will apply to global later
+@UseInterceptors(TransformInterceptor) // TO DO: use in local first, move to global later
 @Controller("auth")
 export class AuthController {
   constructor(private readonly auth: AuthService) {}

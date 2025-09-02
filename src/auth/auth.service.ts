@@ -59,7 +59,6 @@ export class AuthService {
     return {
       user: safeUser,
       accessToken,
-      tokenType: "Bearer",
       expiresAt: (decoded?.exp ?? 0) * 1000,
     }
   }

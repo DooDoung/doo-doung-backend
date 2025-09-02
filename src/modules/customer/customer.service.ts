@@ -10,11 +10,13 @@ export class CustomerService {
       zodiacSign: true,
       birthDate: true,
       birthTime: true,
+      isPublic: true,
     })
     return {
       zodiacSign: customer?.zodiacSign ?? null,
       birthDate: customer?.birthDate ?? null,
       birthTime: customer?.birthTime ?? null,
+      isPublic: customer?.isPublic ?? null,
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common"
+import { Controller, Get, Param } from "@nestjs/common"
 import { AccountService } from "./account.service"
 
 @Controller("account")
@@ -8,5 +8,10 @@ export class AccountController {
   @Get()
   get() {
     return this.service.getMyAccount()
+  }
+
+  @Get(":id")
+  getById(@Param("id") id: string) {
+    return this.service.getAccountById(id)
   }
 }

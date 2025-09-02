@@ -2,7 +2,7 @@
 import { Body, Controller, Post, UseInterceptors } from "@nestjs/common"
 import { AuthService } from "./auth.service"
 import { LoginResult } from "./interface/login-result.interface"
-import { TransformInterceptor } from "../common/interceptors/transform.interceptor"
+import { TransformInterceptor } from "src/common/interceptors/transform.interceptor";
 
 @UseInterceptors(TransformInterceptor) // TO DO: use in local first, move to global later
 @Controller("auth")

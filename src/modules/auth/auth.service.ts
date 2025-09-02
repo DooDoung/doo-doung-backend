@@ -1,7 +1,7 @@
 // auth.service.ts
 import { Injectable, UnauthorizedException } from "@nestjs/common"
 import { UsersService } from "../users/users.service"
-import { comparePassword } from "../utils/hash.util"
+import { comparePassword } from "src/utils/hash.util"
 import { JwtService } from "@nestjs/jwt"
 import { ConfigService } from "@nestjs/config"
 import { LoginResult } from "./interface/login-result.interface"

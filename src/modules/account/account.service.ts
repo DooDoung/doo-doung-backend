@@ -4,7 +4,10 @@ import { Role } from "@prisma/client"
 import { MeResponse } from "./interface/get-account.interface"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
+<<<<<<< HEAD
 import { Account } from "src/common/types/account.types"
+=======
+>>>>>>> a10f17d (add: create get my account logic)
 
 @Injectable()
 export class AccountService {
@@ -45,6 +48,7 @@ export class AccountService {
 
     throw new NotFoundException("Role not found")
   }
+<<<<<<< HEAD
 
   async getAccountByUsername(username : string): Promise<Account> {
     const account = await this.repo.findAccountByUsername(username, {
@@ -58,4 +62,6 @@ export class AccountService {
 
     return account
   }
+=======
+>>>>>>> a10f17d (add: create get my account logic)
 }

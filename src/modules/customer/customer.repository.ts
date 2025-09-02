@@ -1,6 +1,10 @@
 import { Injectable } from "@nestjs/common"
 import { Prisma } from "@prisma/client"
+<<<<<<< HEAD
 import { PrismaService } from "@/db/prisma.service"
+=======
+import { PrismaService } from "../../db/prisma.service"
+>>>>>>> a10f17d (add: create get my account logic)
 
 @Injectable()
 export class CustomerRepository {

@@ -18,4 +18,14 @@ export class AccountRepository {
       select,
     })
   }
+  
+  findAccountByUsername<S extends Prisma.AccountSelect>(
+    username: string,
+    select: S
+  ): Promise<Prisma.AccountGetPayload<{ select: S }> | null> {
+    return this.prisma.account.findUnique({
+      where: { username },
+      select,
+    })
+  }
 }

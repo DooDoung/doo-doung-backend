@@ -1,11 +1,11 @@
 // auth.service.ts
 import { Injectable, UnauthorizedException } from "@nestjs/common"
 import { AccountService } from "src/modules/account/account.service"
-import { comparePassword } from "src/utils/hash.util"
 import { JwtService } from "@nestjs/jwt"
 import { ConfigService } from "@nestjs/config"
 import { LoginResult } from "./interface/login-result.interface"
 import { Account } from "src/common/types/account.types"
+import { HashUtils } from "@/common/utils/hash.util"
 
 type JwtPayload = {
   sub: string
@@ -19,14 +19,16 @@ export class AuthService {
   constructor(
     private accountService: AccountService,
     private jwtService: JwtService,
-    private config: ConfigService
+    private config: ConfigService,
+    private readonly hashUtils: HashUtils
   ) {}
 
   async login(username: string, pass: string): Promise<LoginResult> {
-    const user: Account = await this.accountService.getAccountByUsername(username)
+    const user: Account =
+      await this.accountService.getAccountByUsername(username)
     if (!user) throw new UnauthorizedException()
 
-    const ok = await comparePassword(pass, user.passwordHash)
+    const ok = await this.hashUtils.comparePassword(pass, user.passwordHash)
     if (!ok) throw new UnauthorizedException()
 
     const safeUser = {
@@ -43,14 +45,7 @@ export class AuthService {
       role: safeUser.role,
     }
 
-    const secret = this.config.get<string>("JWT_ACCESS_SECRET")!
-    const expiresIn = this.config.get<string>("JWT_ACCESS_EXPIRES") || "7d"
-
-    // sign jwt token
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret,
-      expiresIn,
-    })
+    const accessToken = await this.jwtService.signAsync(payload)
 
     // get expr timestamp
     const decoded = this.jwtService.decode(accessToken) as {

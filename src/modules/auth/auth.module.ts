@@ -5,25 +5,26 @@ import { AccountModule } from "src/modules/account/account.module"
 import { JwtModule } from "@nestjs/jwt"
 import { AuthController } from "./auth.controller"
 import { ConfigModule, ConfigService } from "@nestjs/config"
+import { HashUtils } from "@/common/utils/hash.util"
+import jwtConfig from "./config/jwt.config"
 
 // TO DO: include this module in app module to use
 @Module({
   imports: [
     AccountModule,
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        global: true,
-        secret: config.get<string>("JWT_ACCESS_SECRET"),
+      useFactory: async (config: ConfigService) => ({
+        secret: config.get<string>("jwt.secret"),
         signOptions: {
-          expiresIn: config.get<string>("JWT_ACCESS_EXPIRES") || "7d",
+          expiresIn: config.get<string>("jwt.expiresIn"),
         },
       }),
     }),
   ],
-  providers: [AuthService],
+  providers: [AuthService, HashUtils],
   controllers: [AuthController],
   exports: [AuthService],
 })

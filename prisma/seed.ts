@@ -337,7 +337,6 @@ async function seedProphetAvailabilities() {
     const prophetId = parseValue(row.prophet_id, "string")
     const date = parseValue(row.date, "date")
     const startTime = parseValue(row.start_time, "time")
-    const endTime = parseValue(row.end_time, "time")
 
     try {
       // Check if an identical availability already exists
@@ -346,7 +345,6 @@ async function seedProphetAvailabilities() {
           prophetId: prophetId,
           date: date,
           startTime: startTime,
-          endTime: endTime,
         },
       })
 
@@ -361,7 +359,6 @@ async function seedProphetAvailabilities() {
           prophetId: prophetId,
           date: date,
           startTime: startTime,
-          endTime: endTime,
           createdAt: parseValue(row.created_at, "datetime"),
           updatedAt: parseValue(row.updated_at, "datetime"),
         },

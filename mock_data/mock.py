@@ -186,46 +186,52 @@ def generate_prophet_methods(prophets, horoscope_methods):
 
 def generate_prophet_availabilities(prophets):
     prophet_availabilities = []
-    unique_availabilities = set()
-
+    
     for prophet in prophets:
+        # Track used dates and slots for this prophet
+        used_dates = set()
+        
+        # Generate availabilities for next 30 days
         for day_offset in range(0, 30, random.randint(1, 3)):
             date = datetime.now().date() + timedelta(days=day_offset)
             
-            num_slots = random.randint(1, 3)
-            used_times = set()
+            # Skip if this date has already been used for this prophet
+            if date in used_dates:
+                continue
             
-            for _ in range(num_slots):
-                attempts = 0
-                while attempts < 10:
-                    start_hour = random.randint(8, 18)
-                    start_minute = random.choice([0, 30])
-                    duration_hours = random.randint(1, 4)
-                    
-                    start_time = time(start_hour, start_minute)
-                    end_time = (datetime.combine(date, start_time) + timedelta(hours=duration_hours)).time()
-                    
-                    time_key = (start_time, end_time)
-                    unique_key = (prophet["id"], date.isoformat(), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
-                    
-                    if (time_key not in used_times and 
-                        end_time.hour <= 22 and 
-                        unique_key not in unique_availabilities):
-                        
-                        used_times.add(time_key)
-                        unique_availabilities.add(unique_key)
-                        
-                        prophet_availabilities.append({
-                            # Remove the manual id
-                            "prophet_id": prophet["id"],
-                            "date": date.isoformat(),
-                            "start_time": start_time.strftime("%H:%M:%S"),
-                            "end_time": end_time.strftime("%H:%M:%S"),
-                            "created_at": now.isoformat(),
-                            "updated_at": now.isoformat()
-                        })
-                        break
-                    attempts += 1
+            # Randomly decide number of slots (1-3)
+            num_slots = random.randint(1, 3)
+            
+            # Sort slots to ensure no overlap
+            possible_slots = [(h, m) for h in range(7, 23) for m in [0, 15, 30, 45]]
+            random.shuffle(possible_slots)
+            
+            # Track used slots for this date
+            used_slots = set()
+            
+            for hour, minute in possible_slots:
+                if len(used_slots) >= num_slots:
+                    break
+                
+                start_time = time(hour, minute)
+                
+                # Ensure no overlap with existing slots
+                if any((s[0] == start_time.hour and s[1] == start_time.minute) for s in used_slots):
+                    continue
+                
+                # Add this slot
+                prophet_availabilities.append({
+                    "prophet_id": prophet["id"],
+                    "date": date.isoformat(),
+                    "start_time": start_time.strftime("%H:%M:%S"),
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat()
+                })
+                
+                used_slots.add((start_time.hour, start_time.minute))
+            
+            # Mark this date as used
+            used_dates.add(date)
 
     return prophet_availabilities
 
@@ -260,55 +266,100 @@ def generate_courses(prophets, horoscope_methods):
 
 def generate_bookings(customers, active_courses, prophet_availabilities):
     bookings = []
-    used_booking_slots = set()
-
+    
     for customer in customers:
         num_bookings = random.randint(0, 2)
         
         for _ in range(num_bookings):
             if not active_courses:
                 break
-                
-            attempts = 0
-            while attempts < 50:
-                course = random.choice(active_courses)
+            
+            # Shuffle courses to randomize selection
+            random.shuffle(active_courses)
+            
+            for course in active_courses:
                 prophet_id = course["prophet_id"]
                 
-                available_slots = [slot for slot in prophet_availabilities if slot["prophet_id"] == prophet_id]
+                # Find availabilities for this prophet
+                prophet_slots = [slot for slot in prophet_availabilities 
+                                 if slot["prophet_id"] == prophet_id]
                 
-                if not available_slots:
-                    attempts += 1
+                if not prophet_slots:
                     continue
+                
+                # Create a set of unavailable time slots
+                unavailable_slots = set()
+                for slot in prophet_slots:
+                    slot_date = datetime.strptime(slot["date"], "%Y-%m-%d").date()
+                    slot_start_time = datetime.strptime(slot["start_time"], "%H:%M:%S").time()
+                    unavailable_slots.add((slot_date, slot_start_time))
+                
+                # Find available dates
+                possible_dates = list(set(datetime.strptime(slot["date"], "%Y-%m-%d").date() for slot in prophet_slots))
+                
+                # Shuffle dates to randomize selection
+                random.shuffle(possible_dates)
+                
+                for date in possible_dates:
+                    # Calculate course duration
+                    course_duration = timedelta(minutes=int(course["duration_min"]))
                     
-                slot = random.choice(available_slots)
-                
-                slot_date = datetime.strptime(slot["date"], "%Y-%m-%d").date()
-                slot_start = datetime.strptime(slot["start_time"], "%H:%M:%S").time()
-                slot_end = datetime.strptime(slot["end_time"], "%H:%M:%S").time()
-                
-                start_datetime = datetime.combine(slot_date, slot_start)
-                course_duration = timedelta(minutes=int(course["duration_min"]))
-                end_datetime = start_datetime + course_duration
-                
-                if end_datetime.time() <= slot_end:
-                    slot_key = (prophet_id, start_datetime, end_datetime)
+                    # Try different start times
+                    possible_start_times = [
+                        time(h, m) for h in range(7, 23) 
+                        for m in [0, 15, 30, 45]
+                    ]
+                    random.shuffle(possible_start_times)
                     
-                    if slot_key not in used_booking_slots:
-                        used_booking_slots.add(slot_key)
+                    for start_time in possible_start_times:
+                        # Check if this time slot is completely free
+                        start_datetime = datetime.combine(date, start_time)
+                        end_datetime = start_datetime + course_duration
                         
-                        bookings.append({
-                            "id": short_id(),
-                            "customer_id": customer["id"],
-                            "course_id": course["id"],
-                            "prophet_id": prophet_id,
-                            "start_datetime": start_datetime.isoformat(),
-                            "end_datetime": end_datetime.isoformat(),
-                            "status": random.choice(BOOKING_STATUSES),
-                            "created_at": now.isoformat()
-                        })
+                        # Check if booking completely avoids unavailable slots
+                        slot_conflict = any(
+                            (date, slot_time) in unavailable_slots 
+                            for slot_time in (
+                                start_datetime.time(), 
+                                (start_datetime + timedelta(minutes=15)).time(),
+                                (start_datetime + timedelta(minutes=30)).time(),
+                                (start_datetime + timedelta(minutes=45)).time()
+                            )
+                        )
+                        
+                        # Check for existing booking conflicts
+                        existing_booking_conflict = any(
+                            b["prophet_id"] == prophet_id and 
+                            datetime.strptime(b["start_datetime"], "%Y-%m-%dT%H:%M:%S") < end_datetime and 
+                            datetime.strptime(b["end_datetime"], "%Y-%m-%dT%H:%M:%S") > start_datetime
+                            for b in bookings
+                        )
+                        
+                        # Ensure booking is within reasonable hours and no conflicts
+                        if (not slot_conflict and 
+                            not existing_booking_conflict and 
+                            end_datetime.time().hour < 24):
+                            
+                            bookings.append({
+                                "id": short_id(),
+                                "customer_id": customer["id"],
+                                "course_id": course["id"],
+                                "prophet_id": prophet_id,
+                                "start_datetime": start_datetime.isoformat(),
+                                "end_datetime": end_datetime.isoformat(),
+                                "status": random.choice(BOOKING_STATUSES),
+                                "created_at": now.isoformat()
+                            })
+                            break
+                    
+                    # Stop looking for more bookings if a booking was made
+                    if len(bookings) > 0 and bookings[-1]["customer_id"] == customer["id"]:
                         break
-                attempts += 1
-
+                
+                # Stop looking for more bookings if a booking was made
+                if len(bookings) > 0 and bookings[-1]["customer_id"] == customer["id"]:
+                    break
+    
     return bookings
 
 def generate_transactions(bookings):

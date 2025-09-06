@@ -166,14 +166,12 @@ model ProphetAvailability {
   prophetId String   @map("prophet_id") @db.VarChar(16)
   date      DateTime @map("date") @db.Date
   startTime DateTime @map("start_time") @db.Time
-  endTime   DateTime @map("end_time") @db.Time
-
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   prophet Prophet @relation(fields: [prophetId], references: [id])
 
-  @@unique([prophetId, date, startTime, endTime])
+  @@unique([prophetId, date, startTime])
   @@index([prophetId, date])
   @@map("prophet_availability")
 }

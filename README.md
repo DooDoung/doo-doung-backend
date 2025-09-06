@@ -63,24 +63,21 @@ dev_admin , pass : dev_password
 ```
 # Transform Interceptor
 
-Automatically formats controller responses into a consistent API structure.
+Automatically formats controller **success responses** into a consistent API structure like this.
 
-## How it works
-
-The interceptor wraps your controller responses based on what you return:
 
 | Controller Returns | Response Format |
 |---|---|
 | Any raw data | `{ "data": yourData }` |
-| `{ message: "..." }` | `{ "message": "..." }` (unchanged) |
 | `{ data: {...} }` | `{ "data": {...} }` (unchanged) |
-| `{ message: "...", data: {...} }` | `{ "message": "...", "data": {...} }` (unchanged) |
 | `null` or `undefined` | `{}` (empty object) |
 
-
-This apply globally for every api response!
-
-```typescript
-// main.ts
-app.useGlobalInterceptors(new TransformInterceptor())
+So basically, all response will look like this
 ```
+{ "data" : 
+    {
+    "somekey" : "somevalue"
+    }
+}
+```
+This apply globally for every success api response.

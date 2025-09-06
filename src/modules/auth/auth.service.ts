@@ -26,10 +26,10 @@ export class AuthService {
   async login(username: string, pass: string): Promise<LoginResult> {
     const user: Account =
       await this.accountService.getAccountByUsername(username)
-    if (!user) throw new UnauthorizedException()
+    if (!user) throw new UnauthorizedException("Invalid username or password")
 
     const ok = await this.hashUtils.comparePassword(pass, user.passwordHash)
-    if (!ok) throw new UnauthorizedException()
+    if (!ok) throw new UnauthorizedException("Invalid username or password")
 
     const safeUser = {
       id: String(user.id),

@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common"
 import { Observable } from "rxjs"
 import { map } from "rxjs/operators"
-
+import { ApiResponse } from "../types/api-response.interface"
 /**
  * Transform Interceptor
  * 
@@ -15,11 +15,6 @@ import { map } from "rxjs/operators"
  * - Already formatted { message?, data? } → unchanged
  * - null/undefined → {} (empty object)
  */
-
-export interface ApiResponse<T = any> {
-  message?: string
-  data?: T
-}
 
 @Injectable()
 export class TransformInterceptor<T>
@@ -35,7 +30,7 @@ export class TransformInterceptor<T>
         if (
           data &&
           typeof data === "object" &&
-          ("message" in data || "data" in data)
+          ("data" in data)
         ) {
           return data as ApiResponse<T>
         }

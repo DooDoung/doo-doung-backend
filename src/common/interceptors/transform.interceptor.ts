@@ -1,4 +1,3 @@
-// src/common/interceptors/transform.interceptor.ts
 import {
   CallHandler,
   ExecutionContext,
@@ -7,7 +6,11 @@ import {
 } from "@nestjs/common"
 import { Observable } from "rxjs"
 import { map } from "rxjs/operators"
-import { ApiResponse } from "../types/api-response.interface"
+
+export interface ApiResponse<T = any> {
+  message?: string
+  data?: T
+}
 
 @Injectable()
 export class TransformInterceptor<T>
@@ -17,18 +20,24 @@ export class TransformInterceptor<T>
     _: ExecutionContext,
     next: CallHandler<T>
   ): Observable<ApiResponse<T>> {
-    // After finish controller, call this wrapper
     return next.handle().pipe(
       map((data: any) => {
+        // If data is already in the correct format, return as is
         if (
           data &&
           typeof data === "object" &&
-          "success" in data && //prevent from dubble wrap
-          ("data" in data || "message" in data)
+          ("message" in data || "data" in data)
         ) {
           return data as ApiResponse<T>
         }
-        return { success: true, data } as ApiResponse<T>
+
+        // If data is null/undefined, return empty response
+        if (data === null || data === undefined) {
+          return {} as ApiResponse<T>
+        }
+
+        // Default transformation: wrap data
+        return { data } as ApiResponse<T>
       })
     )
   }

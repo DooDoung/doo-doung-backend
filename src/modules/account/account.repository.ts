@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { Prisma } from "@prisma/client"
-import { PrismaService } from "../../db/prisma.service"
+import { PrismaService } from "@/db/prisma.service"
 
 type SafeAccountSelect = Omit<Prisma.AccountSelect, "passwordHash"> & {
   passwordHash?: never
@@ -18,7 +18,7 @@ export class AccountRepository {
       select,
     })
   }
-  
+
   findAccountByUsername<S extends Prisma.AccountSelect>(
     username: string,
     select: S

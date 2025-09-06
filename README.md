@@ -61,8 +61,9 @@ dev_customer , pass : dev_password
 dev_prophet , pass : dev_password
 dev_admin , pass : dev_password
 ```
-# Transform Interceptor
+# API Response
 
+## Success Response
 Automatically formats controller **success responses** into a consistent API structure like this.
 
 
@@ -81,3 +82,28 @@ So basically, all response will look like this
 }
 ```
 This apply globally for every success api response.
+
+
+## Error Response
+NestJS has a built-in **exception layer**.
+If a service/controller throws an exception, NestJS will catch it and return a structured JSON response.
+
+**Example: Unauthorized**
+```
+import { UnauthorizedException } from "@nestjs/common";
+
+@Get("protected")
+findProtected() {
+  throw new UnauthorizedException("Invalid token");
+}
+```
+
+
+**Response:**
+```
+{
+  "statusCode": 401,
+  "message": "Invalid token",
+  "error": "Unauthorized"
+}
+```

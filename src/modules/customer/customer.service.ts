@@ -19,4 +19,11 @@ export class CustomerService {
       isPublic: customer?.isPublic ?? null,
     }
   }
+  async getCustomerByAccountId(accountId: string) {
+    const customer = await this.repo.findByAccountId(accountId, {
+      id: true,
+      isPublic: true,
+    })
+    return { id: customer?.id, isPublic: customer?.isPublic }
+  }
 }

@@ -8,7 +8,6 @@ import { ConfigModule, ConfigService } from "@nestjs/config"
 import { HashUtils } from "@/common/utils/hash.util"
 import jwtConfig from "./config/jwt.config"
 
-// TO DO: include this module in app module to use
 @Module({
   imports: [
     AccountModule,

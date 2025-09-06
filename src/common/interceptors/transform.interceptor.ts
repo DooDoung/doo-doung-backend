@@ -7,6 +7,15 @@ import {
 import { Observable } from "rxjs"
 import { map } from "rxjs/operators"
 
+/**
+ * Transform Interceptor
+ * 
+ * Automatically wraps controller responses in a consistent format:
+ * - Raw data → { "data": rawData }
+ * - Already formatted { message?, data? } → unchanged
+ * - null/undefined → {} (empty object)
+ */
+
 export interface ApiResponse<T = any> {
   message?: string
   data?: T

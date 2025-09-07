@@ -84,6 +84,7 @@ export class AccountService {
       )
       return { ...base, role: Role.PROPHET, ...prophet }
     }
+    throw new NotFoundException("Role not found")
   }
 
   async getAccountByUsername(username: string): Promise<Account> {

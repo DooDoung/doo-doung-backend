@@ -37,7 +37,7 @@ export class TransformInterceptor<T>
 
         // If data is null/undefined, return empty response
         if (data === null || data === undefined) {
-          return {} as ApiResponse<T>
+          return { data: null } as ApiResponse<T>
         }
 
         // Default transformation: wrap data

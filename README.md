@@ -71,7 +71,7 @@ Automatically formats controller **success responses** into a consistent API str
 |---|---|
 | Any raw data | `{ "data": yourData }` |
 | `{ data: {...} }` | `{ "data": {...} }` (unchanged) |
-| `null` or `undefined` | `{}` (empty object) |
+| `null` or `undefined` | `{ "data": null }` (empty object) |
 
 So basically, all response will look like this
 ```

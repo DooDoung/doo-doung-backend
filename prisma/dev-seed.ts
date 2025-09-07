@@ -14,7 +14,7 @@ function generateShortId(prefix: string): string {
   return `${prefix}_${crypto.randomBytes(4).toString("hex")}`
 }
 
-// Step 1: Create Dev Accounts (What I showed in previous message)
+// Step 1: Create Dev Accounts
 async function createDevAccounts() {
   console.log("🛠️ Creating development accounts...")
 
@@ -165,7 +165,6 @@ async function createDevProphetAvailabilities() {
           date: availabilityDateTime,
           startTime: availabilityDateTime,
           createdAt: new Date(),
-          updatedAt: new Date(),
         },
       })
 

@@ -224,8 +224,7 @@ def generate_prophet_availabilities(prophets):
                     "prophet_id": prophet["id"],
                     "date": date.isoformat(),
                     "start_time": start_time.strftime("%H:%M:%S"),
-                    "created_at": now.isoformat(),
-                    "updated_at": now.isoformat()
+                    "created_at": now.isoformat()
                 })
                 
                 used_slots.add((start_time.hour, start_time.minute))

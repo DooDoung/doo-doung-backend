@@ -3,6 +3,7 @@ import { AccountRepository } from "./account.repository"
 import { Role } from "@prisma/client"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
+import { Account } from "src/common/types/account.types"
 
 @Injectable()
 export class AccountService {
@@ -83,5 +84,18 @@ export class AccountService {
       )
       return { ...base, role: Role.PROPHET, ...prophet }
     }
+  }
+
+  async getAccountByUsername(username: string): Promise<Account> {
+    const account = await this.repo.findAccountByUsername(username, {
+      id: true,
+      username: true,
+      email: true,
+      role: true,
+      passwordHash: true,
+    })
+    if (!account) throw new NotFoundException("Account not found")
+
+    return account
   }
 }

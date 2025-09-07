@@ -18,15 +18,18 @@ export class AccountService {
       username: true,
       email: true,
       role: true,
-      userDetail: { select: { phoneNumber: true, gender: true } },
+      userDetail: {
+        select: { phoneNumber: true, gender: true, profileUrl: true },
+      },
     })
     if (!account) throw new NotFoundException("Account not found")
 
     const base = {
       username: account.username,
       email: account.email,
-      phoneNumber: account.userDetail?.phoneNumber ?? null,
-      gender: account.userDetail?.gender ?? null,
+      phoneNumber: account.userDetail?.phoneNumber,
+      gender: account.userDetail?.gender,
+      profileUrl: account.userDetail?.profileUrl ?? null,
     }
 
     if (account.role === Role.CUSTOMER) {
@@ -52,14 +55,17 @@ export class AccountService {
       username: true,
       email: true,
       role: true,
-      userDetail: { select: { phoneNumber: true, gender: true } },
+      userDetail: {
+        select: { phoneNumber: true, gender: true, profileUrl: true },
+      },
     })
     if (!account) throw new NotFoundException("Account not found")
     const base = {
       username: account.username,
       email: account.email,
-      phoneNumber: account.userDetail?.phoneNumber ?? null,
-      gender: account.userDetail?.gender ?? null,
+      phoneNumber: account.userDetail?.phoneNumber,
+      gender: account.userDetail?.gender,
+      profileUrl: account.userDetail?.profileUrl ?? null,
     }
     if (account.role === Role.CUSTOMER) {
       const { isPublic, ...customer } =
@@ -67,7 +73,7 @@ export class AccountService {
       if (isPublic) {
         return { ...base, role: Role.CUSTOMER, ...customer }
       } else {
-        return { username: base.username }
+        return { username: base.username, profileUrl: base.profileUrl }
       }
     }
     if (account.role === Role.PROPHET) {

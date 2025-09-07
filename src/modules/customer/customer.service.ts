@@ -13,10 +13,10 @@ export class CustomerService {
       isPublic: true,
     })
     return {
-      zodiacSign: customer?.zodiacSign ?? null,
-      birthDate: customer?.birthDate ?? null,
-      birthTime: customer?.birthTime ?? null,
-      isPublic: customer?.isPublic ?? null,
+      zodiacSign: customer?.zodiacSign,
+      birthDate: customer?.birthDate,
+      birthTime: customer?.birthTime,
+      isPublic: customer?.isPublic,
     }
   }
   async getCustomerByAccountId(accountId: string) {

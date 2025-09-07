@@ -5,7 +5,7 @@ import { PrismaService } from "../../db/prisma.service"
 export class ReviewRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findByAccountId(customerId: string): Promise<
+  findByCustomerId(customerId: string): Promise<
     Array<{
       score: number
       description: string | null

@@ -18,7 +18,7 @@ export class ReviewService {
 
     //Todo: add validate own account
     if (customer.isPublic) {
-      const reviewData = await this.repo.findByAccountId(customer.id)
+      const reviewData = await this.repo.findByCustomerId(customer.id)
       const review = reviewData.map(r => ({
         score: r.score,
         description: r.description,

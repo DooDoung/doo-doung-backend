@@ -4,6 +4,7 @@ import { Role } from "@prisma/client"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
 import { Account } from "src/common/types/account.types"
+import { MeResponse } from "./interface/get-account.interface"
 
 @Injectable()
 export class AccountService {
@@ -13,7 +14,7 @@ export class AccountService {
     private readonly prophetService: ProphetService
   ) {}
 
-  async getMyAccount() {
+  async getMyAccount(): Promise<MeResponse> {
     const tmpAccountId = "01f580f4e5ab4d0f"
     const account = await this.repo.findBaseById(tmpAccountId, {
       username: true,

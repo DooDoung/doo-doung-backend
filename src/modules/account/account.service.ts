@@ -1,13 +1,10 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common"
 import { AccountRepository } from "./account.repository"
-import { Role } from "@prisma/client"
-import { MeResponse } from "./interface/get-account.interface"
+import { Role, Sex , ZodiacSign} from "@prisma/client"
+import { CustomerAccount, MeResponse, ProphetAccount } from "./interface/get-account.interface"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
-<<<<<<< HEAD
 import { Account } from "src/common/types/account.types"
-=======
->>>>>>> a10f17d (add: create get my account logic)
 
 @Injectable()
 export class AccountService {
@@ -48,7 +45,7 @@ export class AccountService {
 
     throw new NotFoundException("Role not found")
   }
-<<<<<<< HEAD
+
 
   async getAccountByUsername(username : string): Promise<Account> {
     const account = await this.repo.findAccountByUsername(username, {
@@ -62,6 +59,21 @@ export class AccountService {
 
     return account
   }
-=======
->>>>>>> a10f17d (add: create get my account logic)
+
+  async createAccount(role : Role, dto : any){
+    if (role === Role.CUSTOMER) 
+    {
+      dto = dto as CustomerAccount
+      const id = await this.repo.createBase(dto.username, dto.email, dto.passwordHash, Role.CUSTOMER, {name : dto.name, lastname : dto.lastname, phoneNumber : dto.phoneNumber, gender : dto.sex});
+      await this.customerService.createDetail(id, {zodiacSign : dto.zodiacSign, birthDate : dto.birthDate, birthTime : dto.birthTime});
+      return id;
+    
+    } else if (role === Role.PROPHET) {
+      dto = dto as ProphetAccount
+      const id = await this.repo.createBase(dto.username, dto.email, dto.passwordHash, Role.PROPHET, {name : dto.name, lastname : dto.lastname, phoneNumber : dto.phoneNumber, gender : dto.sex});
+      await this.prophetService.createProphetDetail(id, {txAccounts : dto.txAccounts ?? [], lineId : dto.lineId});
+      return id;
+    }
+    else throw new NotFoundException("Role not found")
+  }
 }

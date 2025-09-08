@@ -6,11 +6,6 @@ import { AuthModule } from "./modules/auth/auth.module"
 import { ConfigModule } from "@nestjs/config"
 import hashConfig from "@/config/hash.config"
 import { ReviewModule } from "./modules/review/review.module"
-import { AccountModule } from "./modules/account/account.module"
-import { AuthModule } from "./modules/auth/auth.module"
-import { ConfigModule } from "@nestjs/config"
-import hashConfig from "@/config/hash.config"
-
 @Module({
   imports: [
     AuthModule,

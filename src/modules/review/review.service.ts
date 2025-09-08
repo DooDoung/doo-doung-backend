@@ -19,12 +19,12 @@ export class ReviewService {
     //Todo: add validate own account
     if (customer.isPublic) {
       const reviewData = await this.repo.findByCustomerId(customer.id)
-      const review = reviewData.map(r => ({
+      const reviews = reviewData.map(r => ({
         score: r.score,
         description: r.description,
         courseName: r.booking.course.courseName,
       }))
-      return review
+      return reviews
     } else {
       return { reviews: [] }
     }

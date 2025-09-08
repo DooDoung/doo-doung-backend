@@ -1,11 +1,13 @@
 import { Injectable } from "@nestjs/common"
-import { Prisma } from "@prisma/client"
+import { Prisma, ZodiacSign } from "@prisma/client"
 import { PrismaService } from "../../db/prisma.service"
+import { NanoidGenerator } from "../../common/utils/nanoid"
 
 @Injectable()
 export class CustomerRepository {
   constructor(private readonly prisma: PrismaService) {}
-
+  private static nanoid = new NanoidGenerator(new PrismaService());
+  
   findByAccountId<S extends Prisma.CustomerSelect>(
     accountId: string,
     select: S
@@ -14,5 +16,22 @@ export class CustomerRepository {
       where: { accountId },
       select,
     })
+  }
+  async createCustomerDetail(
+    zodiacSign : ZodiacSign, 
+    birthDate : string, 
+    birthTime : string, 
+    accountId : string
+  ) {
+    const id = await CustomerRepository.nanoid.generateId();
+    return await this.prisma.customer.create({
+      data :{
+        id : id,
+        zodiacSign : zodiacSign,
+        birthDate : new Date(birthDate),
+        birthTime : new Date(`1970-01-01T${birthTime}Z`),
+        accountId: accountId
+      } as Prisma.CustomerUncheckedCreateInput
+    });
   }
 }

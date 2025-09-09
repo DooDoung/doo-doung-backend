@@ -25,7 +25,7 @@ export class MailService {
     const baseUrl = this.config.get<string>("app.frontendBaseUrl")!
 
     // https://doodoung.com/reset-password?token=...
-    const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(token)}`
+    const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password/token?token=${encodeURIComponent(token)}`
 
     const msg = new Brevo.SendSmtpEmail()
     msg.sender = { email: fromEmail, name: fromName }

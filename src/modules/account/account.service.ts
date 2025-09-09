@@ -99,4 +99,18 @@ export class AccountService {
 
     return account
   }
+
+  async findAccountByEmail(email: string): Promise<Account> {
+    const account = await this.repo.findAccountByEmail(email)
+    if (!account) throw new NotFoundException("Account not found")
+    return account
+  }
+
+  async updatePassword(
+    accountId: string,
+    hashedPassword: string
+  ): Promise<void> {
+    const account = await this.repo.updatePassword(accountId, hashedPassword)
+    if (!account) throw new NotFoundException("Account not found")
+  }
 }

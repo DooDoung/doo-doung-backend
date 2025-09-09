@@ -2,7 +2,6 @@ import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common"
 import { PrismaModule } from "./db/prisma.module"
 import { LoggerMiddleware } from "./common/middleware/logger.middleware"
 import { AccountModule } from "./modules/account/account.module"
-<<<<<<< HEAD
 import { AuthModule } from "./modules/auth/auth.module"
 import { ConfigModule } from "@nestjs/config"
 import hashConfig from "@/config/hash.config"
@@ -17,11 +16,11 @@ import hashConfig from "@/config/hash.config"
       load: [hashConfig], // load all separate config files
     }),
   ],
-=======
+})
+
 
 @Module({
   imports: [PrismaModule, AccountModule],
->>>>>>> a10f17d (add: create get my account logic)
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -103,6 +103,7 @@ model Account {
   customer   Customer?
   prophet    Prophet?
   Report     Report[]
+  resetTokens ResetPasswordToken[]
 
   @@map("account")
 }
@@ -310,4 +311,16 @@ model Report {
   @@index([reportStatus])
   @@index([reportType])
   @@map("report")
+}
+
+model ResetPasswordToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }

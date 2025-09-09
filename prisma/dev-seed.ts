@@ -301,16 +301,17 @@ async function createDevProphetTransactionAccounts() {
 
   console.log(`✅ Created ${selectedAccounts.length} transaction accounts`)
 }
-
-// Step 6: Bookings between Dev Customer and Other Prophets
+// Step 6: Bookings between Dev Customer and All Prophets
 async function createDevCustomerBookings() {
-  console.log("📅 Creating bookings for dev customer with other prophets...")
+  console.log("📅 Creating bookings for dev customer with all prophets...")
 
   const now = new Date()
 
-  // Fetch other prophets (excluding dev prophet)
-  const otherProphets = await prisma.prophet.findMany({
-    where: { id: { not: DEV_PROPHET_ID } },
+  // Fetch ALL prophets who have active courses
+  const allProphets = await prisma.prophet.findMany({
+    where: {
+      courses: { some: { isActive: true } },
+    },
     include: {
       courses: {
         where: { isActive: true },
@@ -319,110 +320,164 @@ async function createDevCustomerBookings() {
     },
   })
 
-  // Track booked slots to prevent conflicts
+  if (allProphets.length === 0) {
+    console.log("No prophets with active courses found. Skipping.")
+    return
+  }
+
+  // 1. Fetch all future availability for these prophets at once
+  const prophetIds = allProphets.map(p => p.id)
+  const allAvailabilities = await prisma.prophetAvailability.findMany({
+    where: {
+      prophetId: { in: prophetIds },
+      date: { gte: now }, // Only look for future slots
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+  })
+
+  // 2. Pre-process availabilities by grouping and sorting them by prophet
+  const availabilitiesByProphet = new Map()
+  for (const slot of allAvailabilities) {
+    if (!availabilitiesByProphet.has(slot.prophetId)) {
+      availabilitiesByProphet.set(slot.prophetId, [])
+    }
+    // Combine date and startTime into a single JS Date object
+    const startDateTime = new Date(slot.date)
+    startDateTime.setHours(
+      slot.startTime.getHours(),
+      slot.startTime.getMinutes(),
+      slot.startTime.getSeconds()
+    )
+    availabilitiesByProphet.get(slot.prophetId).push(startDateTime)
+  }
+
+  // This set will store unique keys for each 15-minute slot: `${prophetId}-${isoString}`
   const bookedSlots = new Set()
 
   // Create 4-5 bookings
-  for (let i = 0; i < Math.floor(Math.random() * 2) + 4; i++) {
-    // Select a random prophet
-    const prophet =
-      otherProphets[Math.floor(Math.random() * otherProphets.length)]
+  const bookingsToCreate = Math.floor(Math.random() * 2) + 4
+  for (let i = 0; i < bookingsToCreate; i++) {
+    // Select a random prophet from the full list
+    const prophet = allProphets[Math.floor(Math.random() * allProphets.length)]
 
-    // Skip if no active courses
     if (prophet.courses.length === 0) continue
 
     const course = prophet.courses[0]
+    const slotsNeeded = course.durationMin / 15
 
-    // Try to find a suitable booking slot
+    const prophetSlots = availabilitiesByProphet.get(prophet.id) || []
+
+    if (prophetSlots.length < slotsNeeded) {
+      continue
+    }
+
     let bookingCreated = false
-    for (let attempt = 0; attempt < 10; attempt++) {
-      // Generate a potential booking date
-      const bookingDate = new Date(now)
-      bookingDate.setDate(now.getDate() + i * 3 + attempt)
 
-      // Possible start times (ending in 0, 15, 30, 45)
-      const possibleMinutes = [0, 15, 30, 45]
-      const startHour = Math.floor(Math.random() * 14) + 8 // 8 AM to 9 PM
-      const startMinute =
-        possibleMinutes[Math.floor(Math.random() * possibleMinutes.length)]
+    // Create a shuffled list of possible start indices to search from
+    const possibleStartIndices = Array.from(
+      { length: prophetSlots.length - slotsNeeded + 1 },
+      (_, k) => k
+    )
+    for (let j = possibleStartIndices.length - 1; j > 0; j--) {
+      const randIndex = Math.floor(Math.random() * (j + 1))
+      ;[possibleStartIndices[j], possibleStartIndices[randIndex]] = [
+        possibleStartIndices[randIndex],
+        possibleStartIndices[j],
+      ]
+    }
 
-      bookingDate.setHours(startHour, startMinute, 0, 0)
+    // 3. Search for a consecutive, available block of slots
+    for (const startIndex of possibleStartIndices) {
+      const potentialSlots = prophetSlots.slice(
+        startIndex,
+        startIndex + slotsNeeded
+      )
 
-      // Skip if date is in the past
-      if (bookingDate < now) continue
+      const isAlreadyBooked = potentialSlots.some(slot =>
+        bookedSlots.has(`${prophet.id}-${slot.toISOString()}`)
+      )
+      if (isAlreadyBooked) continue
 
-      // Calculate end date based on course duration
-      const endDate = new Date(bookingDate)
-      endDate.setMinutes(bookingDate.getMinutes() + course.durationMin)
+      let isConsecutive = true
+      for (let k = 0; k < potentialSlots.length - 1; k++) {
+        const diffInMs =
+          potentialSlots[k + 1].getTime() - potentialSlots[k].getTime()
+        if (diffInMs !== 15 * 60 * 1000) {
+          // 15 minutes in milliseconds
+          isConsecutive = false
+          break
+        }
+      }
 
-      // Check for slot conflicts
-      const slotKey = `${prophet.id}-${bookingDate.toISOString()}-${endDate.toISOString()}`
-      if (bookedSlots.has(slotKey)) continue
+      if (isConsecutive) {
+        // Found a valid block, create the booking and related data
+        const startDateTime = potentialSlots[0]
+        const endDateTime = new Date(
+          potentialSlots[potentialSlots.length - 1].getTime() + 15 * 60 * 1000
+        )
 
-      // Create booking
-      const booking = await prisma.booking.create({
-        data: {
-          id: generateShortId("bk"),
-          customerId: DEV_CUSTOMER_ID,
-          courseId: course.id,
-          prophetId: prophet.id,
-          startDateTime: bookingDate,
-          endDateTime: endDate,
-          status: i === 0 ? "COMPLETED" : i === 1 ? "SCHEDULED" : "FAILED",
-          createdAt: new Date(),
-        },
-      })
-
-      // Create transaction
-      await prisma.transaction.create({
-        data: {
-          id: generateShortId("tx"),
-          bookingId: booking.id,
-          status:
-            booking.status === "COMPLETED"
-              ? "COMPLETED"
-              : booking.status === "SCHEDULED"
-                ? "PROCESSING"
-                : "FAILED",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      })
-
-      // Create review for completed booking
-      if (booking.status === "COMPLETED") {
-        await prisma.review.create({
+        const booking = await prisma.booking.create({
           data: {
-            id: generateShortId("rv"),
+            id: generateShortId("bk"),
             customerId: DEV_CUSTOMER_ID,
+            courseId: course.id,
+            prophetId: prophet.id,
+            startDateTime: startDateTime,
+            endDateTime: endDateTime,
+            status: i === 0 ? "COMPLETED" : i === 1 ? "SCHEDULED" : "FAILED",
+            createdAt: new Date(),
+          },
+        })
+
+        await prisma.transaction.create({
+          data: {
+            id: generateShortId("tx"),
             bookingId: booking.id,
-            score: Math.floor(Math.random() * 3) + 3, // 3-5 score
-            description: [
-              "Great session! Very insightful.",
-              "Helpful and professional reading.",
-              "Exceeded my expectations.",
-              "",
-            ][Math.floor(Math.random() * 4)],
+            status:
+              booking.status === "COMPLETED"
+                ? "COMPLETED"
+                : booking.status === "SCHEDULED"
+                  ? "PROCESSING"
+                  : "FAILED",
             createdAt: new Date(),
             updatedAt: new Date(),
           },
         })
+
+        if (booking.status === "COMPLETED") {
+          await prisma.review.create({
+            data: {
+              id: generateShortId("rv"),
+              customerId: DEV_CUSTOMER_ID,
+              bookingId: booking.id,
+              score: Math.floor(Math.random() * 3) + 3, // 3-5 score
+              description: [
+                "Great session! Very insightful.",
+                "Helpful and professional reading.",
+                "Exceeded my expectations.",
+                "",
+              ][Math.floor(Math.random() * 4)],
+              createdAt: new Date(),
+            },
+          })
+        }
+
+        for (const slot of potentialSlots) {
+          bookedSlots.add(`${prophet.id}-${slot.toISOString()}`)
+        }
+
+        bookingCreated = true
+        break
       }
-
-      // Mark slot as booked
-      bookedSlots.add(slotKey)
-      bookingCreated = true
-      break
     }
-
-    // Break if unable to create booking after attempts
-    if (!bookingCreated) break
   }
 
   console.log("✅ Bookings for dev customer created")
 }
 
-// Step 7: Bookings between Other Customers and Dev Prophet
+// Step 7: Bookings for Other Customers with Dev Prophet
 async function createOtherCustomersDevProphetBookings() {
   console.log("📅 Creating bookings for other customers with dev prophet...")
 
@@ -431,8 +486,13 @@ async function createOtherCustomersDevProphetBookings() {
   // Fetch other customers
   const otherCustomers = await prisma.customer.findMany({
     where: { id: { not: DEV_CUSTOMER_ID } },
-    take: 5,
+    take: 5, // We will create bookings for up to 5 customers
   })
+
+  if (otherCustomers.length === 0) {
+    console.log("No other customers found to create bookings for. Skipping.")
+    return
+  }
 
   // Fetch dev prophet's active courses
   const devProphetCourses = await prisma.course.findMany({
@@ -442,99 +502,157 @@ async function createOtherCustomersDevProphetBookings() {
     },
   })
 
-  // Track booked slots to prevent conflicts
+  if (devProphetCourses.length === 0) {
+    console.log("Dev prophet has no active courses. Skipping.")
+    return
+  }
+
+  // 1. Fetch all future availability slots for the dev prophet
+  const devProphetAvailabilities = await prisma.prophetAvailability.findMany({
+    where: {
+      prophetId: DEV_PROPHET_ID,
+      date: { gte: now },
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+  })
+
+  // 2. Pre-process the availability slots into a simple, sorted array of Date objects
+  const devProphetAvailableSlots = devProphetAvailabilities.map(slot => {
+    const startDateTime = new Date(slot.date)
+    startDateTime.setHours(
+      slot.startTime.getHours(),
+      slot.startTime.getMinutes(),
+      slot.startTime.getSeconds()
+    )
+    return startDateTime
+  })
+
+  // This set will store unique keys for each 15-minute slot: `${prophetId}-${isoString}`
   const bookedSlots = new Set()
 
-  // Create 4-5 bookings
-  for (let i = 0; i < Math.floor(Math.random() * 2) + 4; i++) {
-    // Select random customer and course
+  // Create 4-5 bookings for different customers
+  const bookingsToCreate = Math.min(
+    otherCustomers.length,
+    Math.floor(Math.random() * 2) + 4
+  )
+  for (let i = 0; i < bookingsToCreate; i++) {
+    // Select a customer and a random course from the dev prophet's list
     const customer = otherCustomers[i]
-    const course = devProphetCourses[i % devProphetCourses.length]
+    const course =
+      devProphetCourses[Math.floor(Math.random() * devProphetCourses.length)]
 
-    // Try to find a suitable booking slot
+    const slotsNeeded = course.durationMin / 15
+
+    if (devProphetAvailableSlots.length < slotsNeeded) {
+      console.log(
+        "Not enough total available slots for dev prophet to continue booking."
+      )
+      break
+    }
+
     let bookingCreated = false
-    for (let attempt = 0; attempt < 10; attempt++) {
-      // Generate a potential booking date
-      const bookingDate = new Date(now)
-      bookingDate.setDate(now.getDate() + i * 3 + attempt)
 
-      // Possible start times (ending in 0, 15, 30, 45)
-      const possibleMinutes = [0, 15, 30, 45]
-      const startHour = Math.floor(Math.random() * 14) + 8 // 8 AM to 9 PM
-      const startMinute =
-        possibleMinutes[Math.floor(Math.random() * possibleMinutes.length)]
+    // Create a shuffled list of possible start indices to search from
+    const possibleStartIndices = Array.from(
+      { length: devProphetAvailableSlots.length - slotsNeeded + 1 },
+      (_, k) => k
+    )
+    for (let j = possibleStartIndices.length - 1; j > 0; j--) {
+      const randIndex = Math.floor(Math.random() * (j + 1))
+      ;[possibleStartIndices[j], possibleStartIndices[randIndex]] = [
+        possibleStartIndices[randIndex],
+        possibleStartIndices[j],
+      ]
+    }
 
-      bookingDate.setHours(startHour, startMinute, 0, 0)
+    // 3. Search for a consecutive, available block of slots
+    for (const startIndex of possibleStartIndices) {
+      const potentialSlots = devProphetAvailableSlots.slice(
+        startIndex,
+        startIndex + slotsNeeded
+      )
 
-      // Skip if date is in the past
-      if (bookingDate < now) continue
+      const isAlreadyBooked = potentialSlots.some(slot =>
+        bookedSlots.has(`${DEV_PROPHET_ID}-${slot.toISOString()}`)
+      )
+      if (isAlreadyBooked) continue
 
-      // Calculate end date based on course duration
-      const endDate = new Date(bookingDate)
-      endDate.setMinutes(bookingDate.getMinutes() + course.durationMin)
+      let isConsecutive = true
+      for (let k = 0; k < potentialSlots.length - 1; k++) {
+        const diffInMs =
+          potentialSlots[k + 1].getTime() - potentialSlots[k].getTime()
+        if (diffInMs !== 15 * 60 * 1000) {
+          // 15 minutes in milliseconds
+          isConsecutive = false
+          break
+        }
+      }
 
-      // Check for slot conflicts
-      const slotKey = `${DEV_PROPHET_ID}-${bookingDate.toISOString()}-${endDate.toISOString()}`
-      if (bookedSlots.has(slotKey)) continue
+      if (isConsecutive) {
+        // Found a valid block, create the booking and related data
+        const startDateTime = potentialSlots[0]
+        const endDateTime = new Date(
+          potentialSlots[potentialSlots.length - 1].getTime() + 15 * 60 * 1000
+        )
 
-      // Create booking
-      const booking = await prisma.booking.create({
-        data: {
-          id: generateShortId("devbk"),
-          customerId: customer.id,
-          courseId: course.id,
-          prophetId: DEV_PROPHET_ID,
-          startDateTime: bookingDate,
-          endDateTime: endDate,
-          status: i < 2 ? "COMPLETED" : i < 4 ? "SCHEDULED" : "FAILED",
-          createdAt: new Date(),
-        },
-      })
-
-      // Create transaction
-      await prisma.transaction.create({
-        data: {
-          id: generateShortId("devt"),
-          bookingId: booking.id,
-          status:
-            booking.status === "COMPLETED"
-              ? "COMPLETED"
-              : booking.status === "SCHEDULED"
-                ? "PROCESSING"
-                : "FAILED",
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      })
-
-      // Create review for completed booking
-      if (booking.status === "COMPLETED") {
-        await prisma.review.create({
+        const booking = await prisma.booking.create({
           data: {
-            id: generateShortId("drv"),
+            id: generateShortId("devbk"),
             customerId: customer.id,
+            courseId: course.id,
+            prophetId: DEV_PROPHET_ID,
+            startDateTime: startDateTime,
+            endDateTime: endDateTime,
+            status: i < 2 ? "COMPLETED" : i < 4 ? "SCHEDULED" : "FAILED",
+            createdAt: new Date(),
+          },
+        })
+
+        await prisma.transaction.create({
+          data: {
+            id: generateShortId("devt"),
             bookingId: booking.id,
-            score: Math.floor(Math.random() * 3) + 3, // 3-5 score
-            description: [
-              "Excellent prophet session!",
-              "Very insightful and professional reading.",
-              "Highly recommend this prophet.",
-              "",
-            ][Math.floor(Math.random() * 4)],
+            status:
+              booking.status === "COMPLETED"
+                ? "COMPLETED"
+                : booking.status === "SCHEDULED"
+                  ? "PROCESSING"
+                  : "FAILED",
             createdAt: new Date(),
             updatedAt: new Date(),
           },
         })
+
+        if (booking.status === "COMPLETED") {
+          await prisma.review.create({
+            data: {
+              id: generateShortId("drv"),
+              customerId: customer.id,
+              bookingId: booking.id,
+              score: Math.floor(Math.random() * 3) + 3, // 3-5 score
+              description: [
+                "Excellent prophet session!",
+                "Very insightful and professional reading.",
+                "Highly recommend this prophet.",
+                "",
+              ][Math.floor(Math.random() * 4)],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          })
+        }
+
+        // Mark all individual slots as used for this script run
+        for (const slot of potentialSlots) {
+          bookedSlots.add(`${DEV_PROPHET_ID}-${slot.toISOString()}`)
+        }
+
+        bookingCreated = true
+        break // Exit search loop and create the next booking
       }
-
-      // Mark slot as booked
-      bookedSlots.add(slotKey)
-      bookingCreated = true
-      break
     }
-
-    // Break if unable to create booking after attempts
-    if (!bookingCreated) break
   }
 
   console.log("✅ Bookings for other customers with dev prophet created")

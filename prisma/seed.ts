@@ -360,7 +360,6 @@ async function seedProphetAvailabilities() {
           date: date,
           startTime: startTime,
           createdAt: parseValue(row.created_at, "datetime"),
-          updatedAt: parseValue(row.updated_at, "datetime"),
         },
       })
 

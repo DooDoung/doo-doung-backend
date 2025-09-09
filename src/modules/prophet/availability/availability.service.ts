@@ -31,7 +31,8 @@ export class AvailabilityService {
     })
     if (!prophet) throw new NotFoundException("This user is not a prophet")
 
-    const results = []
+    const adds = []
+    const deletes = []
     for (const req of dto.items) {
       if (req.update_type === "add") {
         // create if not exists
@@ -50,7 +51,7 @@ export class AvailabilityService {
             startTime: req.start_time,
           },
         })
-        results.push(result)
+        adds.push(result)
       } else if (req.update_type === "delete") {
         // delete if exists
         const result = await this.prisma.prophetAvailability.deleteMany({
@@ -60,9 +61,9 @@ export class AvailabilityService {
             startTime: req.start_time,
           },
         })
-        results.push(result)
+        deletes.push(result)
       }
     }
-    return results
+    return { add: adds, delete: deletes }
   }
 }

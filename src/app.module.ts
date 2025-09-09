@@ -6,7 +6,7 @@ import { AuthModule } from "./modules/auth/auth.module"
 import { ConfigModule } from "@nestjs/config"
 import hashConfig from "@/config/hash.config"
 import { ReviewModule } from "./modules/review/review.module"
-import { AvailabilityModule } from './prophet/availability/availability.module';
+import { AvailabilityModule } from './modules/prophet/availability/availability.module';
 
 @Module({
   imports: [

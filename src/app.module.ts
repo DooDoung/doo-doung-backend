@@ -6,6 +6,9 @@ import { AuthModule } from "./modules/auth/auth.module"
 import { ConfigModule } from "@nestjs/config"
 import hashConfig from "@/config/hash.config"
 import { ReviewModule } from "./modules/review/review.module"
+import mailConfig from "./modules/mail/config/mail.config"
+import appConfig from "./config/app.config"
+
 @Module({
   imports: [
     AuthModule,
@@ -16,6 +19,8 @@ import { ReviewModule } from "./modules/review/review.module"
       isGlobal: true,
       load: [hashConfig], // load all separate config files
     }),
+    ConfigModule.forFeature(mailConfig),
+    ConfigModule.forFeature(appConfig),
   ],
 })
 export class AppModule implements NestModule {

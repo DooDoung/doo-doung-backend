@@ -10,11 +10,20 @@ export class CustomerService {
       zodiacSign: true,
       birthDate: true,
       birthTime: true,
+      isPublic: true,
     })
     return {
-      zodiacSign: customer?.zodiacSign ?? null,
-      birthDate: customer?.birthDate ?? null,
-      birthTime: customer?.birthTime ?? null,
+      zodiacSign: customer?.zodiacSign,
+      birthDate: customer?.birthDate,
+      birthTime: customer?.birthTime,
+      isPublic: customer?.isPublic,
     }
+  }
+  async getCustomerByAccountId(accountId: string) {
+    const customer = await this.repo.findByAccountId(accountId, {
+      id: true,
+      isPublic: true,
+    })
+    return { id: customer?.id, isPublic: customer?.isPublic }
   }
 }

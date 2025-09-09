@@ -1,11 +1,20 @@
 // auth.service.ts
-import { Injectable, UnauthorizedException } from "@nestjs/common"
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+  InternalServerErrorException,
+} from "@nestjs/common"
 import { AccountService } from "src/modules/account/account.service"
 import { JwtService } from "@nestjs/jwt"
 import { ConfigService } from "@nestjs/config"
 import { LoginResult } from "./interface/login-result.interface"
 import { Account } from "src/common/types/account.types"
-import { HashUtils } from "@/common/utils/hash.util"
+import { HashService } from "@/common/utils/hash.service"
+import { GenerateService } from "@/common/utils/generate.service"
+import { ResetPasswordTokenRepository } from "./reset-password-token.repository"
+import { MailService } from "../mail/mail.service"
 
 type JwtPayload = {
   sub: string
@@ -20,7 +29,10 @@ export class AuthService {
     private accountService: AccountService,
     private jwtService: JwtService,
     private config: ConfigService,
-    private readonly hashUtils: HashUtils
+    private readonly hashUtils: HashService,
+    private readonly generateUtils: GenerateService,
+    private readonly tokenRepo: ResetPasswordTokenRepository,
+    private readonly mailService: MailService
   ) {}
 
   async login(username: string, pass: string): Promise<LoginResult> {
@@ -52,10 +64,50 @@ export class AuthService {
       exp?: number
     } | null
 
+    if (!decoded?.exp) {
+      throw new InternalServerErrorException(
+        "Malformed JWT: missing expiration"
+      )
+    }
+
     return {
       user: safeUser,
       accessToken,
-      expiresAt: (decoded?.exp ?? 0) * 1000,
+      expiresAt: decoded.exp * 1000,
     }
+  }
+
+  async requestResetPassword(email: string): Promise<void> {
+    const account = await this.accountService.findAccountByEmail(email)
+    if (!account) throw new NotFoundException("Account not found")
+    const token = this.generateUtils.generateUUID()
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 15)
+
+    await this.tokenRepo.create(account.id, token, expiresAt)
+
+    try {
+      await this.mailService.sendPasswordReset(account.email, token)
+    } catch (e) {
+      throw new InternalServerErrorException(
+        `Could not send reset email: ${String(e)}`
+      )
+    }
+  }
+
+  async confirmResetPassword(
+    token: string,
+    newPassword: string
+  ): Promise<void> {
+    const resetToken = await this.tokenRepo.findValidToken(token)
+    if (!resetToken) {
+      throw new BadRequestException("Invalid or expired token")
+    }
+
+    const hashedPassword = await this.hashUtils.hashPassword(newPassword)
+    await this.accountService.updatePassword(
+      resetToken.accountId,
+      hashedPassword
+    )
+    await this.tokenRepo.markUsed(resetToken.id)
   }
 }

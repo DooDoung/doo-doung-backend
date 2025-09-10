@@ -1,10 +1,9 @@
-import { Injectable, Logger } from "@nestjs/common"
+import { Injectable } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import * as Brevo from "@getbrevo/brevo"
 
 @Injectable()
 export class MailService {
-  private readonly logger = new Logger(MailService.name)
   private readonly emailApi: Brevo.TransactionalEmailsApi
 
   constructor(private readonly config: ConfigService) {
@@ -12,7 +11,6 @@ export class MailService {
     this.emailApi = new Brevo.TransactionalEmailsApi()
     const apiKey = this.config.get<string>("mail.apiKey")
     if (!apiKey) {
-      this.logger.error("BREVO_API_KEY missing")
       throw new Error("BREVO_API_KEY missing")
     }
     // Set API key
@@ -51,16 +49,6 @@ export class MailService {
     </p>
   </div>
 `
-
-    try {
-      await this.emailApi.sendTransacEmail(msg)
-    } catch (err) {
-      // Log only metadata
-      this.logger.error(
-        `Failed to send reset email to ${toEmail}`,
-        err || String(err)
-      )
-      throw err
-    }
+    await this.emailApi.sendTransacEmail(msg)
   }
 }

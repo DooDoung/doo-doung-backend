@@ -4,13 +4,17 @@ import { AuthService } from "./auth.service"
 import { AccountModule } from "src/modules/account/account.module"
 import { JwtModule } from "@nestjs/jwt"
 import { AuthController } from "./auth.controller"
+import { ResetPasswordTokenRepository } from "./reset-password-token.repository"
 import { ConfigModule, ConfigService } from "@nestjs/config"
-import { HashUtils } from "@/common/utils/hash.util"
+import { UtilsModule } from "@/common/utils/utils.module"
 import jwtConfig from "./config/jwt.config"
+import { MailModule } from "../mail/mail.module"
 
 @Module({
   imports: [
     AccountModule,
+    UtilsModule,
+    MailModule,
     ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -23,7 +27,7 @@ import jwtConfig from "./config/jwt.config"
       }),
     }),
   ],
-  providers: [AuthService, HashUtils],
+  providers: [AuthService, ResetPasswordTokenRepository],
   controllers: [AuthController],
   exports: [AuthService],
 })

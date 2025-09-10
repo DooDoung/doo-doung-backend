@@ -1,6 +1,7 @@
+// prophet.service.ts
 import { Injectable } from "@nestjs/common"
 import { ProphetRepository } from "./prophet.repository"
-import type { TxAccount } from "src/common/types/tx-account.type"
+import type { TxAccount } from "@/common/types/payment/tx-account.type"
 import type { Prisma } from "@prisma/client"
 
 type includeTxAccounts = boolean

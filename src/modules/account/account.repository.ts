@@ -28,4 +28,17 @@ export class AccountRepository {
       select,
     })
   }
+
+  async findAccountByEmail(email: string) {
+    return this.prisma.account.findUnique({
+      where: { email },
+    })
+  }
+
+  async updatePassword(accountId: string, hashedPassword: string) {
+    return this.prisma.account.update({
+      where: { id: accountId },
+      data: { passwordHash: hashedPassword },
+    })
+  }
 }

@@ -108,6 +108,10 @@ export class AuthService {
       resetToken.accountId,
       hashedPassword
     )
-    await this.tokenRepo.markUsed(resetToken.id)
+    try {
+      await this.tokenRepo.markUsed(resetToken.id)
+    } catch (err) {
+      throw new InternalServerErrorException(`Token not found: ${err}`)
+    }
   }
 }

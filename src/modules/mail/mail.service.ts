@@ -23,11 +23,9 @@ export class MailService {
   }
 
   async sendPasswordReset(toEmail: string, token: string): Promise<void> {
-    const fromEmail = this.config.get<string>("mail.fromEmail")!
-    const fromName = this.config.get<string>("mail.fromName")!
 
     // https://doodoung.com/reset-password?token=...
-    const resetUrl = this.buildResetUrl(token);
+    const resetUrl = this.buildResetUrl(token)
 
     const msg = new Brevo.SendSmtpEmail()
     msg.sender = { email: this.fromEmail, name: this.fromName }
@@ -40,7 +38,7 @@ export class MailService {
   }
 
   private buildResetUrl(token: string): string {
-    const baseUrl = this.config.get<string>("app.frontendBaseUrl")!;
+    const baseUrl = this.frontendBaseUrl;
     return `${baseUrl.replace(/\/$/, "")}/reset-password/token?token=${encodeURIComponent(token)}`
   }
 }

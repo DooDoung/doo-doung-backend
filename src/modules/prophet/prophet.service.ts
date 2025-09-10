@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common"
 import { ProphetRepository } from "./prophet.repository"
 import type { TxAccount } from "@/common/types/payment/tx-account.type"
 import type { Prisma } from "@prisma/client"
+import { ProphetDetail } from "./interface/prophet.interface"
 
 type includeTxAccounts = boolean
 
@@ -13,7 +14,7 @@ export class ProphetService {
   async getDetailByAccountId(
     accountId: string,
     includeTxAccounts: includeTxAccounts
-  ) {
+  ): Promise<ProphetDetail> {
     const select: Prisma.ProphetSelect = {
       lineId: true,
       ...(includeTxAccounts && {

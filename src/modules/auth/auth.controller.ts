@@ -1,20 +1,23 @@
-// auth.controller.ts
 import { Body, Controller, Post } from "@nestjs/common"
 import { AuthService } from "./auth.service"
-import { LoginResultDTO } from "./dto/login-result.dto"
+import { LoginResponseDto } from "./dto/login-result.dto"
 import { LoginRequestDto } from "./dto/login-request.dto"
 import { HttpCode, HttpStatus } from "@nestjs/common"
 import {
   RequestResetPasswordDto,
   ConfirmResetPasswordDto,
 } from "./dto/reset-password.dto"
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
+
+@ApiTags("auth")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
-  async login(@Body() body: LoginRequestDto): Promise<LoginResultDTO> {
+  @ApiOkResponse({ type: LoginResponseDto })
+  async login(@Body() body: LoginRequestDto): Promise<LoginResponseDto> {
     return this.auth.login(body.username, body.password)
   }
 

@@ -1,5 +1,26 @@
-export interface LoginResultDTO {
-  user: { id: string; username: string; email: string; role: string }
-  accessToken: string
-  expiresAt: number
+import { ApiProperty } from "@nestjs/swagger"
+
+export class UserDto {
+  @ApiProperty()
+  id!: string
+
+  @ApiProperty()
+  username!: string
+
+  @ApiProperty()
+  email!: string
+
+  @ApiProperty()
+  role!: string
+}
+
+export class LoginResponseDto {
+  @ApiProperty({ type: () => UserDto })
+  user!: UserDto
+
+  @ApiProperty()
+  accessToken!: string
+
+  @ApiProperty()
+  expiresAt!: number
 }

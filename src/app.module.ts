@@ -17,7 +17,7 @@ import corsConfig from "./config/cors.config"
     ConfigModule.forRoot({
       isGlobal: true,
       load: [corsConfig, appConfig], // load all separate config files
-    })
+    }),
   ],
 })
 export class AppModule implements NestModule {

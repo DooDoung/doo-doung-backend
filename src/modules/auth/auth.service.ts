@@ -9,7 +9,7 @@ import {
 import { AccountService } from "src/modules/account/account.service"
 import { JwtService } from "@nestjs/jwt"
 import { ConfigService } from "@nestjs/config"
-import { LoginResultDTO } from "./dto/login-result.dto"
+import { LoginResponseDto } from "./dto/login-result.dto"
 import { Account } from "@/common/types/account/account.types"
 import { HashService } from "@/common/utils/hash.service"
 import { GenerateService } from "@/common/utils/generate.service"
@@ -35,7 +35,7 @@ export class AuthService {
     private readonly mailService: MailService
   ) {}
 
-  async login(username: string, pass: string): Promise<LoginResultDTO> {
+  async login(username: string, pass: string): Promise<LoginResponseDto> {
     const user: Account =
       await this.accountService.getAccountByUsername(username)
     if (!user) throw new UnauthorizedException("Invalid username or password")
@@ -108,6 +108,10 @@ export class AuthService {
       resetToken.accountId,
       hashedPassword
     )
-    await this.tokenRepo.markUsed(resetToken.id)
+    try {
+      await this.tokenRepo.markUsed(resetToken.id)
+    } catch (err) {
+      throw new InternalServerErrorException(`Token not found: ${err}`)
+    }
   }
 }

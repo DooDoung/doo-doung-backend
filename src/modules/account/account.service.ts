@@ -3,7 +3,7 @@ import { AccountRepository } from "./account.repository"
 import { Role } from "@prisma/client"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
-import { Account } from "src/common/types/account.types"
+import { Account } from "@/common/types/account/account.types"
 
 @Injectable()
 export class AccountService {

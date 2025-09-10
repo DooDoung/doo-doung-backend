@@ -9,8 +9,8 @@ import {
 import { AccountService } from "src/modules/account/account.service"
 import { JwtService } from "@nestjs/jwt"
 import { ConfigService } from "@nestjs/config"
-import { LoginResult } from "./interface/login-result.interface"
-import { Account } from "src/common/types/account.types"
+import { LoginResultDTO } from "./dto/login-result.dto"
+import { Account } from "@/common/types/account/account.types"
 import { HashService } from "@/common/utils/hash.service"
 import { GenerateService } from "@/common/utils/generate.service"
 import { ResetPasswordTokenRepository } from "./reset-password-token.repository"
@@ -35,7 +35,7 @@ export class AuthService {
     private readonly mailService: MailService
   ) {}
 
-  async login(username: string, pass: string): Promise<LoginResult> {
+  async login(username: string, pass: string): Promise<LoginResultDTO> {
     const user: Account =
       await this.accountService.getAccountByUsername(username)
     if (!user) throw new UnauthorizedException("Invalid username or password")

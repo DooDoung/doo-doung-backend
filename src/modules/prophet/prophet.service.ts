@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { ProphetRepository } from "./prophet.repository"
-import { Bank, Prisma } from "@prisma/client"
+import { Bank } from "@prisma/client"
 import { TxAccount } from "../account/interface/get-account.interface"
 
 @Injectable()
@@ -31,7 +31,17 @@ export class ProphetService {
       txAccounts,
     }
   }
-  async createProphetDetail(accountId: string, dto: { lineId: string; txAccounts ?: { bank: Bank, accountName: string, accountNumber: string }[] }) {
-    return await this.repo.createProphet(accountId, dto.lineId, dto.txAccounts);
+  async createProphetDetail(
+    accountId: string,
+    transactionDetail: {
+      lineId: string
+      txAccounts: { bank: Bank; accountName: string; accountNumber: string }[]
+    }
+  ) {
+    return await this.repo.createProphet(
+      accountId,
+      transactionDetail.lineId,
+      transactionDetail.txAccounts
+    )
   }
 }

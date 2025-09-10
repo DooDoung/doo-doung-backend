@@ -17,11 +17,6 @@ import hashConfig from "@/config/hash.config"
     }),
   ],
 })
-
-
-@Module({
-  imports: [PrismaModule, AccountModule],
-})
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(LoggerMiddleware).forRoutes("*")

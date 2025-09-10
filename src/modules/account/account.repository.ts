@@ -9,8 +9,11 @@ type SafeAccountSelect = Omit<Prisma.AccountSelect, "passwordHash"> & {
 
 @Injectable()
 export class AccountRepository {
-  constructor(private readonly prisma: PrismaService) {}
-  private static nanoid = new NanoidGenerator(new PrismaService());
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly nanoid: NanoidGenerator
+  ) {}
+
   findBaseById<S extends SafeAccountSelect>(
     id: string,
     select: S
@@ -20,7 +23,6 @@ export class AccountRepository {
       select,
     })
   }
-
 
   findAccountByUsername<S extends Prisma.AccountSelect>(
     username: string,
@@ -32,40 +34,37 @@ export class AccountRepository {
     })
   }
 
-
-  async createBase(
-    username: string, 
-    email : string,
-    passwordHash : string, 
-    role : Role, 
-    userDetail : 
-      {
-        name : string,
-        lastname : string ,
-        phoneNumber : string, 
-        gender : Sex 
-      }
-    ) 
-    {
-    const id = await AccountRepository.nanoid.generateId();
-    await this.prisma.account.create({
+  async createBaseAccount(
+    username: string,
+    email: string,
+    passwordHash: string,
+    role: Role,
+    userDetail: {
+      name: string
+      lastname: string
+      phoneNumber: string
+      gender: Sex
+    }
+  ) {
+    const id = await this.nanoid.generateId()
+    const account = await this.prisma.account.create({
       data: {
-        id : id,
-        username : username,
-        email : email,
-        role : role,
-        passwordHash : passwordHash,
+        id: id,
+        username: username,
+        email: email,
+        role: role,
+        passwordHash: passwordHash,
       } as Prisma.AccountUncheckedCreateInput,
-    });
-    await this.prisma.userDetail.create({
+    })
+    const user_detail = await this.prisma.userDetail.create({
       data: {
-        accountId : id,
-        name : userDetail.name,
-        lastname : userDetail.lastname,
-        phoneNumber : userDetail.phoneNumber,
-        gender : userDetail.gender
+        accountId: id,
+        name: userDetail.name,
+        lastname: userDetail.lastname,
+        phoneNumber: userDetail.phoneNumber,
+        gender: userDetail.gender,
       } as Prisma.UserDetailUncheckedCreateInput,
-    });
-    return id;
+    })
+    return { ...account, ...user_detail }
   }
 }

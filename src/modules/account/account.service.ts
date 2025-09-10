@@ -1,17 +1,23 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common"
+import { Injectable, NotFoundException } from "@nestjs/common"
 import { AccountRepository } from "./account.repository"
-import { Role, Sex , ZodiacSign} from "@prisma/client"
-import { CustomerAccount, MeResponse, ProphetAccount } from "./interface/get-account.interface"
+import { Role } from "@prisma/client"
+import { MeResponse, ProphetAccount } from "./interface/get-account.interface"
+import {
+  CustomerDetailDtoInput,
+  RegisterDto,
+} from "./interface/customer-detail.interface"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
 import { Account } from "src/common/types/account.types"
+import { HashUtils } from "@/common/utils/hash.util"
 
 @Injectable()
 export class AccountService {
   constructor(
     private readonly repo: AccountRepository,
     private readonly customerService: CustomerService,
-    private readonly prophetService: ProphetService
+    private readonly prophetService: ProphetService,
+    private readonly hash: HashUtils
   ) {}
 
   async getMyAccount(): Promise<MeResponse> {
@@ -46,8 +52,7 @@ export class AccountService {
     throw new NotFoundException("Role not found")
   }
 
-
-  async getAccountByUsername(username : string): Promise<Account> {
+  async getAccountByUsername(username: string): Promise<Account> {
     const account = await this.repo.findAccountByUsername(username, {
       id: true,
       username: true,
@@ -60,20 +65,54 @@ export class AccountService {
     return account
   }
 
-  async createAccount(role : Role, dto : any){
-    if (role === Role.CUSTOMER) 
-    {
-      dto = dto as CustomerAccount
-      const id = await this.repo.createBase(dto.username, dto.email, dto.passwordHash, Role.CUSTOMER, {name : dto.name, lastname : dto.lastname, phoneNumber : dto.phoneNumber, gender : dto.sex});
-      await this.customerService.createDetail(id, {zodiacSign : dto.zodiacSign, birthDate : dto.birthDate, birthTime : dto.birthTime});
-      return id;
-    
+  async createAccount(role: Role, dto: any): Promise<RegisterDto> {
+    if (role === Role.CUSTOMER) {
+      dto = dto as CustomerDetailDtoInput
+      const passwordHash = await this.hash.hashPassword(dto.password)
+      const customerAccount = await this.repo.createBaseAccount(
+        dto.username,
+        dto.email,
+        passwordHash,
+        Role.CUSTOMER,
+        {
+          name: dto.name,
+          lastname: dto.lastname,
+          phoneNumber: dto.phoneNumber,
+          gender: dto.sex,
+        }
+      )
+      const customerDetail = await this.customerService.createDetail(
+        customerAccount.accountId,
+        {
+          zodiacSign: dto.zodiacSign,
+          birthDate: dto.birthDate,
+          birthTime: dto.birthTime,
+        }
+      )
+      return { ...customerAccount, role, ...customerDetail }
     } else if (role === Role.PROPHET) {
       dto = dto as ProphetAccount
-      const id = await this.repo.createBase(dto.username, dto.email, dto.passwordHash, Role.PROPHET, {name : dto.name, lastname : dto.lastname, phoneNumber : dto.phoneNumber, gender : dto.sex});
-      await this.prophetService.createProphetDetail(id, {txAccounts : dto.txAccounts ?? [], lineId : dto.lineId});
-      return id;
-    }
-    else throw new NotFoundException("Role not found")
+      const passwordHash = await this.hash.hashPassword(dto.password)
+      const prophetAccount = await this.repo.createBaseAccount(
+        dto.username,
+        dto.email,
+        passwordHash,
+        Role.PROPHET,
+        {
+          name: dto.name,
+          lastname: dto.lastname,
+          phoneNumber: dto.phoneNumber,
+          gender: dto.sex,
+        }
+      )
+      const prophetDetail = await this.prophetService.createProphetDetail(
+        prophetAccount.accountId,
+        {
+          txAccounts: dto.txAccounts ?? [],
+          lineId: dto.lineId,
+        }
+      )
+      return { ...prophetAccount, ...prophetDetail }
+    } else throw new NotFoundException("Role not found")
   }
 }

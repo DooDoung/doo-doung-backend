@@ -5,9 +5,11 @@ import { NanoidGenerator } from "../../common/utils/nanoid"
 
 @Injectable()
 export class CustomerRepository {
-  constructor(private readonly prisma: PrismaService) {}
-  private static nanoid = new NanoidGenerator(new PrismaService());
-  
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly nanoid: NanoidGenerator
+  ) {}
+
   findByAccountId<S extends Prisma.CustomerSelect>(
     accountId: string,
     select: S
@@ -18,20 +20,20 @@ export class CustomerRepository {
     })
   }
   async createCustomerDetail(
-    zodiacSign : ZodiacSign, 
-    birthDate : string, 
-    birthTime : string, 
-    accountId : string
+    zodiacSign: ZodiacSign,
+    birthDate: string,
+    birthTime: string,
+    accountId: string
   ) {
-    const id = await CustomerRepository.nanoid.generateId();
+    const id = await this.nanoid.generateId()
     return await this.prisma.customer.create({
-      data :{
-        id : id,
-        zodiacSign : zodiacSign,
-        birthDate : new Date(birthDate),
-        birthTime : new Date(`1970-01-01T${birthTime}Z`),
-        accountId: accountId
-      } as Prisma.CustomerUncheckedCreateInput
-    });
+      data: {
+        id: id,
+        zodiacSign: zodiacSign,
+        birthDate: new Date(birthDate),
+        birthTime: new Date(`1970-01-01T${birthTime}Z`),
+        accountId: accountId,
+      } as Prisma.CustomerUncheckedCreateInput,
+    })
   }
 }

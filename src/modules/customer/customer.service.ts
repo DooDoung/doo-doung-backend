@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common"
 import { CustomerRepository } from "./customer.repository"
+import { CustomerBasic, CustomerDetail } from "./interface/customer.interface"
 
 @Injectable()
 export class CustomerService {
   constructor(private readonly repo: CustomerRepository) {}
 
-  async getDetailByAccountId(accountId: string) {
+  async getDetailByAccountId(accountId: string): Promise<CustomerDetail> {
     const customer = await this.repo.findByAccountId(accountId, {
       zodiacSign: true,
       birthDate: true,
@@ -19,7 +20,7 @@ export class CustomerService {
       isPublic: customer?.isPublic,
     }
   }
-  async getCustomerByAccountId(accountId: string) {
+  async getCustomerByAccountId(accountId: string): Promise<CustomerBasic> {
     const customer = await this.repo.findByAccountId(accountId, {
       id: true,
       isPublic: true,

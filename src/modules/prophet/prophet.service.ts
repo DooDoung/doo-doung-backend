@@ -3,16 +3,11 @@ import { ProphetRepository } from "./prophet.repository"
 import { Bank, Prisma } from "@prisma/client"
 import type { TxAccount } from "src/common/types/tx-account.type"
 
-type includeTxAccounts = boolean
-
 @Injectable()
 export class ProphetService {
   constructor(private readonly repo: ProphetRepository) {}
 
-  async getDetailByAccountId(
-    accountId: string,
-    includeTxAccounts: includeTxAccounts
-  ) {
+  async getDetailByAccountId(accountId: string, includeTxAccounts: boolean) {
     const select: Prisma.ProphetSelect = {
       lineId: true,
       ...(includeTxAccounts && {

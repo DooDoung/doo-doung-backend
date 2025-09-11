@@ -1,15 +1,7 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common"
+import { Injectable, NotFoundException } from "@nestjs/common"
 import { AccountRepository } from "./account.repository"
-import { Role, Sex, ZodiacSign } from "@prisma/client"
-import {
-  CustomerAccount,
-  MeResponse,
-  ProphetAccount,
-} from "./interface/get-account.interface"
+import { Role } from "@prisma/client"
+import { ProphetAccount } from "./interface/get-account.interface"
 import {
   CustomerDetailDtoInput,
   RegisterDto,

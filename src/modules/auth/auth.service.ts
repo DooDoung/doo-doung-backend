@@ -12,9 +12,9 @@ import { ConfigService } from "@nestjs/config"
 import { LoginResponseDto } from "./dto/login-result.dto"
 import { Account } from "@/common/types/account/account.types"
 import { HashService } from "@/common/utils/hash.service"
-import { GenerateService } from "@/common/utils/generate.service"
 import { ResetPasswordTokenRepository } from "./reset-password-token.repository"
 import { MailService } from "../mail/mail.service"
+import { NanoidService } from "@/common/utils/nanoid"
 
 type JwtPayload = {
   sub: string
@@ -30,7 +30,7 @@ export class AuthService {
     private jwtService: JwtService,
     private config: ConfigService,
     private readonly hashUtils: HashService,
-    private readonly generateUtils: GenerateService,
+    private readonly nanoidUtils: NanoidService,
     private readonly tokenRepo: ResetPasswordTokenRepository,
     private readonly mailService: MailService
   ) {}
@@ -80,7 +80,7 @@ export class AuthService {
   async requestResetPassword(email: string): Promise<void> {
     const account = await this.accountService.findAccountByEmail(email)
     if (!account) throw new NotFoundException("Account not found")
-    const token = this.generateUtils.generateUUID()
+    const token = await this.nanoidUtils.generateId()
     const expiresAt = new Date(Date.now() + 1000 * 60 * 15)
 
     await this.tokenRepo.create(account.id, token, expiresAt)

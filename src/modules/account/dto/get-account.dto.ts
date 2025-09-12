@@ -15,6 +15,9 @@ export class BaseAccountDto {
 
   @ApiPropertyOptional()
   profileUrl?: string | null
+
+  @ApiPropertyOptional()
+  role?: string | null
 }
 
 export class CustomerAccountDto extends BaseAccountDto {

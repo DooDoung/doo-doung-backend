@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { ReviewRepository } from "./review.repository"
 import { CustomerService } from "../customer/customer.service"
+import { GetReviewsResponseDto } from "./dto/get-review.dto"
 
 @Injectable()
 export class ReviewService {
@@ -9,7 +10,9 @@ export class ReviewService {
     private readonly customerService: CustomerService
   ) {}
 
-  async getReviewByAccountId(accountId: string) {
+  async getReviewByAccountId(
+    accountId: string
+  ): Promise<GetReviewsResponseDto> {
     const customer =
       await this.customerService.getCustomerByAccountId(accountId)
     if (!customer?.id) {
@@ -19,12 +22,12 @@ export class ReviewService {
     //Todo: add validate own account
     if (customer.isPublic) {
       const reviewData = await this.repo.findByCustomerId(customer.id)
-      const review = reviewData.map(r => ({
+      const reviews = reviewData.map(r => ({
         score: r.score,
         description: r.description,
         courseName: r.booking.course.courseName,
       }))
-      return review
+      return { reviews }
     } else {
       return { reviews: [] }
     }

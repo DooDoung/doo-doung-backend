@@ -9,7 +9,7 @@ import { map } from "rxjs/operators"
 import { ApiResponse } from "../types/api-response.interface"
 /**
  * Transform Interceptor
- * 
+ *
  * Automatically wraps controller responses in a consistent format:
  * - Raw data → { "data": rawData }
  * - Already formatted { message?, data? } → unchanged
@@ -27,17 +27,13 @@ export class TransformInterceptor<T>
     return next.handle().pipe(
       map((data: any) => {
         // If data is already in the correct format, return as is
-        if (
-          data &&
-          typeof data === "object" &&
-          ("data" in data)
-        ) {
+        if (data && typeof data === "object" && "data" in data) {
           return data as ApiResponse<T>
         }
 
         // If data is null/undefined, return empty response
         if (data === null || data === undefined) {
-          return {} as ApiResponse<T>
+          return { data: null } as ApiResponse<T>
         }
 
         // Default transformation: wrap data

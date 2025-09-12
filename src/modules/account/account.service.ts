@@ -3,7 +3,8 @@ import { AccountRepository } from "./account.repository"
 import { Role } from "@prisma/client"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
-import { Account } from "src/common/types/account.types"
+import { Account } from "@/common/types/account/account.types"
+import { AccountResponseDto } from "./dto/get-account.dto"
 
 @Injectable()
 export class AccountService {
@@ -13,7 +14,7 @@ export class AccountService {
     private readonly prophetService: ProphetService
   ) {}
 
-  async getMyAccount() {
+  async getMyAccount(): Promise<AccountResponseDto> {
     const tmpAccountId = "01f580f4e5ab4d0f"
     const account = await this.repo.findBaseById(tmpAccountId, {
       username: true,
@@ -36,7 +37,6 @@ export class AccountService {
     if (account.role === Role.CUSTOMER) {
       const { isPublic, ...customer } =
         await this.customerService.getDetailByAccountId(tmpAccountId)
-
       return { ...base, role: Role.CUSTOMER, ...customer }
     }
 
@@ -51,7 +51,7 @@ export class AccountService {
     throw new NotFoundException("Role not found")
   }
 
-  async getAccountById(accountId: string) {
+  async getAccountById(accountId: string): Promise<AccountResponseDto> {
     const account = await this.repo.findBaseById(accountId, {
       username: true,
       email: true,
@@ -98,5 +98,19 @@ export class AccountService {
     if (!account) throw new NotFoundException("Account not found")
 
     return account
+  }
+
+  async findAccountByEmail(email: string): Promise<Account> {
+    const account = await this.repo.findAccountByEmail(email)
+    if (!account) throw new NotFoundException("Account not found")
+    return account
+  }
+
+  async updatePassword(
+    accountId: string,
+    hashedPassword: string
+  ): Promise<void> {
+    const account = await this.repo.updatePassword(accountId, hashedPassword)
+    if (!account) throw new NotFoundException("Account not found")
   }
 }

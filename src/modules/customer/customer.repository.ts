@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common"
 import { PrismaService } from "@/db/prisma.service"
 import { Prisma, ZodiacSign } from "@prisma/client"
-import { NanoidGenerator } from "../../common/utils/nanoid"
+import { NanoidService } from "../../common/utils/nanoid"
 
 @Injectable()
 export class CustomerRepository {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly nanoid: NanoidGenerator
+    private readonly nanoid: NanoidService
   ) {}
 
   findByAccountId<S extends Prisma.CustomerSelect>(

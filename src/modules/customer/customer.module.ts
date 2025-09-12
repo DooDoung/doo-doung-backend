@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common"
 import { CustomerService } from "./customer.service"
 import { CustomerRepository } from "./customer.repository"
-import { NanoidGenerator } from "@/common/utils/nanoid"
+import { UtilsModule } from "@/common/utils/utils.module"
 
 @Module({
-  providers: [CustomerService, CustomerRepository, NanoidGenerator],
+  imports: [UtilsModule],
+  providers: [CustomerService, CustomerRepository],
   exports: [CustomerService],
 })
 export class CustomerModule {}

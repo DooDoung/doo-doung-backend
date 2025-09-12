@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { Prisma, Role, Sex } from "@prisma/client"
 import { PrismaService } from "../../db/prisma.service"
-import { NanoidGenerator } from "../../common/utils/nanoid"
+import { NanoidService } from "../../common/utils/nanoid"
 
 type SafeAccountSelect = Omit<Prisma.AccountSelect, "passwordHash"> & {
   passwordHash?: never
@@ -11,7 +11,7 @@ type SafeAccountSelect = Omit<Prisma.AccountSelect, "passwordHash"> & {
 export class AccountRepository {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly nanoid: NanoidGenerator
+    private readonly nanoid: NanoidService
   ) {}
 
   findBaseById<S extends SafeAccountSelect>(

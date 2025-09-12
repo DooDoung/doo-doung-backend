@@ -51,7 +51,7 @@ export class AccountController {
     return this.service.getAccountById(id)
   }
   @Post("register")
-  async post(@Body() body: any) {
+  async post(@Body() body: any): Promise<AccountResponseDto> {
     console.log("body", body)
     try {
       const role = body.role // now works

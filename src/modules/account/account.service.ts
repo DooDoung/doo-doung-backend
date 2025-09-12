@@ -1,16 +1,14 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { AccountRepository } from "./account.repository"
 import { Role } from "@prisma/client"
-import {
-  CustomerDetailDtoInput,
-  ProphetAccountDto,
-  RegisterDto,
-} from "./interface/customer-detail.interface"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
 import { Account } from "@/common/types/account/account.types"
-
-import { AccountResponseDto } from "./dto/get-account.dto"
+import {
+  AccountResponseDto,
+  CustomerAccountDto,
+  ProphetAccountDto,
+} from "./dto/get-account.dto"
 import { HashService } from "@/common/utils/hash.service"
 
 @Injectable()
@@ -108,9 +106,9 @@ export class AccountService {
     return account
   }
 
-  async createAccount(role: Role, dto: any): Promise<RegisterDto> {
+  async createAccount(role: Role, dto: any): Promise<AccountResponseDto> {
     if (role === Role.CUSTOMER) {
-      dto = dto as CustomerDetailDtoInput
+      dto = dto as CustomerAccountDto
       const passwordHash = await this.hash.hashPassword(dto.password)
       const customerAccount = await this.repo.createBaseAccount(
         dto.username,

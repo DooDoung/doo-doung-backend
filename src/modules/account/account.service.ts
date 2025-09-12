@@ -1,15 +1,17 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { AccountRepository } from "./account.repository"
 import { Role } from "@prisma/client"
-import { ProphetAccount } from "./interface/get-account.interface"
 import {
   CustomerDetailDtoInput,
+  ProphetAccountDto,
   RegisterDto,
 } from "./interface/customer-detail.interface"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
-import { Account } from "src/common/types/account.types"
-import { HashUtils } from "@/common/utils/hash.util"
+import { Account } from "@/common/types/account/account.types"
+
+import { AccountResponseDto } from "./dto/get-account.dto"
+import { HashService } from "@/common/utils/hash.service"
 
 @Injectable()
 export class AccountService {
@@ -17,10 +19,10 @@ export class AccountService {
     private readonly repo: AccountRepository,
     private readonly customerService: CustomerService,
     private readonly prophetService: ProphetService,
-    private readonly hash: HashUtils
+    private readonly hash: HashService
   ) {}
 
-  async getMyAccount() {
+  async getMyAccount(): Promise<AccountResponseDto> {
     const tmpAccountId = "01f580f4e5ab4d0f"
     const account = await this.repo.findBaseById(tmpAccountId, {
       username: true,
@@ -43,7 +45,6 @@ export class AccountService {
     if (account.role === Role.CUSTOMER) {
       const { isPublic, ...customer } =
         await this.customerService.getDetailByAccountId(tmpAccountId)
-
       return { ...base, role: Role.CUSTOMER, ...customer }
     }
 
@@ -58,7 +59,7 @@ export class AccountService {
     throw new NotFoundException("Role not found")
   }
 
-  async getAccountById(accountId: string) {
+  async getAccountById(accountId: string): Promise<AccountResponseDto> {
     const account = await this.repo.findBaseById(accountId, {
       username: true,
       email: true,
@@ -133,7 +134,7 @@ export class AccountService {
       )
       return { ...customerAccount, role, ...customerDetail }
     } else if (role === Role.PROPHET) {
-      dto = dto as ProphetAccount
+      dto = dto as ProphetAccountDto
       const passwordHash = await this.hash.hashPassword(dto.password)
       const prophetAccount = await this.repo.createBaseAccount(
         dto.username,
@@ -156,5 +157,19 @@ export class AccountService {
       )
       return { ...prophetAccount, ...prophetDetail }
     } else throw new NotFoundException("Role not found")
+  }
+
+  async findAccountByEmail(email: string): Promise<Account> {
+    const account = await this.repo.findAccountByEmail(email)
+    if (!account) throw new NotFoundException("Account not found")
+    return account
+  }
+
+  async updatePassword(
+    accountId: string,
+    hashedPassword: string
+  ): Promise<void> {
+    const account = await this.repo.updatePassword(accountId, hashedPassword)
+    if (!account) throw new NotFoundException("Account not found")
   }
 }

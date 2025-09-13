@@ -11,13 +11,23 @@ import {
   ApiTags,
   ApiExtraModels,
   getSchemaPath,
+  ApiBody,
 } from "@nestjs/swagger"
+import {
+  BaseRegisterDto,
+  CustomerRegisterDto,
+  ProphetRegisterDto,
+  ProphetTxAccountDto,
+} from "./dto/register-request.dto"
 
 @ApiTags("account")
 @ApiExtraModels(
-  CustomerAccountDto,
+  BaseRegisterDto,
+  ProphetTxAccountDto,
+  CustomerRegisterDto,
+  ProphetRegisterDto,
   ProphetAccountDto,
-  LimitedCustomerAccountDto
+  CustomerAccountDto
 )
 @Controller("account")
 export class AccountController {
@@ -51,7 +61,18 @@ export class AccountController {
     return this.service.getAccountById(id)
   }
   @Post("register")
-  async post(@Body() body: any): Promise<AccountResponseDto> {
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(CustomerRegisterDto) },
+        { $ref: getSchemaPath(ProphetRegisterDto) },
+      ],
+      discriminator: { propertyName: "role" },
+    },
+  })
+  async post(
+    @Body() body: CustomerRegisterDto | ProphetRegisterDto
+  ): Promise<AccountResponseDto> {
     console.log("body", body)
     try {
       const role = body.role // now works

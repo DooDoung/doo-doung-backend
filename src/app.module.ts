@@ -10,6 +10,7 @@ import corsConfig from "./config/cors.config"
 import { AvailabilityModule } from "./modules/prophet/availability/availability.module"
 import { APP_GUARD } from "@nestjs/core"
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard"
+import { RolesGuard } from "./common/guards/roles.guard"
 
 @Module({
   imports: [
@@ -23,7 +24,10 @@ import { JwtAuthGuard } from "./common/guards/jwt-auth.guard"
     }),
     AvailabilityModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

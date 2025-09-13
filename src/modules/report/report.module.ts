@@ -3,11 +3,10 @@ import { ReportController } from "./report.controller"
 import { ReportService } from "./report.service"
 import { ReportRepository } from "./report.repository"
 import { CustomerModule } from "../customer/customer.module"
-
-// ? admin
+import { AccountModule } from "../account/account.module"
 
 @Module({
-  imports: [CustomerModule],
+  imports: [CustomerModule, AccountModule],
   controllers: [ReportController],
   providers: [ReportService, ReportRepository],
   exports: [ReportService],

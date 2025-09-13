@@ -4,6 +4,12 @@ export class ReportDto {
   @ApiProperty()
   customer!: string
 
+  @ApiProperty()
+  createdAt!: Date | null
+
+  @ApiPropertyOptional()
+  profileUrl?: string | null
+
   @ApiPropertyOptional()
   admin?: string | null
 

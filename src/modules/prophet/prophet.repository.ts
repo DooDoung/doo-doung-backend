@@ -46,7 +46,6 @@ export class ProphetRepository {
     if (txAccounts?.length) {
       for (const txAccount of txAccounts) {
         const t_id = await this.nanoid.generateId()
-        console.log(1)
         await this.prisma.transactionAccount.create({
           data: {
             id: t_id,

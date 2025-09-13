@@ -1,9 +1,8 @@
-// prophet.service.ts
+import type { TxAccount } from "@/common/types/payment/tx-account.type"
+import { ProphetDetail } from "./interface/prophet.interface"
 import { Injectable } from "@nestjs/common"
 import { ProphetRepository } from "./prophet.repository"
-import type { TxAccount } from "@/common/types/payment/tx-account.type"
-import type { Prisma } from "@prisma/client"
-import { ProphetDetail } from "./interface/prophet.interface"
+import { Bank, Prisma } from "@prisma/client"
 
 type includeTxAccounts = boolean
 
@@ -37,5 +36,18 @@ export class ProphetService {
       lineId: prophet?.lineId,
       ...(includeTxAccounts ? { txAccounts } : { txAccounts: [] }),
     }
+  }
+  async createProphetDetail(
+    accountId: string,
+    transactionDetail: {
+      lineId: string
+      txAccounts: { bank: Bank; accountName: string; accountNumber: string }[]
+    }
+  ) {
+    return await this.repo.createProphet(
+      accountId,
+      transactionDetail.lineId,
+      transactionDetail.txAccounts
+    )
   }
 }

@@ -4,14 +4,20 @@ import { Role } from "@prisma/client"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
 import { Account } from "@/common/types/account/account.types"
-import { AccountResponseDto } from "./dto/get-account.dto"
+import {
+  AccountResponseDto,
+  CustomerAccountDto,
+  ProphetAccountDto,
+} from "./dto/get-account.dto"
+import { HashService } from "@/common/utils/hash.service"
 
 @Injectable()
 export class AccountService {
   constructor(
     private readonly repo: AccountRepository,
     private readonly customerService: CustomerService,
-    private readonly prophetService: ProphetService
+    private readonly prophetService: ProphetService,
+    private readonly hash: HashService
   ) {}
 
   async getMyAccount(): Promise<AccountResponseDto> {
@@ -98,6 +104,57 @@ export class AccountService {
     if (!account) throw new NotFoundException("Account not found")
 
     return account
+  }
+
+  async createAccount(role: Role, dto: any): Promise<AccountResponseDto> {
+    if (role === Role.CUSTOMER) {
+      dto = dto as CustomerAccountDto
+      const passwordHash = await this.hash.hashPassword(dto.password)
+      const customerAccount = await this.repo.createBaseAccount(
+        dto.username,
+        dto.email,
+        passwordHash,
+        Role.CUSTOMER,
+        {
+          name: dto.name,
+          lastname: dto.lastname,
+          phoneNumber: dto.phoneNumber,
+          gender: dto.sex,
+        }
+      )
+      const customerDetail = await this.customerService.createDetail(
+        customerAccount.accountId,
+        {
+          zodiacSign: dto.zodiacSign,
+          birthDate: dto.birthDate,
+          birthTime: dto.birthTime,
+        }
+      )
+      return { ...customerAccount, role, ...customerDetail }
+    } else if (role === Role.PROPHET) {
+      dto = dto as ProphetAccountDto
+      const passwordHash = await this.hash.hashPassword(dto.password)
+      const prophetAccount = await this.repo.createBaseAccount(
+        dto.username,
+        dto.email,
+        passwordHash,
+        Role.PROPHET,
+        {
+          name: dto.name,
+          lastname: dto.lastname,
+          phoneNumber: dto.phoneNumber,
+          gender: dto.sex,
+        }
+      )
+      const prophetDetail = await this.prophetService.createProphetDetail(
+        prophetAccount.accountId,
+        {
+          txAccounts: dto.txAccounts ?? [],
+          lineId: dto.lineId,
+        }
+      )
+      return { ...prophetAccount, ...prophetDetail }
+    } else throw new NotFoundException("Role not found")
   }
 
   async findAccountByEmail(email: string): Promise<Account> {

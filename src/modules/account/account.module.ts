@@ -4,9 +4,10 @@ import { AccountService } from "./account.service"
 import { AccountRepository } from "./account.repository"
 import { CustomerModule } from "../customer/customer.module"
 import { ProphetModule } from "../prophet/prophet.module"
+import { UtilsModule } from "@/common/utils/utils.module"
 
 @Module({
-  imports: [CustomerModule, ProphetModule],
+  imports: [CustomerModule, ProphetModule, UtilsModule],
   controllers: [AccountController],
   providers: [AccountService, AccountRepository],
   exports: [AccountService],

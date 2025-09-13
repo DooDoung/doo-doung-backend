@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from "@nestjs/common"
+import { Controller, Get, Param, Post, Body } from "@nestjs/common"
 import { AccountService } from "./account.service"
 import {
   AccountResponseDto,
@@ -11,13 +11,23 @@ import {
   ApiTags,
   ApiExtraModels,
   getSchemaPath,
+  ApiBody,
 } from "@nestjs/swagger"
+import {
+  BaseRegisterDto,
+  CustomerRegisterDto,
+  ProphetRegisterDto,
+  ProphetTxAccountDto,
+} from "./dto/register-request.dto"
 
 @ApiTags("account")
 @ApiExtraModels(
-  CustomerAccountDto,
+  BaseRegisterDto,
+  ProphetTxAccountDto,
+  CustomerRegisterDto,
+  ProphetRegisterDto,
   ProphetAccountDto,
-  LimitedCustomerAccountDto
+  CustomerAccountDto
 )
 @Controller("account")
 export class AccountController {
@@ -49,5 +59,27 @@ export class AccountController {
   })
   getById(@Param("id") id: string): Promise<AccountResponseDto> {
     return this.service.getAccountById(id)
+  }
+  @Post("register")
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(CustomerRegisterDto) },
+        { $ref: getSchemaPath(ProphetRegisterDto) },
+      ],
+      discriminator: { propertyName: "role" },
+    },
+  })
+  async post(
+    @Body() body: CustomerRegisterDto | ProphetRegisterDto
+  ): Promise<AccountResponseDto> {
+    console.log("body", body)
+    try {
+      const role = body.role // now works
+      return await this.service.createAccount(role, body)
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
   }
 }

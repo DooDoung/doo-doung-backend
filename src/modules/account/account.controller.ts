@@ -20,6 +20,7 @@ import {
   ProphetTxAccountDto,
 } from "./dto/register-request.dto"
 import { Public } from "@/common/decorators/public.decorator"
+import { CurrentUser } from "@/common/decorators/current-user.decorator"
 
 @ApiTags("account")
 @ApiExtraModels(
@@ -45,8 +46,8 @@ export class AccountController {
       ],
     },
   })
-  get(): Promise<AccountResponseDto> {
-    return this.service.getMyAccount()
+  get(@CurrentUser("id") id: string): Promise<AccountResponseDto> {
+    return this.service.getMyAccount(id)
   }
 
   @Get(":id")

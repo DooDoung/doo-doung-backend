@@ -7,6 +7,7 @@ import { ConfigModule } from "@nestjs/config"
 import { ReviewModule } from "./modules/review/review.module"
 import appConfig from "./config/app.config"
 import corsConfig from "./config/cors.config"
+import { AvailabilityModule } from './modules/prophet/availability/availability.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import corsConfig from "./config/cors.config"
       isGlobal: true,
       load: [corsConfig, appConfig], // load all separate config files
     }),
+    AvailabilityModule,
   ],
 })
 export class AppModule implements NestModule {

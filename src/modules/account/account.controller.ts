@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body } from "@nestjs/common"
+import { Controller, Get, Param, Post, Body, UseGuards } from "@nestjs/common"
 import { AccountService } from "./account.service"
 import {
   AccountResponseDto,
@@ -19,6 +19,7 @@ import {
   ProphetRegisterDto,
   ProphetTxAccountDto,
 } from "./dto/register-request.dto"
+import { Public } from "@/common/decorators/public.decorator"
 
 @ApiTags("account")
 @ApiExtraModels(
@@ -61,6 +62,8 @@ export class AccountController {
   getById(@Param("id") id: string): Promise<AccountResponseDto> {
     return this.service.getAccountById(id)
   }
+
+  @Public()
   @Post("register")
   @ApiBody({
     schema: {

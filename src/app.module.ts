@@ -7,7 +7,9 @@ import { ConfigModule } from "@nestjs/config"
 import { ReviewModule } from "./modules/review/review.module"
 import appConfig from "./config/app.config"
 import corsConfig from "./config/cors.config"
-import { AvailabilityModule } from './modules/prophet/availability/availability.module';
+import { AvailabilityModule } from "./modules/prophet/availability/availability.module"
+import { APP_GUARD } from "@nestjs/core"
+import { JwtAuthGuard } from "./common/guards/jwt-auth.guard"
 
 @Module({
   imports: [
@@ -21,6 +23,7 @@ import { AvailabilityModule } from './modules/prophet/availability/availability.
     }),
     AvailabilityModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

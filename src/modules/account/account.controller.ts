@@ -27,7 +27,8 @@ import {
   CustomerRegisterDto,
   ProphetRegisterDto,
   ProphetAccountDto,
-  CustomerAccountDto
+  CustomerAccountDto,
+  LimitedCustomerAccountDto
 )
 @Controller("account")
 export class AccountController {

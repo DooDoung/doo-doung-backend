@@ -1,4 +1,4 @@
-const { customAlphabet } = require("nanoid")
+import { customAlphabet } from "nanoid"
 import { PrismaService } from "@/db/prisma.service"
 import { Injectable } from "@nestjs/common"
 

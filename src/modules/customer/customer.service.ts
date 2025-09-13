@@ -1,6 +1,10 @@
 import { Injectable } from "@nestjs/common"
 import { CustomerRepository } from "./customer.repository"
-import { CustomerBasic, CustomerDetail } from "./interface/customer.interface"
+import {
+  CustomerBasic,
+  CustomerDetail,
+  CustomerAccount,
+} from "./interface/customer.interface"
 import { ZodiacSign } from "@prisma/client"
 
 @Injectable()
@@ -21,6 +25,7 @@ export class CustomerService {
       isPublic: customer?.isPublic,
     }
   }
+
   async getCustomerByAccountId(accountId: string): Promise<CustomerBasic> {
     const customer = await this.repo.findByAccountId(accountId, {
       id: true,
@@ -28,6 +33,15 @@ export class CustomerService {
     })
     return { id: customer?.id, isPublic: customer?.isPublic }
   }
+
+  async getAccountByCustomerId(customerId: string): Promise<CustomerAccount> {
+    const customer = await this.repo.findByCustomerId(customerId, {
+      id: true,
+      accountId: true,
+    })
+    return { id: customer?.id, accountId: customer?.accountId }
+  }
+
   async createDetail(
     accountId: string,
     dto: { zodiacSign: ZodiacSign; birthDate: string; birthTime: string }

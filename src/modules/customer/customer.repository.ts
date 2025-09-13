@@ -19,6 +19,17 @@ export class CustomerRepository {
       select,
     })
   }
+
+  findByCustomerId<S extends Prisma.CustomerSelect>(
+    id: string,
+    select: S
+  ): Promise<Prisma.CustomerGetPayload<{ select: S }> | null> {
+    return this.prisma.customer.findUnique({
+      where: { id },
+      select,
+    })
+  }
+
   async createCustomerDetail(
     zodiacSign: ZodiacSign,
     birthDate: string,

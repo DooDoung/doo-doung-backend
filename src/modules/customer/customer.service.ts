@@ -21,6 +21,7 @@ export class CustomerService {
       isPublic: customer?.isPublic,
     }
   }
+
   async getCustomerByAccountId(accountId: string): Promise<CustomerBasic> {
     const customer = await this.repo.findByAccountId(accountId, {
       id: true,
@@ -28,6 +29,15 @@ export class CustomerService {
     })
     return { id: customer?.id, isPublic: customer?.isPublic }
   }
+
+  async getCustomerByCustomerId(customerId: string): Promise<CustomerBasic> {
+    const customer = await this.repo.findByCustomerId(customerId, {
+      id: true,
+      isPublic: true,
+    })
+    return { id: customer?.id, isPublic: customer?.isPublic }
+  }
+
   async createDetail(
     accountId: string,
     dto: { zodiacSign: ZodiacSign; birthDate: string; birthTime: string }

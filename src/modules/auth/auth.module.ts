@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config"
 import { UtilsModule } from "@/common/utils/utils.module"
 import jwtConfig from "./config/jwt.config"
 import { MailModule } from "../mail/mail.module"
+import { JwtStrategy } from "./strategies/jwt.strategy"
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { MailModule } from "../mail/mail.module"
       }),
     }),
   ],
-  providers: [AuthService, ResetPasswordTokenRepository],
+  providers: [AuthService, ResetPasswordTokenRepository, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })

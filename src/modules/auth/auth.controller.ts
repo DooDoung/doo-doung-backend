@@ -8,12 +8,14 @@ import {
   ConfirmResetPasswordDto,
 } from "./dto/reset-password.dto"
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { Public } from "@/common/decorators/public.decorator"
 
 @ApiTags("auth")
 @Controller("auth")
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
+  @Public()
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: LoginResponseDto })
@@ -21,6 +23,7 @@ export class AuthController {
     return this.auth.login(body.username, body.password)
   }
 
+  @Public()
   @Post("reset-password/request")
   @HttpCode(HttpStatus.OK)
   async requestResetPassword(
@@ -28,7 +31,7 @@ export class AuthController {
   ): Promise<void> {
     await this.auth.requestResetPassword(body.email)
   }
-
+  @Public()
   @Post("reset-password/confirm")
   @HttpCode(HttpStatus.OK)
   async confirmResetPassword(

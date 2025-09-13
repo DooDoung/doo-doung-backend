@@ -15,13 +15,7 @@ import { HashService } from "@/common/utils/hash.service"
 import { ResetPasswordTokenRepository } from "./reset-password-token.repository"
 import { MailService } from "../mail/mail.service"
 import { NanoidService } from "@/common/utils/nanoid"
-
-type JwtPayload = {
-  sub: string
-  username: string
-  email: string
-  role: string
-}
+import { JwtPayload } from "./type/jwt-payload.type"
 
 @Injectable()
 export class AuthService {

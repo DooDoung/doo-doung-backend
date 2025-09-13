@@ -1,4 +1,4 @@
-import { Injectable, ConflictException} from "@nestjs/common"
+import { Injectable, ConflictException } from "@nestjs/common"
 import { PrismaService } from "@/db/prisma.service"
 import { ResetPasswordToken } from "./interfaces/reset-password-token.interface"
 

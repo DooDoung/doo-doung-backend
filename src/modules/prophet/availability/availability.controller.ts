@@ -2,6 +2,7 @@ import { UseInterceptors, Controller, Get, Patch, Body } from "@nestjs/common"
 import { AvailabilityService } from "./availability.service"
 import { PatchAvailabilityDto } from "./dto/patch-availability.dto"
 import { AvailabilityFormatInterceptor } from "./availability.interceptor"
+import { CurrentUser } from "@/common/decorators/current-user.decorator"
 
 @Controller("prophet/availability")
 @UseInterceptors(AvailabilityFormatInterceptor)
@@ -9,12 +10,15 @@ export class AvailabilityController {
   constructor(private readonly availabilityService: AvailabilityService) {}
 
   @Get("")
-  async getMyAvailability() {
-    return this.availabilityService.getMyAvailability()
+  async getMyAvailability(@CurrentUser("id") id: string) {
+    return this.availabilityService.getMyAvailability(id)
   }
 
   @Patch("")
-  async patchMyAvailability(@Body() dto: PatchAvailabilityDto) {
-    return this.availabilityService.patchMyAvailability(dto)
+  async patchMyAvailability(
+    @Body() dto: PatchAvailabilityDto,
+    @CurrentUser("id") id: string
+  ) {
+    return this.availabilityService.patchMyAvailability(dto, id)
   }
 }

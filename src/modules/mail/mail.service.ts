@@ -23,7 +23,6 @@ export class MailService {
   }
 
   async sendPasswordReset(toEmail: string, token: string): Promise<void> {
-
     // https://doodoung.com/reset-password?token=...
     const resetUrl = this.buildResetUrl(token)
 
@@ -38,7 +37,7 @@ export class MailService {
   }
 
   private buildResetUrl(token: string): string {
-    const baseUrl = this.frontendBaseUrl;
+    const baseUrl = this.frontendBaseUrl
     return `${baseUrl.replace(/\/$/, "")}/reset-password/token?token=${encodeURIComponent(token)}`
   }
 }

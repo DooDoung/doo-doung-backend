@@ -20,9 +20,8 @@ export class AccountService {
     private readonly hash: HashService
   ) {}
 
-  async getMyAccount(): Promise<AccountResponseDto> {
-    const tmpAccountId = "01f580f4e5ab4d0f"
-    const account = await this.repo.findBaseById(tmpAccountId, {
+  async getMyAccount(id: string): Promise<AccountResponseDto> {
+    const account = await this.repo.findBaseById(id, {
       username: true,
       email: true,
       role: true,
@@ -42,15 +41,12 @@ export class AccountService {
 
     if (account.role === Role.CUSTOMER) {
       const { isPublic, ...customer } =
-        await this.customerService.getDetailByAccountId(tmpAccountId)
+        await this.customerService.getDetailByAccountId(id)
       return { ...base, role: Role.CUSTOMER, ...customer }
     }
 
     if (account.role === Role.PROPHET) {
-      const prophet = await this.prophetService.getDetailByAccountId(
-        tmpAccountId,
-        true
-      )
+      const prophet = await this.prophetService.getDetailByAccountId(id, true)
       return { ...base, role: Role.PROPHET, ...prophet }
     }
 

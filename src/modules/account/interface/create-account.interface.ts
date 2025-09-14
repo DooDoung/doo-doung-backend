@@ -3,7 +3,6 @@ import { ZodiacSign } from "@prisma/client"
 
 export interface BaseAccountDto {
   id: string
-  //   userDetailId: Int32Array
   username: string
   email: string
   role: Role
@@ -46,4 +45,4 @@ export interface CustomerDetailDtoInput extends BaseAccountDto {
   birthTime: string // in pattern 1970-01-01T${birthTime}Z
 }
 
-export type RegisterDto = CustomerAccountDto | ProphetAccountDto
+export type AccountDto = CustomerAccountDto | ProphetAccountDto

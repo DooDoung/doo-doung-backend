@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { Prisma, Role, Sex } from "@prisma/client"
 import { PrismaService } from "../../db/prisma.service"
 import { NanoidGenerator } from "../../common/utils/nanoid"
+import { AccountDto } from "./interface/create-account.interface"
 
 type SafeAccountSelect = Omit<Prisma.AccountSelect, "passwordHash"> & {
   passwordHash?: never
@@ -65,6 +66,33 @@ export class AccountRepository {
         gender: userDetail.gender,
       } as Prisma.UserDetailUncheckedCreateInput,
     })
-    return { ...account, ...user_detail }
+    return { ...user_detail, ...account }
+  }
+
+  async updateBaseAccount(
+    id: string,
+    username?: string,
+    email?: string,
+    passwordHash?: string,
+    userDetail?: {
+      name?: string | null
+      lastname?: string | null
+      phoneNumber?: string | null
+      gender?: Sex | null
+    }
+  ) {
+    const updatedAccount = await this.prisma.account.update({
+      where: { id },
+      data: {
+        username: username,
+        email: email,
+        passwordHash: passwordHash,
+      } as Prisma.AccountUncheckedUpdateInput,
+    })
+    const updatedUserDetail = await this.prisma.userDetail.update({
+      where: { accountId: id },
+      data: userDetail as Prisma.UserDetailUncheckedUpdateInput,
+    })
+    return { ...updatedUserDetail, ...updatedAccount }
   }
 }

@@ -38,4 +38,17 @@ export class CustomerService {
       accountId
     )
   }
+
+  async updateCustomerDetail(
+    accountId: string,
+    userDetail: {
+      zodiacSign?: ZodiacSign
+      birthDate?: string
+      birthTime?: string
+    }
+  ) {
+    // console.log("accountId", accountId)
+    return await this.repo.updateCustomerDetail(accountId, userDetail)
+    // return {}
+  }
 }

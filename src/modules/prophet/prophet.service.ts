@@ -44,4 +44,8 @@ export class ProphetService {
       transactionDetail.txAccounts
     )
   }
+
+  async updateProphetDetail(accountId: string, lineId: string) {
+    return await this.repo.updateProphetDetail(accountId, lineId)
+  }
 }

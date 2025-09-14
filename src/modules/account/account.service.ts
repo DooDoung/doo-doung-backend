@@ -4,12 +4,16 @@ import { Role } from "@prisma/client"
 import { ProphetAccount } from "./interface/get-account.interface"
 import {
   CustomerDetailDtoInput,
-  RegisterDto,
-} from "./interface/customer-detail.interface"
+  AccountDto,
+} from "./interface/create-account.interface"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
 import { Account } from "src/common/types/account.types"
 import { HashUtils } from "@/common/utils/hash.util"
+import {
+  CustomerUpdateAccountDtoInput,
+  ProphetUpdateAccountDto,
+} from "./interface/update-account.interface"
 
 @Injectable()
 export class AccountService {
@@ -107,7 +111,7 @@ export class AccountService {
     return account
   }
 
-  async createAccount(role: Role, dto: any): Promise<RegisterDto> {
+  async createAccount(role: Role, dto: any): Promise<AccountDto> {
     if (role === Role.CUSTOMER) {
       dto = dto as CustomerDetailDtoInput
       const passwordHash = await this.hash.hashPassword(dto.password)
@@ -120,7 +124,7 @@ export class AccountService {
           name: dto.name,
           lastname: dto.lastname,
           phoneNumber: dto.phoneNumber,
-          gender: dto.sex,
+          gender: dto.gender,
         }
       )
       const customerDetail = await this.customerService.createDetail(
@@ -131,7 +135,7 @@ export class AccountService {
           birthTime: dto.birthTime,
         }
       )
-      return { ...customerAccount, role, ...customerDetail }
+      return { ...customerDetail, ...customerAccount }
     } else if (role === Role.PROPHET) {
       dto = dto as ProphetAccount
       const passwordHash = await this.hash.hashPassword(dto.password)
@@ -144,7 +148,7 @@ export class AccountService {
           name: dto.name,
           lastname: dto.lastname,
           phoneNumber: dto.phoneNumber,
-          gender: dto.sex,
+          gender: dto.gender,
         }
       )
       const prophetDetail = await this.prophetService.createProphetDetail(
@@ -154,7 +158,54 @@ export class AccountService {
           lineId: dto.lineId,
         }
       )
-      return { ...prophetAccount, ...prophetDetail }
+      return { ...prophetDetail, ...prophetAccount }
+    } else throw new NotFoundException("Role not found")
+  }
+  async updateAccount(role: Role, dto: any): Promise<AccountDto> {
+    if (role === Role.CUSTOMER) {
+      dto = dto as CustomerUpdateAccountDtoInput
+      const passwordHash = dto.password
+        ? await this.hash.hashPassword(dto.password)
+        : undefined
+      const updatedBase = await this.repo.updateBaseAccount(
+        dto.id,
+        dto.usermame,
+        dto.email,
+        passwordHash,
+        {
+          name: dto.firstName,
+          lastname: dto.lastName,
+          phoneNumber: dto.phoneNumber,
+          gender: dto.gender,
+        }
+      )
+      const updatedCustomerDetail =
+        await this.customerService.updateCustomerDetail(dto.id, {
+          zodiacSign: dto.zodiacSign,
+          birthDate: dto.birthDate,
+          birthTime: dto.birthTime,
+        })
+      return { ...updatedCustomerDetail, ...updatedBase }
+    } else if (role === Role.PROPHET) {
+      dto = dto as ProphetUpdateAccountDto
+      const passwordHash = dto.password
+        ? await this.hash.hashPassword(dto.password)
+        : undefined
+      const updatedBase = await this.repo.updateBaseAccount(
+        dto.id,
+        dto.usermame,
+        dto.email,
+        passwordHash,
+        {
+          name: dto.firstName,
+          lastname: dto.lastName,
+          phoneNumber: dto.phoneNumber,
+          gender: dto.gender,
+        }
+      )
+      const updatedProphetDetail =
+        await this.prophetService.updateProphetDetail(dto.id, dto.lineId)
+      return { ...updatedProphetDetail, ...updatedBase }
     } else throw new NotFoundException("Role not found")
   }
 }

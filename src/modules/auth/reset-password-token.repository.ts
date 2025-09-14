@@ -1,4 +1,4 @@
-import { Injectable, ConflictException} from "@nestjs/common"
+import { Injectable, ConflictException } from "@nestjs/common"
 import { PrismaService } from "@/db/prisma.service"
 import { ResetPasswordToken } from "./interfaces/reset-password-token.interface"
 
@@ -29,13 +29,13 @@ export class ResetPasswordTokenRepository {
       )
     }
 
-    this.prisma.resetPasswordToken.create({
+    await this.prisma.resetPasswordToken.create({
       data: { accountId, token, expiresAt },
     })
   }
 
   async findValidToken(token: string): Promise<ResetPasswordToken | null> {
-    return this.prisma.resetPasswordToken.findFirst({
+    return await this.prisma.resetPasswordToken.findFirst({
       where: {
         token,
         usedAt: null,
@@ -45,7 +45,7 @@ export class ResetPasswordTokenRepository {
   }
 
   async markUsed(id: string): Promise<void> {
-    this.prisma.resetPasswordToken.update({
+    await this.prisma.resetPasswordToken.update({
       where: { id },
       data: { usedAt: new Date() },
     })

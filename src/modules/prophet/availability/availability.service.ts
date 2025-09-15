@@ -31,6 +31,7 @@ export class AvailabilityService {
 
     const adds = []
     const deletes = []
+
     for (const req of dto.items) {
       if (req.update_type === "add") {
         // create if not exists

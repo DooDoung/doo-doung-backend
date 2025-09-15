@@ -76,7 +76,11 @@ export class AccountService {
       if (isPublic) {
         return { ...base, role: Role.CUSTOMER, ...customer }
       } else {
-        return { username: base.username, profileUrl: base.profileUrl }
+        return {
+          username: base.username,
+          profileUrl: base.profileUrl,
+          role: Role.CUSTOMER,
+        }
       }
     }
     if (account.role === Role.PROPHET) {

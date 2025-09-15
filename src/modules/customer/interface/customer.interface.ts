@@ -9,3 +9,8 @@ export interface CustomerBasic {
   id?: string | null
   isPublic?: boolean | null
 }
+
+export interface CustomerAccount {
+  id?: string | null
+  accountId?: string | null
+}

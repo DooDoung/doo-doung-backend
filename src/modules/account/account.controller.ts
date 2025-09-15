@@ -78,7 +78,6 @@ export class AccountController {
   async post(
     @Body() body: CustomerRegisterDto | ProphetRegisterDto
   ): Promise<AccountResponseDto> {
-    console.log("body", body)
     try {
       const role = body.role // now works
       return await this.service.createAccount(role, body)

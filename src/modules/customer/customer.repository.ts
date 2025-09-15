@@ -47,4 +47,28 @@ export class CustomerRepository {
       } as Prisma.CustomerUncheckedCreateInput,
     })
   }
+  async updateCustomerDetail(
+    accountId: string,
+    userDetail: {
+      zodiacSign?: ZodiacSign
+      birthDate?: string
+      birthTime?: string
+    }
+  ) {
+    // console.log("accountId", accountId)
+    const birthDate = userDetail.birthDate
+      ? new Date(userDetail.birthDate)
+      : undefined
+    const birthTime = userDetail.birthTime
+      ? new Date(`1970-01-01T${userDetail.birthTime}Z`)
+      : undefined
+    return await this.prisma.customer.update({
+      where: { accountId: accountId },
+      data: {
+        zodiacSign: userDetail.zodiacSign,
+        birthDate: birthDate,
+        birthTime: birthTime,
+      } as Prisma.CustomerUncheckedUpdateInput,
+    })
+  }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body } from "@nestjs/common"
+import { Controller, Get, Param, Post, Body, Put } from "@nestjs/common"
 import { AccountService } from "./account.service"
 import {
   AccountResponseDto,
@@ -32,7 +32,6 @@ import {
 @Controller("account")
 export class AccountController {
   constructor(private readonly service: AccountService) {}
-
   @Get()
   @ApiOkResponse({
     schema: {
@@ -60,6 +59,11 @@ export class AccountController {
   getById(@Param("id") id: string): Promise<AccountResponseDto> {
     return this.service.getAccountById(id)
   }
+  @Get("profileUrl/:username")
+  getProfileUrl(@Param("username") username: string): Promise<string> {
+    console.log(username)
+    return this.service.getProfileUrl(username)
+  }
   @Post("register")
   @ApiBody({
     schema: {
@@ -75,5 +79,16 @@ export class AccountController {
   ): Promise<AccountResponseDto> {
     const role = body.role
     return await this.service.createAccount(role, body)
+  }
+  @Put()
+  async put(@Body() body: any): Promise<AccountResponseDto> {
+    try {
+      console.log(body)
+      const role = body.role // now works
+      return await this.service.updateAccount(role, body)
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
   }
 }

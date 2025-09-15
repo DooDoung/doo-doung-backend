@@ -34,6 +34,20 @@ export class AccountRepository {
     })
   }
 
+  async getProfileUrl(username: string): Promise<string> {
+    const reqAccount = await this.findAccountByUsername(username, {
+      id: true,
+    })
+    if (reqAccount) {
+      const tmp = await this.prisma.userDetail.findUnique({
+        where: { accountId: reqAccount.id },
+        select: { profileUrl: true },
+      })
+      return tmp?.profileUrl ?? ""
+    }
+    return ""
+  }
+
   async createBaseAccount(
     username: string,
     email: string,
@@ -79,5 +93,33 @@ export class AccountRepository {
       where: { id: accountId },
       data: { passwordHash: hashedPassword },
     })
+  }
+
+  async updateBaseAccount(
+    id: string,
+    username?: string,
+    email?: string,
+    passwordHash?: string,
+    userDetail?: {
+      name?: string | null
+      lastname?: string | null
+      phoneNumber?: string | null
+      gender?: Sex | null
+      profileUrl?: string | null
+    }
+  ) {
+    const updatedAccount = await this.prisma.account.update({
+      where: { id },
+      data: {
+        username: username,
+        email: email,
+        passwordHash: passwordHash,
+      } as Prisma.AccountUncheckedUpdateInput,
+    })
+    const updatedUserDetail = await this.prisma.userDetail.update({
+      where: { accountId: id },
+      data: userDetail as Prisma.UserDetailUncheckedUpdateInput,
+    })
+    return { ...updatedUserDetail, ...updatedAccount }
   }
 }

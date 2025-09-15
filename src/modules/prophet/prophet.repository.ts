@@ -56,8 +56,6 @@ export class ProphetRepository {
           } as Prisma.TransactionAccountUncheckedCreateInput,
         })
       }
-    } else {
-      throw new Error("transaction Account is required")
     }
     return prophet
   }

@@ -16,6 +16,11 @@ export class AccountController {
   getById(@Param("id") id: string): Promise<AccountResponseDto> {
     return this.service.getAccountById(id)
   }
+  @Get("profileUrl/:username")
+  getProfileUrl(@Param("username") username : string): Promise<string> {
+    console.log(username)
+    return this.service.getProfileUrl(username)
+  }
   @Post("register")
   async post(@Body() body: any): Promise<AccountDto> {
     console.log("body", body)

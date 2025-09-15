@@ -111,6 +111,10 @@ export class AccountService {
     return account
   }
 
+  async getProfileUrl(username: string): Promise<string> {
+    return await this.repo.getProfileUrl(username)
+  }
+
   async createAccount(role: Role, dto: any): Promise<AccountDto> {
     if (role === Role.CUSTOMER) {
       dto = dto as CustomerDetailDtoInput

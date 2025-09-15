@@ -35,6 +35,20 @@ export class AccountRepository {
     })
   }
 
+  async getProfileUrl(username: string): Promise<string> {
+    const reqAccount = await this.findAccountByUsername(username, {
+      id : true
+    })
+    if (reqAccount) {
+      const tmp = await this.prisma.userDetail.findUnique({
+        where: { accountId: reqAccount.id },
+        select: { profileUrl: true },
+      })
+      return tmp?.profileUrl ?? "";
+    }
+    return "";
+  }
+
   async createBaseAccount(
     username: string,
     email: string,

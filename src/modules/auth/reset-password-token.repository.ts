@@ -35,7 +35,7 @@ export class ResetPasswordTokenRepository {
   }
 
   async findValidToken(token: string): Promise<ResetPasswordToken | null> {
-    return await this.prisma.resetPasswordToken.findFirst({
+    return this.prisma.resetPasswordToken.findFirst({
       where: {
         token,
         usedAt: null,

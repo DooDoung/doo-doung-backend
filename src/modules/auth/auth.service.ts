@@ -81,7 +81,6 @@ export class AuthService {
     const account = await this.accountService.findAccountByEmail(email)
     if (!account) throw new NotFoundException("Account not found")
     const token = await this.nanoidUtils.generateId()
-    console.log(token)
     const expiresAt = new Date(Date.now() + 1000 * 60 * 15)
 
     await this.tokenRepo.create(account.id, token, expiresAt)

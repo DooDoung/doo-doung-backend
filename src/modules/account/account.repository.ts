@@ -79,6 +79,7 @@ export class AccountRepository {
       lastname?: string | null
       phoneNumber?: string | null
       gender?: Sex | null
+      profileUrl?: string | null
     }
   ) {
     const updatedAccount = await this.prisma.account.update({

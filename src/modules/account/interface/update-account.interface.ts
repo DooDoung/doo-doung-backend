@@ -11,6 +11,7 @@ export interface BaseUpdateAccountDto {
   phoneNumber?: string | null
   gender?: Sex | null
   email?: string | null
+  profileUrl?: string | null
 }
 export interface CustomerUpdateAccountDto extends BaseUpdateAccountDto {
   birthDate?: Date | null // use string to make both into date when create to db

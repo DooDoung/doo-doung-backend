@@ -177,6 +177,7 @@ export class AccountService {
           lastname: dto.lastName,
           phoneNumber: dto.phoneNumber,
           gender: dto.gender,
+          profileUrl: dto.profileUrl,
         }
       )
       const updatedCustomerDetail =
@@ -201,6 +202,7 @@ export class AccountService {
           lastname: dto.lastName,
           phoneNumber: dto.phoneNumber,
           gender: dto.gender,
+          profileUrl: dto.profileUrl,
         }
       )
       const updatedProphetDetail =

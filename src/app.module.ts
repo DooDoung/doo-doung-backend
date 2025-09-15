@@ -4,18 +4,24 @@ import { LoggerMiddleware } from "./common/middleware/logger.middleware"
 import { AccountModule } from "./modules/account/account.module"
 import { AuthModule } from "./modules/auth/auth.module"
 import { ConfigModule } from "@nestjs/config"
-import hashConfig from "@/config/hash.config"
+import { ReportModule } from "./modules/report/report.module"
 import { ReviewModule } from "./modules/review/review.module"
+import appConfig from "./config/app.config"
+import corsConfig from "./config/cors.config"
+import { AvailabilityModule } from "./modules/prophet/availability/availability.module"
+
 @Module({
   imports: [
     AuthModule,
     PrismaModule,
     AccountModule,
+    ReportModule,
     ReviewModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [hashConfig], // load all separate config files
+      load: [corsConfig, appConfig], // load all separate config files
     }),
+    AvailabilityModule,
   ],
 })
 export class AppModule implements NestModule {

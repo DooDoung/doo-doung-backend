@@ -4,13 +4,12 @@ import { AccountService } from "./account.service"
 import { AccountRepository } from "./account.repository"
 import { CustomerModule } from "../customer/customer.module"
 import { ProphetModule } from "../prophet/prophet.module"
-import { NanoidGenerator } from "@/common/utils/nanoid"
-import { HashUtils } from "@/common/utils/hash.util"
+import { UtilsModule } from "@/common/utils/utils.module"
 
 @Module({
-  imports: [CustomerModule, ProphetModule],
+  imports: [CustomerModule, ProphetModule, UtilsModule],
   controllers: [AccountController],
-  providers: [AccountService, AccountRepository, NanoidGenerator, HashUtils],
+  providers: [AccountService, AccountRepository],
   exports: [AccountService],
 })
 export class AccountModule {}

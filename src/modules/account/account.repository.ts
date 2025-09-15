@@ -1,8 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { Prisma, Role, Sex } from "@prisma/client"
 import { PrismaService } from "../../db/prisma.service"
-import { NanoidGenerator } from "../../common/utils/nanoid"
-import { AccountDto } from "./interface/create-account.interface"
+import { NanoidService } from "../../common/utils/nanoid"
 
 type SafeAccountSelect = Omit<Prisma.AccountSelect, "passwordHash"> & {
   passwordHash?: never
@@ -12,7 +11,7 @@ type SafeAccountSelect = Omit<Prisma.AccountSelect, "passwordHash"> & {
 export class AccountRepository {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly nanoid: NanoidGenerator
+    private readonly nanoid: NanoidService
   ) {}
 
   findBaseById<S extends SafeAccountSelect>(
@@ -37,16 +36,16 @@ export class AccountRepository {
 
   async getProfileUrl(username: string): Promise<string> {
     const reqAccount = await this.findAccountByUsername(username, {
-      id : true
+      id: true,
     })
     if (reqAccount) {
       const tmp = await this.prisma.userDetail.findUnique({
         where: { accountId: reqAccount.id },
         select: { profileUrl: true },
       })
-      return tmp?.profileUrl ?? "";
+      return tmp?.profileUrl ?? ""
     }
-    return "";
+    return ""
   }
 
   async createBaseAccount(
@@ -80,7 +79,20 @@ export class AccountRepository {
         gender: userDetail.gender,
       } as Prisma.UserDetailUncheckedCreateInput,
     })
-    return { ...user_detail, ...account }
+    return { ...account, ...user_detail }
+  }
+
+  async findAccountByEmail(email: string) {
+    return this.prisma.account.findUnique({
+      where: { email },
+    })
+  }
+
+  async updatePassword(accountId: string, hashedPassword: string) {
+    return this.prisma.account.update({
+      where: { id: accountId },
+      data: { passwordHash: hashedPassword },
+    })
   }
 
   async updateBaseAccount(

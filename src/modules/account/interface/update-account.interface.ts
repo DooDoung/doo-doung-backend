@@ -1,5 +1,5 @@
 import { Sex, ZodiacSign, Role } from "@prisma/client"
-import { TxAccount } from "./get-account.interface"
+import { TxAccount } from "@/common/types/payment/tx-account.type"
 
 export interface BaseUpdateAccountDto {
   id: string

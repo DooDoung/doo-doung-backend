@@ -1,583 +1,789 @@
-// Development data seeding functions for comprehensive testing
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt'
+import { PrismaClient } from "@prisma/client"
+import bcrypt from "bcrypt"
+import crypto from "crypto"
 
 const prisma = new PrismaClient()
 
-// Helper function to generate short IDs
-function generateShortId(prefix: string, counter: number): string {
-  return `d_${prefix}_${counter.toString().padStart(3, '0')}`
+// Constants
+const DEV_CUSTOMER_ID = "dev_customer_001"
+const DEV_PROPHET_ID = "dev_prophet_001"
+const DEV_ADMIN_ID = "dev_admin_001"
+
+// Utility Functions
+function generateShortId(prefix: string): string {
+  return `${prefix}_${crypto.randomBytes(4).toString("hex")}`
 }
 
-async function seedDevAccounts() {
-  console.log('🛠️ Seeding development accounts...')
-  
-  // Dev Customer Account
-  const devCustomerAccountId = 'dev_customer_001'
-  const devCustomerAccount = await prisma.account.upsert({
-    where: { username: 'dev_customer' },
-    update: {},
-    create: {
-      id: devCustomerAccountId,
-      email: 'dev_customer@gmail.com',
-      username: 'dev_customer',
-      passwordHash: await bcrypt.hash('dev_password', 10),
-      role: 'CUSTOMER',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
+// Step 1: Create Dev Accounts
+async function createDevAccounts() {
+  console.log("🛠️ Creating development accounts...")
 
-  // Dev Customer User Detail
-  await prisma.userDetail.upsert({
-    where: { accountId: devCustomerAccountId },
-    update: {},
-    create: {
-      accountId: devCustomerAccountId,
-      name: 'Dev',
-      lastname: 'Customer',
-      profileUrl: 'https://example.com/profile/dev_customer.jpg',
-      phoneNumber: '+66812345678',
-      gender: 'UNDEFINED',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
+  // Dev Customer Account
+  const devCustomerAccount = await prisma.account.create({
+    data: {
+      id: DEV_CUSTOMER_ID,
+      email: "dev_customer@gmail.com",
+      username: "dev_customer",
+      passwordHash: await bcrypt.hash("dev_password", 10),
+      role: "CUSTOMER",
+      userDetail: {
+        create: {
+          name: "Dev",
+          lastname: "Customer",
+          profileUrl: "https://example.com/profile/dev_customer.jpg",
+          phoneNumber: "+66812345678",
+          gender: "UNDEFINED",
+        },
+      },
+      customer: {
+        create: {
+          id: DEV_CUSTOMER_ID,
+          birthDate: new Date("1990-01-01"),
+          birthTime: new Date("1970-01-01T12:00:00.000Z"),
+          zodiacSign: "AQUARIUS",
+        },
+      },
+    },
+  })
 
-  // Dev Customer Profile
-  await prisma.customer.upsert({
-    where: { accountId: devCustomerAccountId },
-    update: {},
-    create: {
-      id: devCustomerAccountId,
-      accountId: devCustomerAccountId,
-      birthDate: new Date('1990-01-01'),
-      birthTime: new Date('1970-01-01T12:00:00.000Z'),
-      zodiacSign: 'AQUARIUS',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
+  // Dev Prophet Account
+  const devProphetAccount = await prisma.account.create({
+    data: {
+      id: DEV_PROPHET_ID,
+      email: "dev_prophet@gmail.com",
+      username: "dev_prophet",
+      passwordHash: await bcrypt.hash("dev_password", 10),
+      role: "PROPHET",
+      userDetail: {
+        create: {
+          name: "Dev",
+          lastname: "Prophet",
+          profileUrl: "https://example.com/profile/dev_prophet.jpg",
+          phoneNumber: "+66812345679",
+          gender: "UNDEFINED",
+        },
+      },
+      prophet: {
+        create: {
+          id: DEV_PROPHET_ID,
+          lineId: "dev_prophet_line_id",
+        },
+      },
+    },
+  })
 
-  // Dev Prophet Account
-  const devProphetAccountId = 'dev_prophet_001'
-  const devProphetAccount = await prisma.account.upsert({
-    where: { username: 'dev_prophet' },
-    update: {},
-    create: {
-      id: devProphetAccountId,
-      email: 'dev_prophet@gmail.com',
-      username: 'dev_prophet',
-      passwordHash: await bcrypt.hash('dev_password', 10),
-      role: 'PROPHET',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
+  // Dev Admin Account
+  const devAdminAccount = await prisma.account.create({
+    data: {
+      id: DEV_ADMIN_ID,
+      email: "dev_admin@gmail.com",
+      username: "dev_admin",
+      passwordHash: await bcrypt.hash("dev_password", 10),
+      role: "ADMIN",
+      userDetail: {
+        create: {
+          name: "Dev",
+          lastname: "Admin",
+          profileUrl: "https://example.com/profile/dev_admin.jpg",
+          phoneNumber: "+66812345680",
+          gender: "UNDEFINED",
+        },
+      },
+    },
+  })
 
-  // Dev Prophet User Detail
-  await prisma.userDetail.upsert({
-    where: { accountId: devProphetAccountId },
-    update: {},
-    create: {
-      accountId: devProphetAccountId,
-      name: 'Dev',
-      lastname: 'Prophet',
-      profileUrl: 'https://example.com/profile/dev_prophet.jpg',
-      phoneNumber: '+66812345679',
-      gender: 'UNDEFINED',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Prophet Profile
-  await prisma.prophet.upsert({
-    where: { accountId: devProphetAccountId },
-    update: {},
-    create: {
-      id: devProphetAccountId,
-      accountId: devProphetAccountId,
-      lineId: 'dev_prophet_line',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Admin Account
-  const devAdminAccountId = 'dev_admin_001'
-  const devAdminAccount = await prisma.account.upsert({
-    where: { username: 'dev_admin' },
-    update: {},
-    create: {
-      id: devAdminAccountId,
-      email: 'dev_admin@gmail.com',
-      username: 'dev_admin',
-      passwordHash: await bcrypt.hash('dev_password', 10),
-      role: 'ADMIN',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  // Dev Admin User Detail
-  await prisma.userDetail.upsert({
-    where: { accountId: devAdminAccountId },
-    update: {},
-    create: {
-      accountId: devAdminAccountId,
-      name: 'Dev',
-      lastname: 'Admin',
-      profileUrl: 'https://example.com/profile/dev_admin.jpg',
-      phoneNumber: '+66812345680',
-      gender: 'UNDEFINED',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  })
-
-  console.log('✅ Development accounts seeded')
+  console.log("✅ Development accounts created")
 }
 
-async function seedDevRelatedData() {
-  console.log('🛠️ Seeding development related data...')
-  
-  const DEV_CUSTOMER_ID = 'dev_customer_001'
-  const DEV_PROPHET_ID = 'dev_prophet_001'
-  const DEV_ADMIN_ID = 'dev_admin_001'
+// Step 2: Create Prophet Methods for Dev Prophet
+async function createDevProphetMethods() {
+  console.log("📚 Creating prophet methods for dev prophet...")
 
-  // 1. Prophet Methods for Dev Prophet
-  console.log('📚 Seeding prophet methods for dev prophet...')
-  const availableMethods = await prisma.horoscopeMethod.findMany()
-  
-  // Assign multiple methods to dev prophet
-  for (let i = 0; i < Math.min(5, availableMethods.length); i++) {
-    await prisma.prophetMethod.upsert({
-      where: {
-        prophetId_methodId: {
-          prophetId: DEV_PROPHET_ID,
-          methodId: availableMethods[i].id
-        }
-      },
-      update: {},
-      create: {
-        prophetId: DEV_PROPHET_ID,
-        methodId: availableMethods[i].id
-      }
-    })
-  }
+  // Fetch available horoscope methods
+  const availableMethods = await prisma.horoscopeMethod.findMany()
 
-  // 2. Prophet Availabilities for Dev Prophet
-  console.log('📅 Seeding prophet availabilities for dev prophet...')
-  const today = new Date()
-  
-  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
-    const date = new Date(today)
-    date.setDate(today.getDate() + dayOffset)
-    
-    // Morning slot
-    await prisma.prophetAvailability.upsert({
-      where: {
-        prophetId_date_startTime_endTime: {
-          prophetId: DEV_PROPHET_ID,
-          date: date,
-          startTime: new Date('1970-01-01T09:00:00.000Z'),
-          endTime: new Date('1970-01-01T12:00:00.000Z')
-        }
-      },
-      update: {},
-      create: {
-        prophetId: DEV_PROPHET_ID,
-        date: date,
-        startTime: new Date('1970-01-01T09:00:00.000Z'),
-        endTime: new Date('1970-01-01T12:00:00.000Z'),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    })
+  // Randomly select 3-5 methods for dev prophet
+  const selectedMethods = availableMethods
+    .sort(() => 0.5 - Math.random())
+    .slice(0, Math.floor(Math.random() * 3) + 3)
 
-    // Afternoon slot (skip weekends for some variety)
-    if (dayOffset % 7 < 5) {
-      await prisma.prophetAvailability.upsert({
-        where: {
-          prophetId_date_startTime_endTime: {
-            prophetId: DEV_PROPHET_ID,
-            date: date,
-            startTime: new Date('1970-01-01T14:00:00.000Z'),
-            endTime: new Date('1970-01-01T18:00:00.000Z')
-          }
-        },
-        update: {},
-        create: {
-          prophetId: DEV_PROPHET_ID,
-          date: date,
-          startTime: new Date('1970-01-01T14:00:00.000Z'),
-          endTime: new Date('1970-01-01T18:00:00.000Z'),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      })
-    }
+  for (const method of selectedMethods) {
+    await prisma.prophetMethod.create({
+      data: {
+        prophetId: DEV_PROPHET_ID,
+        methodId: method.id,
+      },
+    })
+  }
 
-    // Evening slot (every 3 days)
-    if (dayOffset % 3 === 0) {
-      await prisma.prophetAvailability.upsert({
-        where: {
-          prophetId_date_startTime_endTime: {
-            prophetId: DEV_PROPHET_ID,
-            date: date,
-            startTime: new Date('1970-01-01T19:00:00.000Z'),
-            endTime: new Date('1970-01-01T21:00:00.000Z')
-          }
-        },
-        update: {},
-        create: {
-          prophetId: DEV_PROPHET_ID,
-          date: date,
-          startTime: new Date('1970-01-01T19:00:00.000Z'),
-          endTime: new Date('1970-01-01T21:00:00.000Z'),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      })
-    }
-  }
-
-  // 3. Courses for Dev Prophet
-  console.log('📖 Seeding courses for dev prophet...')
-  const devProphetMethods = await prisma.prophetMethod.findMany({
-    where: { prophetId: DEV_PROPHET_ID },
-    include: { method: true }
-  })
-
-  const coursesData = [
-    { name: 'Basic Tarot Reading', sector: 'LOVE', duration: 30, price: 500.00 },
-    { name: 'Advanced Astrology Chart', sector: 'WORK', duration: 60, price: 1200.00 },
-    { name: 'Premium Palm Reading', sector: 'MONEY', duration: 45, price: 800.00 },
-    { name: 'Crystal Ball Consultation', sector: 'FAMILY', duration: 90, price: 1500.00 },
-    { name: 'Numerology Life Path', sector: 'LUCK', duration: 60, price: 1000.00 }
-  ]
-
-  for (let i = 0; i < coursesData.length && i < devProphetMethods.length; i++) {
-    const course = coursesData[i]
-    const method = devProphetMethods[i]
-    
-    await prisma.course.upsert({
-      where: { id: generateShortId('course', i + 1) },
-      update: {},
-      create: {
-        id: generateShortId('course', i + 1),
-        prophetId: DEV_PROPHET_ID,
-        courseName: course.name,
-        horoscopeMethodId: method.methodId,
-        horoscopeSector: course.sector as any,
-        durationMin: course.duration,
-        price: course.price,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    })
-  }
-
-  // 4. Transaction Accounts for Dev Prophet
-  console.log('💳 Seeding transaction accounts for dev prophet...')
-  const bankAccounts = [
-    { bank: 'KBANK', accountName: 'Dev Prophet', accountNumber: '1234567890' },
-    { bank: 'SCB', accountName: 'Dev Prophet 2', accountNumber: '0987654321' }
-  ]
-
-  for (let i = 0; i < bankAccounts.length; i++) {
-    const account = bankAccounts[i]
-    await prisma.transactionAccount.upsert({
-      where: {
-        prophetId_bank_accountNumber: {
-          prophetId: DEV_PROPHET_ID,
-          bank: account.bank as any,
-          accountNumber: account.accountNumber
-        }
-      },
-      update: {},
-      create: {
-        id: generateShortId('txaccount', i + 1),
-        prophetId: DEV_PROPHET_ID,
-        accountName: account.accountName,
-        accountNumber: account.accountNumber,
-        bank: account.bank as any,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    })
-  }
-
-  // 5. Bookings - Dev Customer with Other Prophets
-  console.log('📝 Seeding bookings for dev customer with other prophets...')
-  const otherProphets = await prisma.prophet.findMany({
-    where: { id: { not: DEV_PROPHET_ID } },
-    take: 3
-  })
-
-  for (let i = 0; i < otherProphets.length; i++) {
-    const prophet = otherProphets[i]
-    const courses = await prisma.course.findMany({
-      where: { prophetId: prophet.id, isActive: true },
-      take: 1
-    })
-    
-    if (courses.length > 0) {
-      const course = courses[0]
-      const bookingDate = new Date()
-      bookingDate.setDate(today.getDate() + i + 1)
-      bookingDate.setHours(10, 0, 0, 0)
-      
-      const endDate = new Date(bookingDate)
-      endDate.setMinutes(bookingDate.getMinutes() + course.durationMin)
-      
-      const bookingId = generateShortId('booking', i + 1)
-      
-      await prisma.booking.upsert({
-        where: { id: bookingId },
-        update: {},
-        create: {
-          id: bookingId,
-          customerId: DEV_CUSTOMER_ID,
-          courseId: course.id,
-          prophetId: prophet.id,
-          startDateTime: bookingDate,
-          endDateTime: endDate,
-          status: i === 0 ? 'COMPLETED' : (i === 1 ? 'SCHEDULED' : 'FAILED'),
-          createdAt: new Date()
-        }
-      })
-
-      // Create transaction for this booking
-      await prisma.transaction.upsert({
-        where: { bookingId: bookingId },
-        update: {},
-        create: {
-          id: generateShortId('transact', i + 1),
-          bookingId: bookingId,
-          status: i === 0 ? 'COMPLETED' : (i === 1 ? 'PROCESSING' : 'FAILED'),
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      })
-
-      // Create review for completed booking
-      if (i === 0) {
-        await prisma.review.upsert({
-          where: { bookingId: bookingId },
-          update: {},
-          create: {
-            id: generateShortId('review', i + 1),
-            customerId: DEV_CUSTOMER_ID,
-            bookingId: bookingId,
-            score: 5,
-            description: 'Excellent reading! Very insightful and accurate. The prophet was professional and provided detailed explanations.',
-            createdAt: new Date(),
-            updatedAt: new Date()
-          }
-        })
-      }
-    }
-  }
-
-  // 6. Bookings - Other Customers with Dev Prophet
-  console.log('📝 Seeding bookings for other customers with dev prophet...')
-  const otherCustomers = await prisma.customer.findMany({
-    where: { id: { not: DEV_CUSTOMER_ID } },
-    take: 5
-  })
-
-  const devCourses = await prisma.course.findMany({
-    where: { prophetId: DEV_PROPHET_ID, isActive: true }
-  })
-
-  for (let i = 0; i < Math.min(otherCustomers.length, devCourses.length); i++) {
-    const customer = otherCustomers[i]
-    const course = devCourses[i]
-    const bookingDate = new Date()
-    bookingDate.setDate(today.getDate() + i + 10)
-    bookingDate.setHours(14 + i, 0, 0, 0)
-    
-    const endDate = new Date(bookingDate)
-    endDate.setMinutes(bookingDate.getMinutes() + course.durationMin)
-    
-    await prisma.booking.upsert({
-      where: {
-        prophetId_startDateTime_endDateTime: {
-          prophetId: DEV_PROPHET_ID,
-          startDateTime: bookingDate,
-          endDateTime: endDate,
-        },
-      },
-      update: {},
-      create: {
-        id: generateShortId('devbooking', i + 1),
-        customerId: customer.id,
-        courseId: course.id,
-        prophetId: DEV_PROPHET_ID,
-        startDateTime: bookingDate,
-        endDateTime: endDate,
-        status: i < 2 ? 'COMPLETED' : (i < 4 ? 'SCHEDULED' : 'FAILED'),
-        createdAt: new Date()
-      }
-    })
-
-    // Create transaction for this booking
-    await prisma.transaction.upsert({
-      where: { bookingId: generateShortId('devbooking', i + 1) },
-      update: {},
-      create: {
-        id: generateShortId('dtransact', i + 1),
-        bookingId: generateShortId('devbooking', i + 1),
-        status: i < 2 ? 'COMPLETED' : (i < 4 ? 'PROCESSING' : 'FAILED'),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    })
-
-    // Create reviews for completed bookings
-    if (i < 2) {
-      const reviews = [
-        { score: 5, description: 'Outstanding service! The dev prophet provided incredibly detailed insights.' },
-        { score: 4, description: 'Very good reading, though could use more time for follow-up questions.' }
-      ]
-      
-      await prisma.review.upsert({
-        where: { bookingId: generateShortId('devbooking', i + 1) },
-        update: {},
-        create: {
-          id: generateShortId('dreview', i + 1),
-          customerId: customer.id,
-          bookingId: generateShortId('devbooking', i + 1),
-          score: reviews[i].score,
-          description: reviews[i].description,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      })
-    }
-  }
-
-  // 7. Reports - Dev Customer Reports
-  console.log('📋 Seeding reports from dev customer...')
-  const reportData = [
-    {
-      type: 'PAYMENT_ISSUE',
-      topic: 'Payment Processing Delay',
-      description: 'Payment was successful but booking confirmation took too long to appear in my account.',
-      status: 'DONE',
-      adminId: DEV_ADMIN_ID
-    },
-    {
-      type: 'COURSE_ISSUE', 
-      topic: 'Course Duration Mismatch',
-      description: 'The actual session was shorter than the advertised duration. Expected 60 minutes but got 45.',
-      status: 'PENDING',
-      adminId: null
-    },
-    {
-      type: 'WEBSITE_ISSUE',
-      topic: 'Profile Image Upload Failed',
-      description: 'Cannot upload profile image. Gets error message every time I try.',
-      status: 'DISCARD',
-      adminId: DEV_ADMIN_ID
-    }
-  ]
-
-  for (let i = 0; i < reportData.length; i++) {
-    const report = reportData[i]
-    await prisma.report.upsert({
-      where: { id: generateShortId('report', i + 1) },
-      update: {},
-      create: {
-        id: generateShortId('report', i + 1),
-        customerId: DEV_CUSTOMER_ID,
-        adminId: report.adminId,
-        reportType: report.type as any,
-        topic: report.topic,
-        description: report.description,
-        reportStatus: report.status as any,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    })
-  }
-
-  // 8. Reports - Other Customers to Dev Admin
-  console.log('📋 Seeding reports handled by dev admin...')
-  const adminReportsData = [
-    {
-      type: 'PROPHET_ISSUE',
-      topic: 'Prophet was unprofessional during session',
-      description: 'The prophet arrived late and seemed unprepared for the session. Very disappointing experience.',
-      status: 'DONE',
-      adminId: DEV_ADMIN_ID
-    },
-    {
-      type: 'WEBSITE_ISSUE', 
-      topic: 'Website crashed during checkout',
-      description: 'The website kept freezing when I tried to complete payment. Lost my booking slot.',
-      status: 'DISCARD',
-      adminId: DEV_ADMIN_ID
-    },
-    {
-      type: 'OTHER',
-      topic: 'General inquiry about refund policy',
-      description: 'I would like to understand the refund policy for cancelled bookings.',
-      status: 'PENDING',
-      adminId: null
-    },
-    {
-      type: 'COURSE_ISSUE',
-      topic: 'Course content not as advertised',
-      description: 'The course description mentioned detailed life guidance but session was very generic.',
-      status: 'PENDING',
-      adminId: null
-    }
-  ]
-
-  for (let i = 0; i < Math.min(adminReportsData.length, otherCustomers.length); i++) {
-    const customer = otherCustomers[i]
-    const report = adminReportsData[i]
-    
-    await prisma.report.upsert({
-      where: { id: generateShortId('report', i + 1) },
-      update: {},
-      create: {
-        id: generateShortId('report', i + 1),
-        customerId: customer.id,
-        adminId: report.adminId,
-        reportType: report.type as any,
-        topic: report.topic,
-        description: report.description,
-        reportStatus: report.status as any,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }
-    })
-  }
-
-  console.log('✅ Development related data seeded successfully')
+  console.log(`✅ Created ${selectedMethods.length} prophet methods`)
 }
 
-// Main function to seed all dev accounts and related data
-async function seedCompleteDevData() {
-  try {
-    // First seed the basic dev accounts
-    await seedDevAccounts()
-    
-    // Then seed all related data
-    await seedDevRelatedData()
-    
-    console.log('🎉 Complete development data seeding finished!')
-  } catch (error) {
-    console.error('❌ Error during development data seeding:', error)
-    throw error
-  } finally {
-    await prisma.$disconnect()
-  }
+// Step 3: Create Prophet Availabilities
+async function createDevProphetAvailabilities() {
+  console.log("📅 Creating prophet availabilities for dev prophet...")
+
+  const now = new Date()
+  const possibleMinutes = [0, 15, 30, 45]
+  const possibleHours = [9, 10, 11, 14, 15, 16, 19, 20, 21]
+
+  // Generate availabilities for next 30 days
+  for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
+    const date = new Date(now)
+    date.setDate(now.getDate() + dayOffset)
+
+    // Skip dates in the past
+    if (date < now) continue
+
+    // Randomly determine number of availability slots (2-4)
+    const numSlots = Math.floor(Math.random() * 3) + 2
+
+    // Track used slots to prevent duplicates
+    const usedSlots = new Set()
+
+    for (let i = 0; i < numSlots; i++) {
+      // Randomly select hour and minute
+      const hour =
+        possibleHours[Math.floor(Math.random() * possibleHours.length)]
+      const minute =
+        possibleMinutes[Math.floor(Math.random() * possibleMinutes.length)]
+
+      // Create full datetime
+      const availabilityDateTime = new Date(date)
+      availabilityDateTime.setHours(hour, minute, 0, 0)
+
+      // Skip if datetime is in the past or slot already used
+      if (availabilityDateTime < now) continue
+
+      const slotKey = `${availabilityDateTime.toISOString()}`
+      if (usedSlots.has(slotKey)) continue
+
+      // Create availability
+      await prisma.prophetAvailability.create({
+        data: {
+          prophetId: DEV_PROPHET_ID,
+          date: availabilityDateTime,
+          startTime: availabilityDateTime,
+          createdAt: new Date(),
+        },
+      })
+
+      usedSlots.add(slotKey)
+    }
+  }
+
+  console.log("✅ Prophet availabilities created")
 }
 
-seedCompleteDevData()
+// Step 4: Create Dev Prophet Courses
+async function createDevProphetCourses() {
+  console.log("📖 Creating courses for dev prophet...")
+
+  // Fetch prophet methods for dev prophet
+  const prophetMethods = await prisma.prophetMethod.findMany({
+    where: { prophetId: DEV_PROPHET_ID },
+    include: { method: true },
+  })
+
+  // Course data with variations
+  const coursesData = [
+    {
+      name: "Basic Tarot Reading",
+      sector: "LOVE",
+      duration: 30,
+      price: 500.0,
+      description:
+        "Introductory tarot card reading focusing on love and relationships",
+    },
+    {
+      name: "Advanced Astrology Chart",
+      sector: "WORK",
+      duration: 60,
+      price: 1200.0,
+      description:
+        "Comprehensive astrological analysis of career and professional path",
+    },
+    {
+      name: "Premium Palm Reading",
+      sector: "MONEY",
+      duration: 45,
+      price: 800.0,
+      description:
+        "Detailed palm reading exploring financial potential and opportunities",
+    },
+    {
+      name: "Crystal Ball Consultation",
+      sector: "FAMILY",
+      duration: 90,
+      price: 1500.0,
+      description:
+        "In-depth spiritual guidance focusing on family dynamics and relationships",
+    },
+    {
+      name: "Numerology Life Path",
+      sector: "LUCK",
+      duration: 60,
+      price: 1000.0,
+      description:
+        "Comprehensive numerology reading to understand life purpose and potential",
+    },
+  ]
+
+  // Create courses, ensuring we have enough methods
+  for (
+    let i = 0;
+    i < Math.min(coursesData.length, prophetMethods.length);
+    i++
+  ) {
+    const course = coursesData[i]
+    const method = prophetMethods[i]
+
+    await prisma.course.create({
+      data: {
+        id: generateShortId("cs"),
+        prophetId: DEV_PROPHET_ID,
+        courseName: course.name,
+        horoscopeMethodId: method.methodId,
+        horoscopeSector: course.sector as any,
+        durationMin: course.duration,
+        price: course.price,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    })
+  }
+
+  console.log("✅ Courses for dev prophet created")
+}
+
+// Step 5: Create Dev Prophet Transaction Accounts
+async function createDevProphetTransactionAccounts() {
+  console.log("💳 Creating transaction accounts for dev prophet...")
+
+  // Bank account details
+  const bankAccounts = [
+    {
+      bank: "KBANK",
+      accountName: "DevProphet1",
+      accountNumber: "1234567890",
+    },
+    {
+      bank: "SCB",
+      accountName: "DevProphet2",
+      accountNumber: "0987654321",
+    },
+    {
+      bank: "BBL",
+      accountName: "Business",
+      accountNumber: "5678901234",
+    },
+  ]
+
+  // Randomly select 1-2 accounts to create
+  const selectedAccounts = bankAccounts
+    .sort(() => 0.5 - Math.random())
+    .slice(0, Math.floor(Math.random() * 2) + 1)
+
+  for (const account of selectedAccounts) {
+    await prisma.transactionAccount.create({
+      data: {
+        id: generateShortId("txa"),
+        prophetId: DEV_PROPHET_ID,
+        accountName: account.accountName,
+        accountNumber: account.accountNumber,
+        bank: account.bank as any,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    })
+  }
+
+  console.log(`✅ Created ${selectedAccounts.length} transaction accounts`)
+}
+// Step 6: Bookings between Dev Customer and All Prophets
+async function createDevCustomerBookings() {
+  console.log("📅 Creating bookings for dev customer with all prophets...")
+
+  const now = new Date()
+
+  // Fetch ALL prophets who have active courses
+  const allProphets = await prisma.prophet.findMany({
+    where: {
+      courses: { some: { isActive: true } },
+    },
+    include: {
+      courses: {
+        where: { isActive: true },
+        take: 1,
+      },
+    },
+  })
+
+  if (allProphets.length === 0) {
+    console.log("No prophets with active courses found. Skipping.")
+    return
+  }
+
+  // 1. Fetch all future availability for these prophets at once
+  const prophetIds = allProphets.map(p => p.id)
+  const allAvailabilities = await prisma.prophetAvailability.findMany({
+    where: {
+      prophetId: { in: prophetIds },
+      date: { gte: now }, // Only look for future slots
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+  })
+
+  // 2. Pre-process availabilities by grouping and sorting them by prophet
+  const availabilitiesByProphet = new Map()
+  for (const slot of allAvailabilities) {
+    if (!availabilitiesByProphet.has(slot.prophetId)) {
+      availabilitiesByProphet.set(slot.prophetId, [])
+    }
+    // Combine date and startTime into a single JS Date object
+    const startDateTime = new Date(slot.date)
+    startDateTime.setHours(
+      slot.startTime.getHours(),
+      slot.startTime.getMinutes(),
+      slot.startTime.getSeconds()
+    )
+    availabilitiesByProphet.get(slot.prophetId).push(startDateTime)
+  }
+
+  // This set will store unique keys for each 15-minute slot: `${prophetId}-${isoString}`
+  const bookedSlots = new Set()
+
+  // Create 4-5 bookings
+  const bookingsToCreate = Math.floor(Math.random() * 2) + 4
+  for (let i = 0; i < bookingsToCreate; i++) {
+    // Select a random prophet from the full list
+    const prophet = allProphets[Math.floor(Math.random() * allProphets.length)]
+
+    if (prophet.courses.length === 0) continue
+
+    const course = prophet.courses[0]
+    const slotsNeeded = course.durationMin / 15
+
+    const prophetSlots = availabilitiesByProphet.get(prophet.id) || []
+
+    if (prophetSlots.length < slotsNeeded) {
+      continue
+    }
+
+    let bookingCreated = false
+
+    // Create a shuffled list of possible start indices to search from
+    const possibleStartIndices = Array.from(
+      { length: prophetSlots.length - slotsNeeded + 1 },
+      (_, k) => k
+    )
+    for (let j = possibleStartIndices.length - 1; j > 0; j--) {
+      const randIndex = Math.floor(Math.random() * (j + 1))
+      ;[possibleStartIndices[j], possibleStartIndices[randIndex]] = [
+        possibleStartIndices[randIndex],
+        possibleStartIndices[j],
+      ]
+    }
+
+    // 3. Search for a consecutive, available block of slots
+    for (const startIndex of possibleStartIndices) {
+      const potentialSlots = prophetSlots.slice(
+        startIndex,
+        startIndex + slotsNeeded
+      )
+
+      const isAlreadyBooked = potentialSlots.some(slot =>
+        bookedSlots.has(`${prophet.id}-${slot.toISOString()}`)
+      )
+      if (isAlreadyBooked) continue
+
+      let isConsecutive = true
+      for (let k = 0; k < potentialSlots.length - 1; k++) {
+        const diffInMs =
+          potentialSlots[k + 1].getTime() - potentialSlots[k].getTime()
+        if (diffInMs !== 15 * 60 * 1000) {
+          // 15 minutes in milliseconds
+          isConsecutive = false
+          break
+        }
+      }
+
+      if (isConsecutive) {
+        // Found a valid block, create the booking and related data
+        const startDateTime = potentialSlots[0]
+        const endDateTime = new Date(
+          potentialSlots[potentialSlots.length - 1].getTime() + 15 * 60 * 1000
+        )
+
+        const booking = await prisma.booking.create({
+          data: {
+            id: generateShortId("bk"),
+            customerId: DEV_CUSTOMER_ID,
+            courseId: course.id,
+            prophetId: prophet.id,
+            startDateTime: startDateTime,
+            endDateTime: endDateTime,
+            status: i === 0 ? "COMPLETED" : i === 1 ? "SCHEDULED" : "FAILED",
+            createdAt: new Date(),
+          },
+        })
+
+        await prisma.transaction.create({
+          data: {
+            id: generateShortId("tx"),
+            bookingId: booking.id,
+            status:
+              booking.status === "COMPLETED"
+                ? "COMPLETED"
+                : booking.status === "SCHEDULED"
+                  ? "PROCESSING"
+                  : "FAILED",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        })
+
+        if (booking.status === "COMPLETED") {
+          await prisma.review.create({
+            data: {
+              id: generateShortId("rv"),
+              customerId: DEV_CUSTOMER_ID,
+              bookingId: booking.id,
+              score: Math.floor(Math.random() * 3) + 3, // 3-5 score
+              description: [
+                "Great session! Very insightful.",
+                "Helpful and professional reading.",
+                "Exceeded my expectations.",
+                "",
+              ][Math.floor(Math.random() * 4)],
+              createdAt: new Date(),
+            },
+          })
+        }
+
+        for (const slot of potentialSlots) {
+          bookedSlots.add(`${prophet.id}-${slot.toISOString()}`)
+        }
+
+        bookingCreated = true
+        break
+      }
+    }
+  }
+
+  console.log("✅ Bookings for dev customer created")
+}
+
+// Step 7: Bookings for Other Customers with Dev Prophet
+async function createOtherCustomersDevProphetBookings() {
+  console.log("📅 Creating bookings for other customers with dev prophet...")
+
+  const now = new Date()
+
+  // Fetch other customers
+  const otherCustomers = await prisma.customer.findMany({
+    where: { id: { not: DEV_CUSTOMER_ID } },
+    take: 5, // We will create bookings for up to 5 customers
+  })
+
+  if (otherCustomers.length === 0) {
+    console.log("No other customers found to create bookings for. Skipping.")
+    return
+  }
+
+  // Fetch dev prophet's active courses
+  const devProphetCourses = await prisma.course.findMany({
+    where: {
+      prophetId: DEV_PROPHET_ID,
+      isActive: true,
+    },
+  })
+
+  if (devProphetCourses.length === 0) {
+    console.log("Dev prophet has no active courses. Skipping.")
+    return
+  }
+
+  // 1. Fetch all future availability slots for the dev prophet
+  const devProphetAvailabilities = await prisma.prophetAvailability.findMany({
+    where: {
+      prophetId: DEV_PROPHET_ID,
+      date: { gte: now },
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+  })
+
+  // 2. Pre-process the availability slots into a simple, sorted array of Date objects
+  const devProphetAvailableSlots = devProphetAvailabilities.map(slot => {
+    const startDateTime = new Date(slot.date)
+    startDateTime.setHours(
+      slot.startTime.getHours(),
+      slot.startTime.getMinutes(),
+      slot.startTime.getSeconds()
+    )
+    return startDateTime
+  })
+
+  // This set will store unique keys for each 15-minute slot: `${prophetId}-${isoString}`
+  const bookedSlots = new Set()
+
+  // Create 4-5 bookings for different customers
+  const bookingsToCreate = Math.min(
+    otherCustomers.length,
+    Math.floor(Math.random() * 2) + 4
+  )
+  for (let i = 0; i < bookingsToCreate; i++) {
+    // Select a customer and a random course from the dev prophet's list
+    const customer = otherCustomers[i]
+    const course =
+      devProphetCourses[Math.floor(Math.random() * devProphetCourses.length)]
+
+    const slotsNeeded = course.durationMin / 15
+
+    if (devProphetAvailableSlots.length < slotsNeeded) {
+      console.log(
+        "Not enough total available slots for dev prophet to continue booking."
+      )
+      break
+    }
+
+    let bookingCreated = false
+
+    // Create a shuffled list of possible start indices to search from
+    const possibleStartIndices = Array.from(
+      { length: devProphetAvailableSlots.length - slotsNeeded + 1 },
+      (_, k) => k
+    )
+    for (let j = possibleStartIndices.length - 1; j > 0; j--) {
+      const randIndex = Math.floor(Math.random() * (j + 1))
+      ;[possibleStartIndices[j], possibleStartIndices[randIndex]] = [
+        possibleStartIndices[randIndex],
+        possibleStartIndices[j],
+      ]
+    }
+
+    // 3. Search for a consecutive, available block of slots
+    for (const startIndex of possibleStartIndices) {
+      const potentialSlots = devProphetAvailableSlots.slice(
+        startIndex,
+        startIndex + slotsNeeded
+      )
+
+      const isAlreadyBooked = potentialSlots.some(slot =>
+        bookedSlots.has(`${DEV_PROPHET_ID}-${slot.toISOString()}`)
+      )
+      if (isAlreadyBooked) continue
+
+      let isConsecutive = true
+      for (let k = 0; k < potentialSlots.length - 1; k++) {
+        const diffInMs =
+          potentialSlots[k + 1].getTime() - potentialSlots[k].getTime()
+        if (diffInMs !== 15 * 60 * 1000) {
+          // 15 minutes in milliseconds
+          isConsecutive = false
+          break
+        }
+      }
+
+      if (isConsecutive) {
+        // Found a valid block, create the booking and related data
+        const startDateTime = potentialSlots[0]
+        const endDateTime = new Date(
+          potentialSlots[potentialSlots.length - 1].getTime() + 15 * 60 * 1000
+        )
+
+        const booking = await prisma.booking.create({
+          data: {
+            id: generateShortId("devbk"),
+            customerId: customer.id,
+            courseId: course.id,
+            prophetId: DEV_PROPHET_ID,
+            startDateTime: startDateTime,
+            endDateTime: endDateTime,
+            status: i < 2 ? "COMPLETED" : i < 4 ? "SCHEDULED" : "FAILED",
+            createdAt: new Date(),
+          },
+        })
+
+        await prisma.transaction.create({
+          data: {
+            id: generateShortId("devt"),
+            bookingId: booking.id,
+            status:
+              booking.status === "COMPLETED"
+                ? "COMPLETED"
+                : booking.status === "SCHEDULED"
+                  ? "PROCESSING"
+                  : "FAILED",
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        })
+
+        if (booking.status === "COMPLETED") {
+          await prisma.review.create({
+            data: {
+              id: generateShortId("drv"),
+              customerId: customer.id,
+              bookingId: booking.id,
+              score: Math.floor(Math.random() * 3) + 3, // 3-5 score
+              description: [
+                "Excellent prophet session!",
+                "Very insightful and professional reading.",
+                "Highly recommend this prophet.",
+                "",
+              ][Math.floor(Math.random() * 4)],
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          })
+        }
+
+        // Mark all individual slots as used for this script run
+        for (const slot of potentialSlots) {
+          bookedSlots.add(`${DEV_PROPHET_ID}-${slot.toISOString()}`)
+        }
+
+        bookingCreated = true
+        break // Exit search loop and create the next booking
+      }
+    }
+  }
+
+  console.log("✅ Bookings for other customers with dev prophet created")
+}
+
+// Step 8: Reports by Dev Customer
+async function createDevCustomerReports() {
+  console.log("📋 Creating reports by dev customer...")
+
+  const reportData = [
+    {
+      type: "PAYMENT_ISSUE",
+      topic: "Delayed Booking Confirmation",
+      description:
+        "Payment was processed, but booking confirmation took too long.",
+      status: "PENDING",
+      adminId: null,
+    },
+    {
+      type: "COURSE_ISSUE",
+      topic: "Inconsistent Course Duration",
+      description:
+        "The actual session was shorter than the advertised duration.",
+      status: "DONE",
+      adminId: DEV_ADMIN_ID,
+    },
+    {
+      type: "WEBSITE_ISSUE",
+      topic: "Profile Image Upload Failure",
+      description: "Unable to upload profile image due to persistent error.",
+      status: "DISCARD",
+      adminId: DEV_ADMIN_ID,
+    },
+  ]
+
+  for (const report of reportData) {
+    await prisma.report.create({
+      data: {
+        id: generateShortId("rep"),
+        customerId: DEV_CUSTOMER_ID,
+        adminId: report.adminId,
+        reportType: report.type as any,
+        topic: report.topic,
+        description: report.description,
+        reportStatus: report.status as any,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    })
+  }
+
+  console.log("✅ Reports by dev customer created")
+}
+
+// Step 9: Reports Resolved by Dev Admin
+async function createDevAdminReports() {
+  console.log("📋 Creating reports resolved by dev admin...")
+
+  // Fetch other customers to use as report creators
+  const otherCustomers = await prisma.customer.findMany({
+    where: { id: { not: DEV_CUSTOMER_ID } },
+    take: 5,
+  })
+
+  const reportData = [
+    {
+      customer: otherCustomers[0],
+      type: "PROPHET_ISSUE",
+      topic: "Unprofessional Prophet Behavior",
+      description:
+        "The prophet was late and seemed unprepared for the session.",
+      status: "DONE",
+    },
+    {
+      customer: otherCustomers[1],
+      type: "WEBSITE_ISSUE",
+      topic: "Payment System Malfunction",
+      description: "Website crashed during checkout process.",
+      status: "DISCARD",
+    },
+    {
+      customer: otherCustomers[2],
+      type: "COURSE_ISSUE",
+      topic: "Misleading Course Description",
+      description: "Course content did not match the advertised description.",
+      status: "PENDING",
+    },
+  ]
+
+  for (const report of reportData) {
+    await prisma.report.create({
+      data: {
+        id: generateShortId("arep"),
+        customerId: report.customer.id,
+        adminId: DEV_ADMIN_ID,
+        reportType: report.type as any,
+        topic: report.topic,
+        description: report.description,
+        reportStatus: report.status as any,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    })
+  }
+
+  console.log("✅ Reports resolved by dev admin created")
+}
+
+// Main Seeding Function
+async function seedDevData() {
+  try {
+    console.log("🌱 Starting dev data seeding...")
+
+    await createDevAccounts()
+    await createDevProphetMethods()
+    await createDevProphetAvailabilities()
+    await createDevProphetCourses()
+    await createDevProphetTransactionAccounts()
+    await createDevCustomerBookings()
+    await createOtherCustomersDevProphetBookings()
+    await createDevCustomerReports()
+    await createDevAdminReports()
+
+    console.log("✅ Dev data seeding completed!")
+  } catch (error) {
+    console.error("❌ Dev data seeding failed:", error)
+    throw error
+  } finally {
+    await prisma.$disconnect()
+  }
+}
+
+// Execute Seeding
+seedDevData()

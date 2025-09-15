@@ -1,3 +1,4 @@
+from collections import defaultdict
 import csv
 import random
 import string
@@ -186,46 +187,51 @@ def generate_prophet_methods(prophets, horoscope_methods):
 
 def generate_prophet_availabilities(prophets):
     prophet_availabilities = []
-    unique_availabilities = set()
-
+    
     for prophet in prophets:
+        # Track used dates and slots for this prophet
+        used_dates = set()
+        
+        # Generate availabilities for next 30 days
         for day_offset in range(0, 30, random.randint(1, 3)):
             date = datetime.now().date() + timedelta(days=day_offset)
             
-            num_slots = random.randint(1, 3)
-            used_times = set()
+            # Skip if this date has already been used for this prophet
+            if date in used_dates:
+                continue
             
-            for _ in range(num_slots):
-                attempts = 0
-                while attempts < 10:
-                    start_hour = random.randint(8, 18)
-                    start_minute = random.choice([0, 30])
-                    duration_hours = random.randint(1, 4)
-                    
-                    start_time = time(start_hour, start_minute)
-                    end_time = (datetime.combine(date, start_time) + timedelta(hours=duration_hours)).time()
-                    
-                    time_key = (start_time, end_time)
-                    unique_key = (prophet["id"], date.isoformat(), start_time.strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
-                    
-                    if (time_key not in used_times and 
-                        end_time.hour <= 22 and 
-                        unique_key not in unique_availabilities):
-                        
-                        used_times.add(time_key)
-                        unique_availabilities.add(unique_key)
-                        
-                        prophet_availabilities.append({
-                            # Remove the manual id
-                            "prophet_id": prophet["id"],
-                            "date": date.isoformat(),
-                            "start_time": start_time.strftime("%H:%M:%S"),
-                            "end_time": end_time.strftime("%H:%M:%S"),
-                            "created_at": now.isoformat(),
-                            "updated_at": now.isoformat()
-                        })
-                        break
-                    attempts += 1
+            # Randomly decide number of slots (1-3)
+            num_slots = random.randint(1, 3)
+            
+            # Sort slots to ensure no overlap
+            possible_slots = [(h, m) for h in range(7, 23) for m in [0, 15, 30, 45]]
+            random.shuffle(possible_slots)
+            
+            # Track used slots for this date
+            used_slots = set()
+            
+            for hour, minute in possible_slots:
+                if len(used_slots) >= num_slots:
+                    break
+                
+                start_time = time(hour, minute)
+                
+                # Ensure no overlap with existing slots
+                if any((s[0] == start_time.hour and s[1] == start_time.minute) for s in used_slots):
+                    continue
+                
+                # Add this slot
+                prophet_availabilities.append({
+                    "prophet_id": prophet["id"],
+                    "date": date.isoformat(),
+                    "start_time": start_time.strftime("%H:%M:%S"),
+                    "created_at": now.isoformat()
+                })
+                
+                used_slots.add((start_time.hour, start_time.minute))
+            
+            # Mark this date as used
+            used_dates.add(date)
 
     return prophet_availabilities
 
@@ -261,6 +267,17 @@ def generate_courses(prophets, horoscope_methods):
 def generate_bookings(customers, active_courses, prophet_availabilities):
     bookings = []
     used_booking_slots = set()
+    availabilities_by_prophet = defaultdict(list)
+    for slot in prophet_availabilities:
+        slot_date = datetime.strptime(slot["date"], "%Y-%m-%d").date()
+        slot_start_time = datetime.strptime(slot["start_time"], "%H:%M:%S").time()
+        
+        start_datetime = datetime.combine(slot_date, slot_start_time)
+        availabilities_by_prophet[slot["prophet_id"]].append(start_datetime)
+
+    # Sort the slots
+    for prophet_id in availabilities_by_prophet:
+        availabilities_by_prophet[prophet_id].sort()
 
     for customer in customers:
         num_bookings = random.randint(0, 2)
@@ -270,34 +287,57 @@ def generate_bookings(customers, active_courses, prophet_availabilities):
                 break
                 
             attempts = 0
-            while attempts < 50:
+            booking_created = False
+            while attempts < 50 and not booking_created:
+                attempts += 1 # Increment attempts
+                
                 course = random.choice(active_courses)
                 prophet_id = course["prophet_id"]
+                course_duration = int(course["duration_min"])
                 
-                available_slots = [slot for slot in prophet_availabilities if slot["prophet_id"] == prophet_id]
+                # 2. Calculate how many 15-minute slots are required
+                if course_duration <= 0 or course_duration % 15 != 0:
+                    continue # Skip if course duration isn't a positive multiple of 15
                 
-                if not available_slots:
-                    attempts += 1
+                slots_needed = course_duration // 15
+                
+                prophet_slots = availabilities_by_prophet.get(prophet_id, [])
+                
+                if len(prophet_slots) < slots_needed:
                     continue
+
+                # Create a list of possible starting indices and shuffle them for randomness
+                possible_start_indices = list(range(len(prophet_slots) - slots_needed + 1))
+                random.shuffle(possible_start_indices)
+
+                # 3. Find a valid sequence of consecutive, unused slots
+                for i in possible_start_indices:
+                    potential_slots = prophet_slots[i : i + slots_needed]
                     
-                slot = random.choice(available_slots)
-                
-                slot_date = datetime.strptime(slot["date"], "%Y-%m-%d").date()
-                slot_start = datetime.strptime(slot["start_time"], "%H:%M:%S").time()
-                slot_end = datetime.strptime(slot["end_time"], "%H:%M:%S").time()
-                
-                start_datetime = datetime.combine(slot_date, slot_start)
-                course_duration = timedelta(minutes=int(course["duration_min"]))
-                end_datetime = start_datetime + course_duration
-                
-                if end_datetime.time() <= slot_end:
-                    slot_key = (prophet_id, start_datetime, end_datetime)
+                    # Check if any of these slots are already booked
+                    is_used = any((prophet_id, s) in used_booking_slots for s in potential_slots)
+                    if is_used:
+                        continue
+
+                    # Check if the slots are consecutive (15 mins apart)
+                    is_consecutive = True
+                    for j in range(len(potential_slots) - 1):
+                        time_diff = potential_slots[j+1] - potential_slots[j]
+                        if time_diff != timedelta(minutes=15):
+                            is_consecutive = False
+                            break
                     
-                    if slot_key not in used_booking_slots:
-                        used_booking_slots.add(slot_key)
+                    if is_consecutive:
+                        # Found a valid slot sequence!
+                        start_datetime = potential_slots[0]
+                        end_datetime = potential_slots[-1] + timedelta(minutes=15)
                         
+                        # 4. Mark all individual slots in the sequence as used
+                        for s in potential_slots:
+                            used_booking_slots.add((prophet_id, s))
+                            
                         bookings.append({
-                            "id": short_id(),
+                            "id": short_id(), 
                             "customer_id": customer["id"],
                             "course_id": course["id"],
                             "prophet_id": prophet_id,
@@ -306,9 +346,10 @@ def generate_bookings(customers, active_courses, prophet_availabilities):
                             "status": random.choice(BOOKING_STATUSES),
                             "created_at": now.isoformat()
                         })
-                        break
-                attempts += 1
-
+                        
+                        booking_created = True
+                        break # Exit the loop for start_indices
+            
     return bookings
 
 def generate_transactions(bookings):

@@ -15,6 +15,9 @@ export class BaseAccountDto {
 
   @ApiPropertyOptional()
   profileUrl?: string | null
+
+  @ApiPropertyOptional()
+  role?: string | null
 }
 
 export class CustomerAccountDto extends BaseAccountDto {
@@ -26,6 +29,9 @@ export class CustomerAccountDto extends BaseAccountDto {
 
   @ApiPropertyOptional()
   birthTime?: Date | null
+
+  @ApiPropertyOptional()
+  role?: string | null
 }
 
 export class ProphetAccountDto extends BaseAccountDto {
@@ -46,6 +52,9 @@ export class LimitedCustomerAccountDto {
 
   @ApiPropertyOptional()
   profileUrl?: string | null
+
+  @ApiPropertyOptional()
+  role?: string | null
 }
 
 export type AccountResponseDto =

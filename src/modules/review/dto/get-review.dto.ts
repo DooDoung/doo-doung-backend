@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 
 export class ReviewDto {
-  @ApiProperty({ example: 5 })
+  @ApiProperty()
   score!: number
 
   @ApiPropertyOptional({ nullable: true })

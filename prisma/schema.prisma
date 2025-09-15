@@ -103,6 +103,7 @@ model Account {
   customer   Customer?
   prophet    Prophet?
   Report     Report[]
+  resetTokens ResetPasswordToken[]
 
   @@map("account")
 }
@@ -166,14 +167,11 @@ model ProphetAvailability {
   prophetId String   @map("prophet_id") @db.VarChar(16)
   date      DateTime @map("date") @db.Date
   startTime DateTime @map("start_time") @db.Time
-  endTime   DateTime @map("end_time") @db.Time
-
   createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
   prophet Prophet @relation(fields: [prophetId], references: [id])
 
-  @@unique([prophetId, date, startTime, endTime])
+  @@unique([prophetId, date, startTime])
   @@index([prophetId, date])
   @@map("prophet_availability")
 }
@@ -310,4 +308,17 @@ model Report {
   @@index([reportStatus])
   @@index([reportType])
   @@map("report")
+}
+
+model ResetPasswordToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  accountId String @map("account_id") @db.VarChar(16)
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  @@map("reset_password_token")
 }

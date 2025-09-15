@@ -45,7 +45,7 @@ export class ResetPasswordTokenRepository {
   }
 
   async markUsed(id: string): Promise<void> {
-    this.prisma.resetPasswordToken.update({
+    await this.prisma.resetPasswordToken.update({
       where: { id },
       data: { usedAt: new Date() },
     })

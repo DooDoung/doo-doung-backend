@@ -11,9 +11,8 @@ export class AvailabilityService {
   ) {}
 
   // Get current prophet availability
-  async getMyAvailability() {
-    const tmpAccountId = "dev_prophet_001"
-    const prophet = await this.prophetRepo.findByAccountId(tmpAccountId, {
+  async getMyAvailability(id: string) {
+    const prophet = await this.prophetRepo.findByAccountId(id, {
       id: true,
     })
     if (!prophet) throw new NotFoundException("This user is not a prophet")
@@ -24,9 +23,8 @@ export class AvailabilityService {
   }
 
   // Patch current prophet availability
-  async patchMyAvailability(dto: PatchAvailabilityDto) {
-    const tmpAccountId = "dev_prophet_001"
-    const prophet = await this.prophetRepo.findByAccountId(tmpAccountId, {
+  async patchMyAvailability(dto: PatchAvailabilityDto, id: string) {
+    const prophet = await this.prophetRepo.findByAccountId(id, {
       id: true,
     })
     if (!prophet) throw new NotFoundException("This user is not a prophet")

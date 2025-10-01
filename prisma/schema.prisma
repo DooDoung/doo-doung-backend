@@ -158,7 +158,6 @@ model Prophet {
   courses      Course[]
   bookings     Booking[]
   txAccounts   TransactionAccount[]
-  DefaulttxAccountsId String @default("")
 
   @@map("prophet")
 }
@@ -263,6 +262,7 @@ model TransactionAccount {
   accountName   String @map("account_name") @db.VarChar(45)
   accountNumber String @map("account_number") @db.VarChar(20)
   bank          Bank   @map("bank")
+  isDefault     Boolean @default(false)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

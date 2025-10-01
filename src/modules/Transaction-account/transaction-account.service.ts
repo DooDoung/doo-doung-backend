@@ -1,62 +1,86 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { TransactionAccountRepository } from "./transaction-account.repository"
 import { ProphetService } from "../prophet/prophet.service"
-import { AccountService } from "../account/account.service"
-import {
-  TransactionAccountDto,
-  TransactionsAccountResponseDto,
-} from "./dto/transaction-account.dto"
-import { Role } from "@prisma/client"
+import { NanoidService } from "../../common/utils/nanoid"
+import { TransactionAccountDto } from "./dto/transaction-account.dto"
+import { Bank } from "@prisma/client"
 
 @Injectable()
-export class TransactionService {
+export class TransactionAccountService {
   constructor(
     private readonly repo: TransactionAccountRepository,
     private readonly prophetService: ProphetService,
-    private readonly accountService: AccountService
+    private readonly nanoidService: NanoidService
   ) {}
 
-  async getTransactionAcconuntsByProphetId(
-    prophetID: string
+  async getTransactionAccountsByProphetId(
+    prophetId: string
   ): Promise<TransactionAccountDto[]> {
-    const prophet = await this.prophetService.getAccountByProphetId(
-      prophetID,
+    const prophet = await this.prophetService.getDetailByAccountId(
+      prophetId,
       false
     )
     if (!prophet) {
       throw new NotFoundException("Prophet not found")
     }
 
-    const transactionAccounts = await this.repo.findByProphetId(prophet.id)
-
-    return transactionAccounts
+    return await this.repo.findByProphetId(prophetId)
   }
 
-  async makeTransactionAcconuntDefaultForProphetId(
-    prophetID: string,
-    transactionAccountId: string
-  ): Promise<TransactionAccountDto[]> {
-    const prophet = await this.prophetService.getAccountByProphetId(
-      prophetID,
+  async createTransactionAccount(
+    prophetId: string,
+    accountName: string,
+    accountNumber: string,
+    bank: Bank
+  ): Promise<TransactionAccountDto> {
+    const prophet = await this.prophetService.getDetailByAccountId(
+      prophetId,
       false
     )
     if (!prophet) {
       throw new NotFoundException("Prophet not found")
     }
 
-    const transactionAccount = await this.repo.findById(transactionAccountId)
-    if (!transactionAccount) {
-      throw new NotFoundException("Prophet not found")
-    }
-    const response = await this.repo.makeTransactionAccountDefaultForProphetId(
-      prophet.id,
-      transactionAccount.id
-    )
+    const id = await this.nanoidService.generateId()
 
-    return transactionAccounts
+    const transactionAccountData = {
+      id,
+      prophetId,
+      accountName,
+      accountNumber,
+      bank,
+    }
+
+    return await this.repo.createTransactionAccount(transactionAccountData)
   }
 
-  // add post transaction account
-  // add patch transaction account
-  // add delete transaction account & update in prophet too
+  async updateTransactionAccount(
+    id: string,
+    updateData: { accountName?: string; accountNumber?: string; bank?: Bank }
+  ): Promise<TransactionAccountDto> {
+    const existingAccount = await this.repo.findById(id)
+    if (!existingAccount) {
+      throw new NotFoundException("Transaction account not found")
+    }
+
+    return await this.repo.updateTransactionAccount(id, updateData)
+  }
+
+  async deleteTransactionAccount(id: string): Promise<TransactionAccountDto> {
+    const existingAccount = await this.repo.findById(id)
+    if (!existingAccount) {
+      throw new NotFoundException("Transaction account not found")
+    }
+
+    return await this.repo.deleteTransactionAccount(id)
+  }
+
+  async getTransactionAccountById(id: string): Promise<TransactionAccountDto> {
+    const account = await this.repo.findById(id)
+    if (!account) {
+      throw new NotFoundException("Transaction account not found")
+    }
+
+    return account
+  }
 }

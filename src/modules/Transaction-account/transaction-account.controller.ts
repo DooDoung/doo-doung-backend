@@ -1,68 +1,86 @@
-import { Controller, Get, Param } from "@nestjs/common"
-import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+} from "@nestjs/common"
+import {
+  ApiOkResponse,
+  ApiTags,
+  ApiCreatedResponse,
+  ApiBody,
+} from "@nestjs/swagger"
 import { TransactionAccountService } from "./transaction-account.service"
 import {
   TransactionAccountDto,
-  TransactionsAccountResponseDto,
+  CreateTransactionAccountDto,
+  UpdateTransactionAccountDto,
 } from "./dto/transaction-account.dto"
 
-@ApiTags("transactionaccount")
-@Controller("transactionaccount")
+@ApiTags("transaction-account")
+@Controller("transaction-account")
 export class TransactionAccountController {
   constructor(private readonly service: TransactionAccountService) {}
 
-  @Get()
+  @Get("prophet/:prophetId")
   @ApiOkResponse({
-    type: TransactionsAccountResponseDto,
+    type: [TransactionAccountDto],
+    description: "Get all transaction accounts for a prophet",
   })
-  getAll(): Promise<TransactionsAccountResponseDto> {
-    return this.service.getAllTransactions()
+  getByProphetId(
+    @Param("prophetId") prophetId: string
+  ): Promise<TransactionAccountDto[]> {
+    return this.service.getTransactionAccountsByProphetId(prophetId)
   }
 
   @Get(":id")
   @ApiOkResponse({
-    type: TransactionsAccountResponseDto,
+    type: TransactionAccountDto,
+    description: "Get transaction account by ID",
   })
   getById(@Param("id") id: string): Promise<TransactionAccountDto> {
-    return this.service.getTransactionById(id)
+    return this.service.getTransactionAccountById(id)
   }
 
-  @Get("me")
-  @ApiOkResponse({
-    type: TransactionsAccountResponseDto,
+  @Post()
+  @ApiCreatedResponse({
+    type: TransactionAccountDto,
+    description: "Create a new transaction account",
   })
-  get(): Promise<TransactionsAccountResponseDto> {
-    const tmpcustomerId = "3ad80e2e4bdc4b7a"
-    return this.service.getTransactionByAccountId(tmpcustomerId)
+  @ApiBody({ type: CreateTransactionAccountDto })
+  create(
+    @Body() body: CreateTransactionAccountDto
+  ): Promise<TransactionAccountDto> {
+    return this.service.createTransactionAccount(
+      body.prophetId,
+      body.accountName,
+      body.accountNumber,
+      body.bank
+    )
   }
 
-  @Get("account/:id")
+  @Patch(":id")
   @ApiOkResponse({
-    type: TransactionsAccountResponseDto,
+    type: TransactionAccountDto,
+    description: "Update transaction account",
   })
-  getByAccountId(
-    @Param("id") id: string
-  ): Promise<TransactionsAccountResponseDto> {
-    return this.service.getTransactionByAccountId(id)
+  @ApiBody({ type: UpdateTransactionAccountDto })
+  update(
+    @Param("id") id: string,
+    @Body() body: UpdateTransactionAccountDto
+  ): Promise<TransactionAccountDto> {
+    return this.service.updateTransactionAccount(id, body)
   }
 
-  @Get("customer/:id")
+  @Delete(":id")
   @ApiOkResponse({
-    type: TransactionsAccountResponseDto,
+    type: TransactionAccountDto,
+    description: "Delete transaction account",
   })
-  getByCustomerId(
-    @Param("id") id: string
-  ): Promise<TransactionsAccountResponseDto> {
-    return this.service.getTransactionByCustomerId(id)
-  }
-
-  @Get("admin/:id")
-  @ApiOkResponse({
-    type: TransactionsAccountResponseDto,
-  })
-  getByAdminId(
-    @Param("id") id: string
-  ): Promise<TransactionsAccountResponseDto> {
-    return this.service.getTransactionByAccountId(id)
+  delete(@Param("id") id: string): Promise<TransactionAccountDto> {
+    return this.service.deleteTransactionAccount(id)
   }
 }

@@ -1,12 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { Bank } from "@prisma/client"
-import { Length } from "class-validator"
-
-export class prophetAccountDto {
-  @ApiProperty()
-  @Length(16, 16, { message: "prophetId length should be 16" })
-  prophetId!: string
-}
+import { Length, IsEnum } from "class-validator"
 
 export class TransactionAccountDto {
   @ApiProperty()
@@ -27,8 +21,45 @@ export class TransactionAccountDto {
   })
   accountNumber!: string
 
-  @ApiProperty()
+  @ApiProperty({ enum: Bank })
+  @IsEnum(Bank)
   bank!: Bank
+}
+
+export class CreateTransactionAccountDto {
+  @ApiProperty()
+  @Length(16, 16, { message: "prophetId length should be 16" })
+  prophetId!: string
+
+  @ApiProperty()
+  @Length(1, 45, { message: "accountName length should be max 45 characters" })
+  accountName!: string
+
+  @ApiProperty()
+  @Length(1, 20, {
+    message: "accountNumber length should be max 20 characters",
+  })
+  accountNumber!: string
+
+  @ApiProperty({ enum: Bank })
+  @IsEnum(Bank)
+  bank!: Bank
+}
+
+export class UpdateTransactionAccountDto {
+  @ApiPropertyOptional()
+  @Length(1, 45, { message: "accountName length should be max 45 characters" })
+  accountName?: string
+
+  @ApiPropertyOptional()
+  @Length(1, 20, {
+    message: "accountNumber length should be max 20 characters",
+  })
+  accountNumber?: string
+
+  @ApiPropertyOptional({ enum: Bank })
+  @IsEnum(Bank)
+  bank?: Bank
 }
 
 export class TransactionAccountOptionalDto {
@@ -50,12 +81,13 @@ export class TransactionAccountOptionalDto {
   })
   accountNumber?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ enum: Bank })
+  @IsEnum(Bank)
   bank?: Bank
 }
 
 export class TransactionsAccountResponseDto {
-  @ApiProperty({ type: [prophetAccountDto] })
+  @ApiProperty({ type: [TransactionAccountDto] })
   transactions!: TransactionAccountDto[]
 }
 

@@ -1,13 +1,15 @@
 import { Module } from "@nestjs/common"
 import { TransactionAccountController } from "./transaction-account.controller"
+import { TransactionAccountService } from "./transaction-account.service"
 import { TransactionAccountRepository } from "./transaction-account.repository"
-import { CustomerModule } from "../customer/customer.module"
-import { AccountModule } from "../account/account.module"
+import { ProphetModule } from "../prophet/prophet.module"
+import { UtilsModule } from "../../common/utils/utils.module"
+import { PrismaModule } from "../../db/prisma.module"
 
 @Module({
-  imports: [CustomerModule, AccountModule],
+  imports: [ProphetModule, UtilsModule, PrismaModule],
   controllers: [TransactionAccountController],
-  providers: [TransactionAccountRepository],
-  exports: [TransactionAccountRepository],
+  providers: [TransactionAccountService, TransactionAccountRepository],
+  exports: [TransactionAccountService, TransactionAccountRepository],
 })
-export class TransactionModule {}
+export class TransactionAccountModule {}

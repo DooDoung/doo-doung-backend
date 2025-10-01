@@ -359,7 +359,7 @@ export class TransactionAccountController {
   @ApiOperation({
     summary: "Delete transaction account",
     description:
-      "Permanently deletes a transaction account. Warning: This action cannot be undone. If this was the default account, you'll need to set another account as default.",
+      "Permanently deletes a transaction account. Warning: This action cannot be undone. If this was the default account, you'll need to set another account as default. Cannot delete the last remaining transaction account for a prophet.",
   })
   @ApiParam({
     name: "id",
@@ -378,6 +378,27 @@ export class TransactionAccountController {
         accountNumber: "1234567890",
         bank: "KBANK",
         isDefault: false,
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: "Transaction account not found",
+    schema: {
+      example: {
+        statusCode: 404,
+        message: "Transaction account not found",
+        error: "Not Found",
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: "Cannot delete the last transaction account for a prophet",
+    schema: {
+      example: {
+        statusCode: 400,
+        message:
+          "Cannot delete the last transaction account. Prophet must have at least one transaction account.",
+        error: "Bad Request",
       },
     },
   })

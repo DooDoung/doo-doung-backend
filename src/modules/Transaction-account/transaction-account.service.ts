@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common"
 import { TransactionAccountRepository } from "./transaction-account.repository"
 import { ProphetService } from "../prophet/prophet.service"
 import { NanoidService } from "../../common/utils/nanoid"
@@ -116,6 +120,16 @@ export class TransactionAccountService {
     const existingAccount = await this.repo.findById(id)
     if (!existingAccount) {
       throw new NotFoundException("Transaction account not found")
+    }
+
+    // Check if this is the last transaction account for this prophet
+    const allAccountsForProphet = await this.repo.findByProphetId(
+      existingAccount.prophetId
+    )
+    if (allAccountsForProphet.length === 1) {
+      throw new BadRequestException(
+        "Cannot delete the last transaction account. Prophet must have at least one transaction account."
+      )
     }
 
     return await this.repo.deleteTransactionAccount(id)

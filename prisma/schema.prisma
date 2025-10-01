@@ -158,6 +158,7 @@ model Prophet {
   courses      Course[]
   bookings     Booking[]
   txAccounts   TransactionAccount[]
+  DefaulttxAccountsId String @default("")
 
   @@map("prophet")
 }

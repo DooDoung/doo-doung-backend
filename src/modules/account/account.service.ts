@@ -25,7 +25,7 @@ export class AccountService {
   ) {}
 
   async getMyAccount(): Promise<AccountResponseDto> {
-    const tmpAccountId = "01f580f4e5ab4d0f"
+    const tmpAccountId = "dev_customer_001"
     const account = await this.repo.findBaseById(tmpAccountId, {
       username: true,
       email: true,

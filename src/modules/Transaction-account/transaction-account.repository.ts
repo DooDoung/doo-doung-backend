@@ -17,20 +17,50 @@ export class TransactionAccountRepository {
         accountName: true,
         accountNumber: true,
         bank: true,
+        isDefault: true,
       },
     }) as Promise<TransactionAccountDto[]>
   }
 
-  // Note: If you need to mark a transaction account as default,
-  // you should add a 'isDefault' boolean field to the TransactionAccount model
-  // and update that field instead of trying to modify the Prophet model
+  makeDefaultTransactionAccount(
+    prophetId: string,
+    id: string
+  ): Promise<TransactionAccountDto> {
+    return this.prisma.transactionAccount.update({
+      where: { prophetId, id },
+      data: {
+        isDefault: true,
+      },
+      select: {
+        id: true,
+        prophetId: true,
+        accountName: true,
+        accountNumber: true,
+        bank: true,
+        isDefault: true,
+      },
+    }) as Promise<TransactionAccountDto>
+  }
 
-  // makeDefaultTransactionAccount(id: string): Promise<TransactionAccountDto> {
-  //   return this.prisma.transactionAccount.update({
-  //     where: { id },
-
-  //   }) as Promise<TransactionAccountDto>
-  // }
+  removeDefaultTransactionAccount(
+    prophetId: string,
+    id: string
+  ): Promise<TransactionAccountDto> {
+    return this.prisma.transactionAccount.update({
+      where: { prophetId, id },
+      data: {
+        isDefault: false,
+      },
+      select: {
+        id: true,
+        prophetId: true,
+        accountName: true,
+        accountNumber: true,
+        bank: true,
+        isDefault: true,
+      },
+    }) as Promise<TransactionAccountDto>
+  }
 
   createTransactionAccount(
     transactionAccountData: Omit<TransactionAccountDto, "id"> & { id: string }
@@ -42,6 +72,7 @@ export class TransactionAccountRepository {
         accountName: transactionAccountData.accountName,
         accountNumber: transactionAccountData.accountNumber,
         bank: transactionAccountData.bank,
+        isDefault: false, // New accounts are not default by default
       },
       select: {
         id: true,
@@ -49,6 +80,7 @@ export class TransactionAccountRepository {
         accountName: true,
         accountNumber: true,
         bank: true,
+        isDefault: true,
       },
     }) as Promise<TransactionAccountDto>
   }
@@ -66,6 +98,7 @@ export class TransactionAccountRepository {
         accountName: true,
         accountNumber: true,
         bank: true,
+        isDefault: true,
       },
     }) as Promise<TransactionAccountDto>
   }
@@ -79,6 +112,7 @@ export class TransactionAccountRepository {
         accountName: true,
         accountNumber: true,
         bank: true,
+        isDefault: true,
       },
     }) as Promise<TransactionAccountDto>
   }
@@ -92,6 +126,7 @@ export class TransactionAccountRepository {
         accountName: true,
         accountNumber: true,
         bank: true,
+        isDefault: true,
       },
     }) as Promise<TransactionAccountDto | null>
   }

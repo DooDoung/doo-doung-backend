@@ -24,24 +24,27 @@ export class TransactionAccountDto {
   @ApiProperty({ enum: Bank })
   @IsEnum(Bank)
   bank!: Bank
+
+  @ApiProperty()
+  isDefault!: boolean
 }
 
 export class CreateTransactionAccountDto {
-  @ApiProperty()
+  @ApiProperty({ example: "dev_prophet_001" })
   @Length(16, 16, { message: "prophetId length should be 16" })
   prophetId!: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "Main Business Account" })
   @Length(1, 45, { message: "accountName length should be max 45 characters" })
   accountName!: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "1234567890" })
   @Length(1, 20, {
     message: "accountNumber length should be max 20 characters",
   })
   accountNumber!: string
 
-  @ApiProperty({ enum: Bank })
+  @ApiProperty({ enum: Bank, example: "KBANK" })
   @IsEnum(Bank)
   bank!: Bank
 }

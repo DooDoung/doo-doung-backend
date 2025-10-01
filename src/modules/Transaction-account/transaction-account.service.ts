@@ -49,6 +49,7 @@ export class TransactionAccountService {
       accountName,
       accountNumber,
       bank,
+      isDefault: false,
     }
 
     return await this.repo.createTransactionAccount(transactionAccountData)
@@ -64,6 +65,48 @@ export class TransactionAccountService {
     }
 
     return await this.repo.updateTransactionAccount(id, updateData)
+  }
+
+  async makeDefaultTransactionAccount(
+    prophetId: string,
+    newDefaultTransactionAccountId: string
+  ): Promise<TransactionAccountDto> {
+    // Verify prophet exists
+    const prophet = await this.prophetService.getDetailByAccountId(
+      prophetId,
+      false
+    )
+    if (!prophet) {
+      throw new NotFoundException("Prophet not found")
+    }
+
+    // Verify the transaction account exists and belongs to this prophet
+    const targetAccount = await this.repo.findById(
+      newDefaultTransactionAccountId
+    )
+    if (!targetAccount) {
+      throw new NotFoundException("Transaction account not found")
+    }
+
+    if (targetAccount.prophetId !== prophetId) {
+      throw new NotFoundException(
+        "Transaction account does not belong to this prophet"
+      )
+    }
+
+    // First, remove default status from all existing accounts for this prophet
+    const existingAccounts = await this.repo.findByProphetId(prophetId)
+    for (const account of existingAccounts) {
+      if (account.id !== newDefaultTransactionAccountId) {
+        await this.repo.removeDefaultTransactionAccount(prophetId, account.id)
+      }
+    }
+
+    // Set the new default account
+    return await this.repo.makeDefaultTransactionAccount(
+      prophetId,
+      newDefaultTransactionAccountId
+    )
   }
 
   async deleteTransactionAccount(id: string): Promise<TransactionAccountDto> {

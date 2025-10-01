@@ -16,8 +16,9 @@ export class TransactionAccountService {
   async getTransactionAccountsByProphetId(
     prophetId: string
   ): Promise<TransactionAccountDto[]> {
+    const accountId = prophetId
     const prophet = await this.prophetService.getDetailByAccountId(
-      prophetId,
+      accountId,
       false
     )
     if (!prophet) {
@@ -33,8 +34,9 @@ export class TransactionAccountService {
     accountNumber: string,
     bank: Bank
   ): Promise<TransactionAccountDto> {
+    const accountId = prophetId
     const prophet = await this.prophetService.getDetailByAccountId(
-      prophetId,
+      accountId,
       false
     )
     if (!prophet) {
@@ -72,8 +74,9 @@ export class TransactionAccountService {
     newDefaultTransactionAccountId: string
   ): Promise<TransactionAccountDto> {
     // Verify prophet exists
+    const accountId = prophetId
     const prophet = await this.prophetService.getDetailByAccountId(
-      prophetId,
+      accountId,
       false
     )
     if (!prophet) {

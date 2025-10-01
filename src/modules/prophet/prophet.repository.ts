@@ -31,13 +31,6 @@ export class ProphetRepository {
     const id = await this.nanoid.generateId()
     const prophet = await this.prisma.prophet.create({
       data: {
-        /*
-          id        String @id @map("id") @db.VarChar(16)
-          accountId String @unique @map("account_id") @db.VarChar(16)
-          lineId    String @map("line_id") @db.VarChar(20)
-
-          txAccounts   TransactionAccount[]
-        */
         id: id,
         accountId: accountId,
         lineId: lineId,

@@ -9,6 +9,7 @@ import { ReviewModule } from "./modules/review/review.module"
 import appConfig from "./config/app.config"
 import corsConfig from "./config/cors.config"
 import { AvailabilityModule } from "./modules/prophet/availability/availability.module"
+import { TransactionAccountModule } from "./modules/Transaction-account/transaction-account.module"
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AvailabilityModule } from "./modules/prophet/availability/availability.
     AccountModule,
     ReportModule,
     ReviewModule,
+    TransactionAccountModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [corsConfig, appConfig], // load all separate config files

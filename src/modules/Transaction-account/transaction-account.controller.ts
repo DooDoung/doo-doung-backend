@@ -14,6 +14,10 @@ import {
   ApiBody,
   ApiParam,
   ApiOperation,
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
+  ApiConflictResponse,
+  ApiBearerAuth,
 } from "@nestjs/swagger"
 import { TransactionAccountService } from "./transaction-account.service"
 import {
@@ -22,8 +26,32 @@ import {
   UpdateTransactionAccountDto,
 } from "./dto/transaction-account.dto"
 
+/**
+ * Transaction Account API Controller
+ *
+ * Manages payment accounts for prophets in the DooDoung platform.
+ * Each prophet can have multiple transaction accounts from different banks,
+ * but only one can be set as the default payment method.
+ *
+ * Supported Thai Banks:
+ * - BBL (Bangkok Bank)
+ * - KTB (Krungthai Bank)
+ * - KBANK (Kasikorn Bank)
+ * - SCB (Siam Commercial Bank)
+ * - BAY (Krungsri)
+ * - TTB (TMBThanachart)
+ * - CIMB (CIMB Thai)
+ * - UOB (UOB Thai)
+ * - GSB (Government Savings Bank)
+ * - BAAC (Bank for Agriculture)
+ *
+ * @author DooDoung Development Team
+ * @version 1.0.0
+ */
+
 @ApiTags("transaction-account")
 @Controller("transaction-account")
+@ApiBearerAuth()
 export class TransactionAccountController {
   constructor(private readonly service: TransactionAccountService) {}
 
@@ -44,7 +72,7 @@ export class TransactionAccountController {
     schema: {
       example: [
         {
-          id: "tx_acc_001234567",
+          id: "txa_baaff717",
           prophetId: "dev_prophet_001",
           accountName: "Main Business Account",
           accountNumber: "1234567890",
@@ -62,6 +90,16 @@ export class TransactionAccountController {
       ],
     },
   })
+  @ApiNotFoundResponse({
+    description: "Prophet not found",
+    schema: {
+      example: {
+        statusCode: 404,
+        message: "Prophet not found",
+        error: "Not Found",
+      },
+    },
+  })
   getByProphetId(
     @Param("prophetId") prophetId: string
   ): Promise<TransactionAccountDto[]> {
@@ -69,20 +107,125 @@ export class TransactionAccountController {
   }
 
   @Get(":id")
+  @ApiOperation({
+    summary: "Get transaction account by ID",
+    description:
+      "Retrieves a specific transaction account by its unique identifier",
+  })
+  @ApiParam({
+    name: "id",
+    description: "The transaction account ID",
+    example: "txa_baaff717",
+  })
   @ApiOkResponse({
     type: TransactionAccountDto,
-    description: "Get transaction account by ID",
+    description: "Transaction account details",
+    schema: {
+      example: {
+        id: "txa_baaff717",
+        prophetId: "dev_prophet_001",
+        accountName: "Main Business Account",
+        accountNumber: "1234567890",
+        bank: "KBANK",
+        isDefault: true,
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: "Transaction account not found",
+    schema: {
+      example: {
+        statusCode: 404,
+        message: "Transaction account not found",
+        error: "Not Found",
+      },
+    },
   })
   getById(@Param("id") id: string): Promise<TransactionAccountDto> {
     return this.service.getTransactionAccountById(id)
   }
 
   @Post()
+  @ApiOperation({
+    summary: "Create a new transaction account",
+    description:
+      "Creates a new payment account for a prophet. The account will be set as non-default initially.",
+  })
   @ApiCreatedResponse({
     type: TransactionAccountDto,
-    description: "Create a new transaction account",
+    description: "Successfully created transaction account",
+    schema: {
+      example: {
+        id: "tx_acc_new123456",
+        prophetId: "dev_prophet_001",
+        accountName: "New Business Account",
+        accountNumber: "9876543210",
+        bank: "SCB",
+        isDefault: false,
+      },
+    },
   })
-  @ApiBody({ type: CreateTransactionAccountDto })
+  @ApiBadRequestResponse({
+    description: "Invalid input data or validation failed",
+    schema: {
+      example: {
+        statusCode: 400,
+        message: [
+          "prophetId length should be 16",
+          "accountName length should be max 45 characters",
+          "bank must be a valid enum value",
+        ],
+        error: "Bad Request",
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: "Prophet not found",
+    schema: {
+      example: {
+        statusCode: 404,
+        message: "Prophet not found",
+        error: "Not Found",
+      },
+    },
+  })
+  @ApiConflictResponse({
+    description: "Account number already exists for this bank",
+    schema: {
+      example: {
+        statusCode: 409,
+        message:
+          "Transaction account with this account number and bank already exists",
+        error: "Conflict",
+      },
+    },
+  })
+  @ApiBody({
+    type: CreateTransactionAccountDto,
+    description: "Transaction account creation details",
+    examples: {
+      kbank: {
+        summary: "Kasikorn Bank Account",
+        description: "Example of creating a Kasikorn Bank account",
+        value: {
+          prophetId: "dev_prophet_001",
+          accountName: "Main Business Account",
+          accountNumber: "1234567890",
+          bank: "KBANK",
+        },
+      },
+      scb: {
+        summary: "Siam Commercial Bank Account",
+        description: "Example of creating an SCB account",
+        value: {
+          prophetId: "dev_prophet_001",
+          accountName: "Secondary Account",
+          accountNumber: "0987654321",
+          bank: "SCB",
+        },
+      },
+    },
+  })
   create(
     @Body() body: CreateTransactionAccountDto
   ): Promise<TransactionAccountDto> {
@@ -95,11 +238,59 @@ export class TransactionAccountController {
   }
 
   @Patch(":id")
+  @ApiOperation({
+    summary: "Update transaction account",
+    description:
+      "Updates the details of an existing transaction account. Prophet ID cannot be changed.",
+  })
+  @ApiParam({
+    name: "id",
+    description: "The transaction account ID to update",
+    example: "txa_baaff717",
+  })
   @ApiOkResponse({
     type: TransactionAccountDto,
-    description: "Update transaction account",
+    description: "Successfully updated transaction account",
+    schema: {
+      example: {
+        id: "txa_baaff717",
+        prophetId: "dev_prophet_001",
+        accountName: "Updated Account Name",
+        accountNumber: "1234567890",
+        bank: "BBL",
+        isDefault: true,
+      },
+    },
   })
-  @ApiBody({ type: UpdateTransactionAccountDto })
+  @ApiBody({
+    type: UpdateTransactionAccountDto,
+    description: "Fields to update in the transaction account",
+    examples: {
+      updateName: {
+        summary: "Update Account Name",
+        description: "Example of updating only the account name",
+        value: {
+          accountName: "Updated Business Account",
+        },
+      },
+      updateBank: {
+        summary: "Update Bank",
+        description: "Example of changing the bank",
+        value: {
+          bank: "BBL",
+        },
+      },
+      updateAll: {
+        summary: "Update Multiple Fields",
+        description: "Example of updating multiple fields at once",
+        value: {
+          accountName: "New Account Name",
+          accountNumber: "5555555555",
+          bank: "KTB",
+        },
+      },
+    },
+  })
   update(
     @Param("id") id: string,
     @Body() body: UpdateTransactionAccountDto
@@ -121,19 +312,39 @@ export class TransactionAccountController {
   @ApiParam({
     name: "transactionId",
     description: "The transaction account ID to set as default",
-    example: "tx_acc_001234567",
+    example: "txa_baaff717",
   })
   @ApiOkResponse({
     type: TransactionAccountDto,
     description: "Successfully set transaction account as default",
     schema: {
       example: {
-        id: "tx_acc_001234567",
+        id: "txa_baaff717",
         prophetId: "dev_prophet_001",
         accountName: "Prophet Banking Account",
         accountNumber: "1234567890",
         bank: "KBANK",
         isDefault: true,
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: "Prophet or transaction account not found",
+    schema: {
+      example: {
+        statusCode: 404,
+        message: "Transaction account not found",
+        error: "Not Found",
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: "Transaction account does not belong to the prophet",
+    schema: {
+      example: {
+        statusCode: 404,
+        message: "Transaction account does not belong to this prophet",
+        error: "Not Found",
       },
     },
   })
@@ -145,9 +356,30 @@ export class TransactionAccountController {
   }
 
   @Delete(":id")
+  @ApiOperation({
+    summary: "Delete transaction account",
+    description:
+      "Permanently deletes a transaction account. Warning: This action cannot be undone. If this was the default account, you'll need to set another account as default.",
+  })
+  @ApiParam({
+    name: "id",
+    description: "The transaction account ID to delete",
+    example: "txa_baaff717",
+  })
   @ApiOkResponse({
     type: TransactionAccountDto,
-    description: "Delete transaction account",
+    description:
+      "Successfully deleted transaction account (returns the deleted account data)",
+    schema: {
+      example: {
+        id: "txa_baaff717",
+        prophetId: "dev_prophet_001",
+        accountName: "Deleted Account",
+        accountNumber: "1234567890",
+        bank: "KBANK",
+        isDefault: false,
+      },
+    },
   })
   delete(@Param("id") id: string): Promise<TransactionAccountDto> {
     return this.service.deleteTransactionAccount(id)

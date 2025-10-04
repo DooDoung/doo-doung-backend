@@ -2,6 +2,7 @@ import { Controller, Get, Param } from "@nestjs/common"
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { ReviewService } from "./review.service"
 import { GetReviewsResponseDto } from "./dto/get-review.dto"
+import { CurrentUser } from "@/common/decorators/current-user.decorator"
 
 @ApiTags("review")
 @Controller("review")
@@ -12,9 +13,8 @@ export class ReviewController {
   @ApiOkResponse({
     type: GetReviewsResponseDto,
   })
-  get(): Promise<GetReviewsResponseDto> {
-    const tmpAccountId = "77338f2877fe4772"
-    return this.service.getReviewByAccountId(tmpAccountId)
+  get(@CurrentUser("id") id: string): Promise<GetReviewsResponseDto> {
+    return this.service.getReviewByAccountId(id)
   }
 
   @Get("account/:id")

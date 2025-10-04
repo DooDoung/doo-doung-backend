@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Put } from "@nestjs/common"
+import { Controller, Get, Param, Post, Body, Put, UseGuards } from "@nestjs/common"
 import { AccountService } from "./account.service"
 import {
   AccountResponseDto,
@@ -19,6 +19,8 @@ import {
   ProphetRegisterDto,
   ProphetTxAccountDto,
 } from "./dto/register-request.dto"
+import { Public } from "@/common/decorators/public.decorator"
+import { CurrentUser } from "@/common/decorators/current-user.decorator"
 
 @ApiTags("account")
 @ApiExtraModels(
@@ -27,7 +29,8 @@ import {
   CustomerRegisterDto,
   ProphetRegisterDto,
   ProphetAccountDto,
-  CustomerAccountDto
+  CustomerAccountDto,
+  LimitedCustomerAccountDto
 )
 @Controller("account")
 export class AccountController {
@@ -42,8 +45,8 @@ export class AccountController {
       ],
     },
   })
-  get(): Promise<AccountResponseDto> {
-    return this.service.getMyAccount()
+  get(@CurrentUser("id") id: string): Promise<AccountResponseDto> {
+    return this.service.getMyAccount(id)
   }
 
   @Get(":id")

@@ -41,7 +41,7 @@ export class ProphetService {
     accountId: string,
     transactionDetail: {
       lineId: string
-      txAccounts: { bank: Bank; accountName: string; accountNumber: string }[]
+      txAccounts?: { bank: Bank; accountName: string; accountNumber: string }[]
     }
   ) {
     return await this.repo.createProphet(
@@ -49,5 +49,9 @@ export class ProphetService {
       transactionDetail.lineId,
       transactionDetail.txAccounts
     )
+  }
+
+  async updateProphetDetail(accountId: string, lineId: string) {
+    return await this.repo.updateProphetDetail(accountId, lineId)
   }
 }

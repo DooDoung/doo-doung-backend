@@ -43,10 +43,11 @@ export class ProphetRepository {
         lineId: lineId,
       } as Prisma.ProphetUncheckedCreateInput,
     })
+    const txAccountReturns = []
     if (txAccounts?.length) {
       for (const txAccount of txAccounts) {
         const t_id = await this.nanoid.generateId()
-        await this.prisma.transactionAccount.create({
+        const createdTxAccount = await this.prisma.transactionAccount.create({
           data: {
             id: t_id,
             prophetId: id,
@@ -55,10 +56,21 @@ export class ProphetRepository {
             accountNumber: txAccount.accountNumber,
           } as Prisma.TransactionAccountUncheckedCreateInput,
         })
+        txAccountReturns.push(createdTxAccount)
       }
-    } else {
-      throw new Error("transaction Account is required")
     }
-    return prophet
+    return { ...prophet, txAccount: txAccountReturns }
+  }
+  async updateProphetDetail(accountId: string, lineId: string) {
+    const updatedProphetDetail = await this.prisma.prophet.update({
+      where: { accountId: accountId },
+      data: {
+        lineId: lineId,
+      } as Prisma.ProphetUncheckedUpdateInput,
+    })
+    const currentTxAccounts = await this.prisma.transactionAccount.findMany({
+      where: { prophetId: updatedProphetDetail.id },
+    })
+    return { ...updatedProphetDetail, txAccount: currentTxAccounts }
   }
 }

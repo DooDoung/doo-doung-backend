@@ -4,19 +4,6 @@ import { Length, IsEnum, IsString, IsNotEmpty } from "class-validator"
 
 export class CreateTransactionAccountDto {
   @ApiProperty({
-    description: "ID of the prophet who will own this account",
-    example: "dev_prophet_001",
-    minLength: 10,
-    maxLength: 50,
-  })
-  @IsString()
-  @IsNotEmpty()
-  @Length(10, 50, {
-    message: "prophetId length should be between 10 and 50 characters",
-  })
-  prophetId!: string
-
-  @ApiProperty({
     description: "Display name for the new transaction account",
     example: "Main Business Account",
     minLength: 1,

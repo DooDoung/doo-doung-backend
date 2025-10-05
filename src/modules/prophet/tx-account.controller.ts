@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  UseGuards,
 } from "@nestjs/common"
 import {
   ApiOkResponse,
@@ -23,6 +24,8 @@ import { TransactionAccountService } from "./tx-account.service"
 import { TransactionAccountDto } from "./dto/response-tx-account.dto"
 import { CreateTransactionAccountDto } from "./dto/create-tx-account.dto"
 import { UpdateTransactionAccountDto } from "./dto/patch-tx-account.dto"
+import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard"
+import { User } from "@/common/decorators/ex.decorator"
 
 /**
  * Transaction Account API Controller
@@ -47,22 +50,18 @@ import { UpdateTransactionAccountDto } from "./dto/patch-tx-account.dto"
  * @version 1.0.0
  */
 
-@ApiTags("transaction-account")
-@Controller("transaction-account")
+@ApiTags("tx-account")
+@Controller("tx-account")
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class TransactionAccountController {
   constructor(private readonly service: TransactionAccountService) {}
 
-  @Get("prophet/:prophetId")
+  @Get()
   @ApiOperation({
-    summary: "Get all transaction accounts for a prophet",
+    summary: "Get all transaction accounts for current prophet",
     description:
-      "Retrieves all payment accounts associated with a specific prophet",
-  })
-  @ApiParam({
-    name: "prophetId",
-    description: "The prophet's ID",
-    example: "dev_prophet_001",
+      "Retrieves all payment accounts associated with the current authenticated prophet",
   })
   @ApiOkResponse({
     type: [TransactionAccountDto],
@@ -98,10 +97,10 @@ export class TransactionAccountController {
       },
     },
   })
-  getByProphetId(
-    @Param("prophetId") prophetId: string
+  getByCurrentUser(
+    @User("sub") userId: string
   ): Promise<TransactionAccountDto[]> {
-    return this.service.getTransactionAccountsByProphetId(prophetId)
+    return this.service.getTransactionAccountsByAccountId(userId)
   }
 
   @Get(":id")
@@ -147,7 +146,7 @@ export class TransactionAccountController {
   @ApiOperation({
     summary: "Create a new transaction account",
     description:
-      "Creates a new payment account for a prophet. The account will be set as non-default initially.",
+      "Creates a new payment account for the current authenticated prophet. The account will be set as non-default initially.",
   })
   @ApiCreatedResponse({
     type: TransactionAccountDto,
@@ -169,7 +168,6 @@ export class TransactionAccountController {
       example: {
         statusCode: 400,
         message: [
-          "prophetId length should be 16",
           "accountName length should be max 45 characters",
           "bank must be a valid enum value",
         ],
@@ -206,7 +204,6 @@ export class TransactionAccountController {
         summary: "Kasikorn Bank Account",
         description: "Example of creating a Kasikorn Bank account",
         value: {
-          prophetId: "dev_prophet_001",
           accountName: "Main Business Account",
           accountNumber: "1234567890",
           bank: "KBANK",
@@ -216,7 +213,6 @@ export class TransactionAccountController {
         summary: "Siam Commercial Bank Account",
         description: "Example of creating an SCB account",
         value: {
-          prophetId: "dev_prophet_001",
           accountName: "Secondary Account",
           accountNumber: "0987654321",
           bank: "SCB",
@@ -225,10 +221,11 @@ export class TransactionAccountController {
     },
   })
   create(
+    @User("sub") userId: string,
     @Body() body: CreateTransactionAccountDto
   ): Promise<TransactionAccountDto> {
     return this.service.createTransactionAccount(
-      body.prophetId,
+      userId,
       body.accountName,
       body.accountNumber,
       body.bank
@@ -296,16 +293,11 @@ export class TransactionAccountController {
     return this.service.updateTransactionAccount(id, body)
   }
 
-  @Patch("prophet/:prophetId/default/:transactionId")
+  @Patch("default/:transactionId")
   @ApiOperation({
-    summary: "Set transaction account as default for prophet",
+    summary: "Set transaction account as default for current prophet",
     description:
-      "Sets the specified transaction account as the default payment method for the prophet. Only one account can be default per prophet.",
-  })
-  @ApiParam({
-    name: "prophetId",
-    description: "The prophet's ID",
-    example: "dev_prophet_001",
+      "Sets the specified transaction account as the default payment method for the current authenticated prophet. Only one account can be default per prophet.",
   })
   @ApiParam({
     name: "transactionId",
@@ -347,10 +339,10 @@ export class TransactionAccountController {
     },
   })
   makeDefault(
-    @Param("prophetId") prophetId: string,
+    @User("sub") userId: string,
     @Param("transactionId") transactionId: string
   ): Promise<TransactionAccountDto> {
-    return this.service.makeDefaultTransactionAccount(prophetId, transactionId)
+    return this.service.makeDefaultTransactionAccount(userId, transactionId)
   }
 
   @Delete(":id")

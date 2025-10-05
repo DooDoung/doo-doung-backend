@@ -17,33 +17,27 @@ export class TransactionAccountService {
     private readonly nanoidService: NanoidService
   ) {}
 
-  async getTransactionAccountsByProphetId(
-    prophetId: string
+  async getTransactionAccountsByAccountId(
+    accountId: string
   ): Promise<TransactionAccountDto[]> {
-    const accountId = prophetId
-    const prophet = await this.prophetService.getDetailByAccountId(
-      accountId,
-      false
-    )
-    if (!prophet) {
+    // Get the prophet's internal ID from the account ID
+    const prophetWithId = await this.repo.findProphetIdByAccountId(accountId)
+    if (!prophetWithId) {
       throw new NotFoundException("Prophet not found")
     }
 
-    return await this.repo.findByProphetId(prophetId)
+    return await this.repo.findByProphetId(prophetWithId.id)
   }
 
   async createTransactionAccount(
-    prophetId: string,
+    accountId: string,
     accountName: string,
     accountNumber: string,
     bank: Bank
   ): Promise<TransactionAccountDto> {
-    const accountId = prophetId
-    const prophet = await this.prophetService.getDetailByAccountId(
-      accountId,
-      false
-    )
-    if (!prophet) {
+    // Get the prophet's internal ID from the account ID
+    const prophetWithId = await this.repo.findProphetIdByAccountId(accountId)
+    if (!prophetWithId) {
       throw new NotFoundException("Prophet not found")
     }
 
@@ -51,7 +45,7 @@ export class TransactionAccountService {
 
     const transactionAccountData = {
       id,
-      prophetId,
+      prophetId: prophetWithId.id,
       accountName,
       accountNumber,
       bank,
@@ -74,18 +68,16 @@ export class TransactionAccountService {
   }
 
   async makeDefaultTransactionAccount(
-    prophetId: string,
+    accountId: string,
     newDefaultTransactionAccountId: string
   ): Promise<TransactionAccountDto> {
-    // Verify prophet exists
-    const accountId = prophetId
-    const prophet = await this.prophetService.getDetailByAccountId(
-      accountId,
-      false
-    )
-    if (!prophet) {
+    // Get the prophet's internal ID from the account ID
+    const prophetWithId = await this.repo.findProphetIdByAccountId(accountId)
+    if (!prophetWithId) {
       throw new NotFoundException("Prophet not found")
     }
+
+    const prophetId = prophetWithId.id
 
     // Verify the transaction account exists and belongs to this prophet
     const targetAccount = await this.repo.findById(

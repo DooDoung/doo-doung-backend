@@ -6,6 +6,15 @@ import { TransactionAccountDto } from "./dto/response-tx-account.dto"
 export class TransactionAccountRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findProphetIdByAccountId(
+    accountId: string
+  ): Promise<{ id: string } | null> {
+    return this.prisma.prophet.findUnique({
+      where: { accountId },
+      select: { id: true },
+    })
+  }
+
   findByProphetId(prophetId: string): Promise<TransactionAccountDto[]> {
     return this.prisma.transactionAccount.findMany({
       where: {

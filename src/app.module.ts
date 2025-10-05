@@ -9,7 +9,7 @@ import { ReviewModule } from "./modules/review/review.module"
 import appConfig from "./config/app.config"
 import corsConfig from "./config/cors.config"
 import { AvailabilityModule } from "./modules/prophet/availability/availability.module"
-import { TransactionAccountModule } from "./modules/Transaction-account/transaction-account.module"
+import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
 
 @Module({
   imports: [

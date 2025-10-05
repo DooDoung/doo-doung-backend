@@ -25,8 +25,7 @@ import { TransactionAccountDto } from "./dto/response-tx-account.dto"
 import { CreateTransactionAccountDto } from "./dto/create-tx-account.dto"
 import { UpdateTransactionAccountDto } from "./dto/patch-tx-account.dto"
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard"
-import { User } from "@/common/decorators/ex.decorator"
-
+import { CurrentUser } from "@/common/decorators/current-user.decorator"
 /**
  * Transaction Account API Controller
  *
@@ -98,9 +97,9 @@ export class TransactionAccountController {
     },
   })
   getByCurrentUser(
-    @User("sub") userId: string
+    @CurrentUser("id") id: string
   ): Promise<TransactionAccountDto[]> {
-    return this.service.getTransactionAccountsByAccountId(userId)
+    return this.service.getTransactionAccountsByAccountId(id)
   }
 
   @Get(":id")
@@ -221,11 +220,11 @@ export class TransactionAccountController {
     },
   })
   create(
-    @User("sub") userId: string,
+    @CurrentUser("id") id: string,
     @Body() body: CreateTransactionAccountDto
   ): Promise<TransactionAccountDto> {
     return this.service.createTransactionAccount(
-      userId,
+      id,
       body.accountName,
       body.accountNumber,
       body.bank
@@ -339,10 +338,10 @@ export class TransactionAccountController {
     },
   })
   makeDefault(
-    @User("sub") userId: string,
+    @CurrentUser("id") id: string,
     @Param("transactionId") transactionId: string
   ): Promise<TransactionAccountDto> {
-    return this.service.makeDefaultTransactionAccount(userId, transactionId)
+    return this.service.makeDefaultTransactionAccount(id, transactionId)
   }
 
   @Delete(":id")

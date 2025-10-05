@@ -19,12 +19,10 @@ import {
   ApiConflictResponse,
   ApiBearerAuth,
 } from "@nestjs/swagger"
-import { TransactionAccountService } from "./transaction-account.service"
-import {
-  TransactionAccountDto,
-  CreateTransactionAccountDto,
-  UpdateTransactionAccountDto,
-} from "./dto/transaction-account.dto"
+import { TransactionAccountService } from "./tx-account.service"
+import { TransactionAccountDto } from "./dto/response-tx-account.dto"
+import { CreateTransactionAccountDto } from "./dto/create-tx-account.dto"
+import { UpdateTransactionAccountDto } from "./dto/patch-tx-account.dto"
 
 /**
  * Transaction Account API Controller

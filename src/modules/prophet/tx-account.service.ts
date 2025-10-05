@@ -3,10 +3,10 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common"
-import { TransactionAccountRepository } from "./transaction-account.repository"
-import { ProphetService } from "../prophet/prophet.service"
+import { TransactionAccountRepository } from "./tx-account.repository"
+import { ProphetService } from "./prophet.service"
 import { NanoidService } from "../../common/utils/nanoid"
-import { TransactionAccountDto } from "./dto/transaction-account.dto"
+import { TransactionAccountDto } from "./dto/response-tx-account.dto"
 import { Bank } from "@prisma/client"
 
 @Injectable()

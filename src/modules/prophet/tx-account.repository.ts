@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { PrismaService } from "../../db/prisma.service"
-import { TransactionAccountDto } from "./dto/transaction-account.dto"
+import { TransactionAccountDto } from "./dto/response-tx-account.dto"
 
 @Injectable()
 export class TransactionAccountRepository {

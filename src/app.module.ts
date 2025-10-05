@@ -9,8 +9,10 @@ import { ReviewModule } from "./modules/review/review.module"
 import appConfig from "./config/app.config"
 import corsConfig from "./config/cors.config"
 import { AvailabilityModule } from "./modules/prophet/availability/availability.module"
+import { APP_GUARD } from "@nestjs/core"
+import { JwtAuthGuard } from "./common/guards/jwt-auth.guard"
+import { RolesGuard } from "./common/guards/roles.guard"
 import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
-
 @Module({
   imports: [
     AuthModule,
@@ -24,6 +26,10 @@ import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
       load: [corsConfig, appConfig], // load all separate config files
     }),
     AvailabilityModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
 export class AppModule implements NestModule {

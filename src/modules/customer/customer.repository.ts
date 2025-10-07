@@ -51,8 +51,8 @@ export class CustomerRepository {
     accountId: string,
     userDetail: {
       zodiacSign?: ZodiacSign
-      birthDate?: string
-      birthTime?: string
+      birthDate?: Date
+      birthTime?: Date
     }
   ) {
     // console.log("accountId", accountId)

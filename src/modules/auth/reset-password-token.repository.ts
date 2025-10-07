@@ -17,20 +17,37 @@ export class ResetPasswordTokenRepository {
         usedAt: null,
         expiresAt: { gt: new Date() },
       },
+      orderBy: { createdAt: "desc" }, // latest token first
     })
 
     if (existing) {
       const now = new Date()
-      const remainingMs = existing.expiresAt.getTime() - now.getTime()
-      const remainingMinutes = Math.ceil(remainingMs / (1000 * 60))
+      const ageMs = now.getTime() - existing.createdAt.getTime()
+      const ageMinutes = ageMs / (1000 * 60)
 
-      throw new ConflictException(
-        `You already requested a password reset. You can try again in ${remainingMinutes} minute(s).`
-      )
+      if (ageMinutes < 1) {
+        // Too soon → reject
+        const remainingSeconds = Math.ceil(60 - ageMs / 1000)
+        throw new ConflictException(
+          `You already requested a password reset. Please wait ${remainingSeconds} second(s) before trying again`
+        )
+      }
+
+      // Otherwise invalidate the old one
+      await this.prisma.resetPasswordToken.update({
+        where: { id: existing.id },
+        data: { usedAt: new Date() },
+      })
     }
 
     await this.prisma.resetPasswordToken.create({
       data: { accountId, token, expiresAt },
+    })
+  }
+
+  async findToken(token: string): Promise<ResetPasswordToken | null> {
+    return this.prisma.resetPasswordToken.findUnique({
+      where: { token },
     })
   }
 

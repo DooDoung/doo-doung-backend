@@ -12,6 +12,7 @@ import {
   ApiExtraModels,
   getSchemaPath,
   ApiBody,
+  ApiBearerAuth,
 } from "@nestjs/swagger"
 import {
   BaseRegisterDto,
@@ -45,6 +46,7 @@ export class AccountController {
       ],
     },
   })
+  @ApiBearerAuth()
   get(@CurrentUser("id") id: string): Promise<AccountResponseDto> {
     return this.service.getMyAccount(id)
   }

@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Post, Body, Put } from "@nestjs/common"
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  Put,
+  UseGuards,
+} from "@nestjs/common"
 import { AccountService } from "./account.service"
 import {
   AccountResponseDto,
@@ -60,6 +68,7 @@ export class AccountController {
       ],
     },
   })
+  @Public()
   getById(@Param("id") id: string): Promise<AccountResponseDto> {
     return this.service.getAccountById(id)
   }

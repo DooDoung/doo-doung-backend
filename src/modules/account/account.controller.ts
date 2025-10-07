@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Body, Put, UseGuards } from "@nestjs/common"
+import { Controller, Get, Param, Post, Body, Put } from "@nestjs/common"
 import { AccountService } from "./account.service"
 import {
   AccountResponseDto,
@@ -19,7 +19,6 @@ import {
   ProphetRegisterDto,
   ProphetTxAccountDto,
 } from "./dto/register-request.dto"
-import { Public } from "@/common/decorators/public.decorator"
 import { CurrentUser } from "@/common/decorators/current-user.decorator"
 
 @ApiTags("account")
@@ -64,7 +63,6 @@ export class AccountController {
   }
   @Get("profileUrl/:username")
   getProfileUrl(@Param("username") username: string): Promise<string> {
-    console.log(username)
     return this.service.getProfileUrl(username)
   }
   @Post("register")
@@ -86,7 +84,6 @@ export class AccountController {
   @Put()
   async put(@Body() body: any): Promise<AccountResponseDto> {
     try {
-      console.log(body)
       const role = body.role // now works
       return await this.service.updateAccount(role, body)
     } catch (e) {

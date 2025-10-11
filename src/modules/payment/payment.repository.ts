@@ -1,13 +1,14 @@
 import { Injectable } from "@nestjs/common"
 import { PayoutStatus} from "@prisma/client"
-import { PrismaService } from "../../db/prisma.service"
+import { PrismaService } from "@/db/prisma.service"
 import { TransactionEntity } from "./interface/transaction.interface"
+import { Decimal } from "@prisma/client/runtime/library";
 
 export interface TransactionCreateInput {
   id: string;
   bookingId: string;
   status: PayoutStatus;
-  amount: number;
+  amount: Decimal;
 }
 @Injectable()
 export class PaymentRepository {

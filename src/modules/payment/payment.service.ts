@@ -3,11 +3,12 @@ import { PaymentRepository } from "./payment.repository"
 import { NanoidService } from "@/common/utils/nanoid"
 import { TransactionEntity } from "./interface/transaction.interface"
 import { PayoutStatus } from "@prisma/client"
+import { Decimal } from "@prisma/client/runtime/library"
 
 export interface TransactionCreatePayload {
   bookingId: string;
   status: PayoutStatus;
-  amount: number;
+  amount: Decimal;
 }
 @Injectable()
 export class PaymentService {

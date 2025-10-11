@@ -147,7 +147,7 @@ model Prophet {
   id        String  @id @map("id") @db.VarChar(16)
   accountId String  @unique @map("account_id") @db.VarChar(16)
   lineId    String  @map("line_id") @db.VarChar(20)
-  balance   Decimal @db.Decimal(10, 2)
+  balance   Decimal @db.Decimal(10, 2) @default("0.00")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

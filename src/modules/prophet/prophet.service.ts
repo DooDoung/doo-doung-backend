@@ -1,5 +1,5 @@
 import type { TxAccount } from "@/common/types/payment/tx-account.type"
-import { ProphetDetail } from "./interface/prophet.interface"
+import { ProphetDetail, ProphetBasic } from "./interface/prophet.interface"
 import { Injectable } from "@nestjs/common"
 import { ProphetRepository } from "./prophet.repository"
 import { Bank, Prisma } from "@prisma/client"
@@ -33,7 +33,6 @@ export class ProphetService {
       })) ?? []
 
     return {
-      prophetId: prophet?.id,
       lineId: prophet?.lineId,
       ...(includeTxAccounts ? { txAccounts } : { txAccounts: [] }),
     }
@@ -54,5 +53,12 @@ export class ProphetService {
 
   async updateProphetDetail(accountId: string, lineId: string) {
     return await this.repo.updateProphetDetail(accountId, lineId)
+  }
+
+  async getProphetByAccountId(accountId: string): Promise<ProphetBasic> {
+    const prophet = await this.repo.findByAccountId(accountId, {
+      id: true,
+    })
+    return { id: prophet?.id}
   }
 }

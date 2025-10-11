@@ -58,12 +58,10 @@ export class CustomerService {
     accountId: string,
     userDetail: {
       zodiacSign?: ZodiacSign
-      birthDate?: string
-      birthTime?: string
+      birthDate?: Date
+      birthTime?: Date
     }
   ) {
-    // console.log("accountId", accountId)
     return await this.repo.updateCustomerDetail(accountId, userDetail)
-    // return {}
   }
 }

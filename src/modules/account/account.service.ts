@@ -164,14 +164,15 @@ export class AccountService {
       return { ...prophetDetail, ...prophetAccount }
     } else throw new NotFoundException("Role not found")
   }
-  async updateAccount(role: Role, dto: any): Promise<AccountResponseDto> {
+  async updateAccount(id: string, dto: any): Promise<AccountResponseDto> {
+    const role = dto.role;
     if (role === Role.CUSTOMER) {
       dto = dto as CustomerUpdateAccountDtoInput
       const passwordHash = dto.password
         ? await this.hash.hashPassword(dto.password)
         : undefined
       const updatedBase = await this.repo.updateBaseAccount(
-        dto.id,
+        id,
         dto.usermame,
         dto.email,
         passwordHash,
@@ -184,7 +185,7 @@ export class AccountService {
         }
       )
       const updatedCustomerDetail =
-        await this.customerService.updateCustomerDetail(dto.id, {
+        await this.customerService.updateCustomerDetail(id, {
           zodiacSign: dto.zodiacSign,
           birthDate: dto.birthDate,
           birthTime: dto.birthTime,
@@ -196,7 +197,7 @@ export class AccountService {
         ? await this.hash.hashPassword(dto.password)
         : undefined
       const updatedBase = await this.repo.updateBaseAccount(
-        dto.id,
+        id,
         dto.usermame,
         dto.email,
         passwordHash,
@@ -209,7 +210,7 @@ export class AccountService {
         }
       )
       const updatedProphetDetail =
-        await this.prophetService.updateProphetDetail(dto.id, dto.lineId)
+        await this.prophetService.updateProphetDetail(id, dto.lineId)
       return { ...updatedProphetDetail, ...updatedBase }
     } else throw new NotFoundException("Role not found")
   }

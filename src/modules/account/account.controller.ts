@@ -29,6 +29,7 @@ import {
   ProphetTxAccountDto,
 } from "./dto/register-request.dto"
 import { CurrentUser } from "@/common/decorators/current-user.decorator"
+import { Public } from "@/common/decorators/public.decorator"
 
 @ApiTags("account")
 @ApiExtraModels(

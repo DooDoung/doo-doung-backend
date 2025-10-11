@@ -32,6 +32,7 @@ export class AuthController {
   ): Promise<void> {
     await this.auth.requestResetPassword(body.email)
   }
+  
   @Public()
   @Post("reset-password/confirm")
   @HttpCode(HttpStatus.OK)

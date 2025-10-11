@@ -30,21 +30,18 @@ export class BookingService {
     // TO DO: get prophet id and customer id
     const accountId = payload.accountId
     const customer = (await this.customerService.getCustomerByAccountId(accountId))
-    const prophet = (await this.prophetService.getProphetByAccountId(accountId))
     const courseId = payload.courseId
 
     if (!customer || !customer.id) {
       throw new NotFoundException(`Customer not found for accountId: ${accountId}`);
     }
 
-    if (!prophet || !prophet.id) {
-      throw new NotFoundException(`Prophet not found for accountId: ${accountId}`);
-    }
-
     const customerId = customer.id
-    const prophetId = prophet.id
     const id = await this.nanoidService.generateId()
-
+    const course = await this.courseService.getCourseForBookingById(courseId)
+    const coursePrice = course.price
+    const prophetId = course.prophetId
+   
     const input : CreateBookingInput = {
       id: id, 
       courseId: courseId,
@@ -57,8 +54,6 @@ export class BookingService {
 
     const booking = await this.repo.create(input)
     const bookingId = booking.id
-
-    const coursePrice = await this.courseService.getCoursePriceById(courseId)
 
     const transactionPayload : TransactionCreatePayload = {
       bookingId: bookingId,

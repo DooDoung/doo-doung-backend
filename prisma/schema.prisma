@@ -34,10 +34,9 @@ enum BookingStatus {
   FAILED    @map("failed")
 }
 
-enum TransactionStatus {
-  PROCESSING @map("processing")
-  COMPLETED  @map("completed")
-  FAILED     @map("failed")
+enum PayoutStatus {
+  PENDING_PAYOUT @map("pending_payout")
+  PAID_OUT       @map("paid_out")
 }
 
 enum ReportType {
@@ -99,10 +98,10 @@ model Account {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  userDetail UserDetail?
-  customer   Customer?
-  prophet    Prophet?
-  Report     Report[]
+  userDetail  UserDetail?
+  customer    Customer?
+  prophet     Prophet?
+  Report      Report[]
   resetTokens ResetPasswordToken[]
 
   @@map("account")
@@ -145,9 +144,10 @@ model Customer {
 }
 
 model Prophet {
-  id        String @id @map("id") @db.VarChar(16)
-  accountId String @unique @map("account_id") @db.VarChar(16)
-  lineId    String @map("line_id") @db.VarChar(20)
+  id        String  @id @map("id") @db.VarChar(16)
+  accountId String  @unique @map("account_id") @db.VarChar(16)
+  lineId    String  @map("line_id") @db.VarChar(20)
+  balance   Decimal @db.Decimal(10, 2)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -229,7 +229,7 @@ model Booking {
   startDateTime DateTime      @map("start_datetime")
   endDateTime   DateTime      @map("end_datetime")
   createdAt     DateTime      @default(now()) @map("created_at")
-  status        BookingStatus @map("status")
+  status        BookingStatus @default(SCHEDULED) @map("status")
 
   customer    Customer     @relation(fields: [customerId], references: [id])
   course      Course       @relation(fields: [courseId], references: [id])
@@ -244,9 +244,10 @@ model Booking {
 }
 
 model Transaction {
-  id        String            @id @map("id") @db.VarChar(16)
-  bookingId String            @unique @map("booking_id") @db.VarChar(16)
-  status    TransactionStatus @map("status")
+  id        String       @id @map("id") @db.VarChar(16)
+  bookingId String       @unique @map("booking_id") @db.VarChar(16)
+  status    PayoutStatus @default(PENDING_PAYOUT) @map("status")
+  amount    Decimal      @db.Decimal(10, 2)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -257,11 +258,11 @@ model Transaction {
 }
 
 model TransactionAccount {
-  id            String @id @map("id") @db.VarChar(16)
-  prophetId     String @map("prophet_id") @db.VarChar(16)
-  accountName   String @map("account_name") @db.VarChar(45)
-  accountNumber String @map("account_number") @db.VarChar(20)
-  bank          Bank   @map("bank")
+  id            String  @id @map("id") @db.VarChar(16)
+  prophetId     String  @map("prophet_id") @db.VarChar(16)
+  accountName   String  @map("account_name") @db.VarChar(45)
+  accountNumber String  @map("account_number") @db.VarChar(20)
+  bank          Bank    @map("bank")
   isDefault     Boolean @default(false)
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -312,14 +313,15 @@ model Report {
 }
 
 model ResetPasswordToken {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  expiresAt DateTime @map("expires_at")
+  id        String    @id @default(uuid())
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
   usedAt    DateTime? @map("used_at")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
-  accountId String @map("account_id") @db.VarChar(16)
-  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String  @map("account_id") @db.VarChar(16)
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
   @@map("reset_password_token")
 }

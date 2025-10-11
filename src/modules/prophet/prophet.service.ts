@@ -33,6 +33,7 @@ export class ProphetService {
       })) ?? []
 
     return {
+      prophetId: prophet?.id,
       lineId: prophet?.lineId,
       ...(includeTxAccounts ? { txAccounts } : { txAccounts: [] }),
     }

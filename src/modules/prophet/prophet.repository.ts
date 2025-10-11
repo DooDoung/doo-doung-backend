@@ -10,7 +10,7 @@ export class ProphetRepository {
     private readonly nanoid: NanoidService
   ) {}
 
-  findByAccountId<S extends Prisma.ProphetSelect>(
+  async findByAccountId<S extends Prisma.ProphetSelect>(
     accountId: string,
     select: S
   ): Promise<Prisma.ProphetGetPayload<{ select: S }> | null> {

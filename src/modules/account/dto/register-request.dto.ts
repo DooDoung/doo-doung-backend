@@ -9,86 +9,95 @@ import {
   ValidateNested,
 } from "class-validator"
 import { Type } from "class-transformer"
-import { Role } from "@prisma/client"
+import { Role, ZodiacSign } from "@prisma/client"
 
 export class BaseRegisterDto {
-  @ApiProperty()
+  @ApiProperty({ example: "john_doe" })
   @IsString()
   @MaxLength(30)
   username!: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "john.doe@example.com" })
   @IsEmail()
   email!: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "securepassword123" })
   @IsString()
   @MinLength(8)
   @MaxLength(72)
   password!: string
 
-  @ApiProperty()
+  @ApiProperty({ enum: Role, example: Role.CUSTOMER })
   @IsEnum(Role)
   role!: Role
 
-  @ApiProperty()
+  @ApiProperty({ example: "John" })
   @IsString()
   name!: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "Doe" })
   @IsString()
   lastname!: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "https://example.com/profile.jpg" })
   @IsString()
   profileUrl!: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "1234567890" })
   @IsOptional()
   @IsString()
   phoneNumber?: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "MALE" })
   @IsOptional()
   @IsString()
-  sex?: string
+  gender?: string
 }
 
 export class CustomerRegisterDto extends BaseRegisterDto {
-  @ApiProperty()
+  @ApiProperty({ example: "ARIES" })
   @IsString()
-  zodiacSign!: string
+  zodiacSign!: ZodiacSign
 
-  @ApiPropertyOptional({ type: String, format: "date" })
+  @ApiPropertyOptional({ type: String, format: "date", example: "1990-01-01" })
   @IsOptional()
   birthDate?: Date
 
-  @ApiPropertyOptional({ type: String, format: "time" })
+  @ApiPropertyOptional({ type: String, format: "time", example: "12:00:00" })
   @IsOptional()
   birthTime?: Date
 }
 
 export class ProphetTxAccountDto {
-  @ApiProperty()
+  @ApiProperty({ example: "Bank of America" })
   @IsString()
   bank!: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "John Doe" })
   @IsString()
   accountName!: string
 
-  @ApiProperty()
+  @ApiProperty({ example: "123456789" })
   @IsString()
   accountNumber!: string
 }
 
 export class ProphetRegisterDto extends BaseRegisterDto {
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ example: "line12345" })
   @IsOptional()
   @IsString()
   lineId?: string
 
-  @ApiPropertyOptional({ type: [ProphetTxAccountDto] })
+  @ApiPropertyOptional({
+    type: [ProphetTxAccountDto],
+    example: [
+      {
+        bank: "Bank of America",
+        accountName: "John Doe",
+        accountNumber: "123456789",
+      },
+    ],
+  })
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ProphetTxAccountDto)

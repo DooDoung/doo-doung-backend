@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common"
+import { Injectable, NotFoundException } from "@nestjs/common"
 import { PrismaService } from "@/db/prisma.service"
 import { Prisma, ZodiacSign } from "@prisma/client"
 import { NanoidService } from "../../common/utils/nanoid"
@@ -70,5 +70,16 @@ export class CustomerRepository {
         birthTime: birthTime,
       } as Prisma.CustomerUncheckedUpdateInput,
     })
+  }
+
+  async togglePublic(accountId: string, isPublic: boolean) {
+    const result = await this.prisma.customer.update({
+      where: { accountId: accountId },
+      data: { isPublic: isPublic },
+    })
+    if (!result) {
+      throw new NotFoundException("Customer not found")
+    }
+    return result
   }
 }

@@ -64,4 +64,16 @@ export class CustomerService {
   ) {
     return await this.repo.updateCustomerDetail(accountId, userDetail)
   }
+
+  async togglePublic(accountId: string) {
+    const customer = await this.repo.findByAccountId(accountId, {
+      isPublic: true,
+    })
+    
+    if (!customer) {
+      throw new Error('Customer not found')
+    }
+    const newIsPublicStatus = !customer.isPublic
+    return await this.repo.togglePublic(accountId, newIsPublicStatus)
+  }
 }

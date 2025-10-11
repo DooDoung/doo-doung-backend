@@ -13,6 +13,7 @@ import { APP_GUARD } from "@nestjs/core"
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard"
 import { RolesGuard } from "./common/guards/roles.guard"
 import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
+import { CustomerModule } from "./modules/customer/customer.module"
 @Module({
   imports: [
     AuthModule,
@@ -21,6 +22,7 @@ import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
     ReportModule,
     ReviewModule,
     TransactionAccountModule,
+    CustomerModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [corsConfig, appConfig], // load all separate config files

@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { PaymentRepository } from "./payment.repository"
 import { NanoidService } from "@/common/utils/nanoid"
 import { TransactionEntity } from "./interface/transaction.interface"
-import { PayoutStatus } from "@prisma/client"
+import { PayoutStatus, Prisma } from "@prisma/client"
 import { Decimal } from "@prisma/client/runtime/library"
 import { Tx } from "@/common/types/transaction-client.type"
 
@@ -32,7 +32,7 @@ export class PaymentService {
   async markPayoutPaid(
     transactionId: string,
     tx?: Tx
-  ): Promise<TransactionEntity> {
+  ): Promise<Prisma.BatchPayload> {
     return this.repo.markPayoutPaid(transactionId, tx)
   }
 }

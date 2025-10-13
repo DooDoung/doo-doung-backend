@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { PayoutStatus } from "@prisma/client"
+import { PayoutStatus, Prisma } from "@prisma/client"
 import { PrismaService } from "@/db/prisma.service"
 import { TransactionEntity } from "./interface/transaction.interface"
 import { Decimal } from "@prisma/client/runtime/library"
@@ -27,9 +27,9 @@ export class PaymentRepository {
   async markPayoutPaid(
     transactionId: string,
     tx?: Tx
-  ): Promise<TransactionEntity> {
+  ): Promise<Prisma.BatchPayload> {
     const db = tx ?? this.prisma
-    return db.transaction.update({
+    return db.transaction.updateMany({
       where: { id: transactionId, status: PayoutStatus.PENDING_PAYOUT },
       data: { status: PayoutStatus.PAID_OUT, updatedAt: new Date() },
     })

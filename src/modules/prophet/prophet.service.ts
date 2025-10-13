@@ -72,7 +72,7 @@ export class ProphetService {
     prophetId: string,
     amount: Decimal,
     tx?: Tx
-  ): Promise<ProphetEntity> {
+  ): Promise<Prisma.BatchPayload> {
     return this.repo.incrementBalance(prophetId, amount, tx)
   }
 }

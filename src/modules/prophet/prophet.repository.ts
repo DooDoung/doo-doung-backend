@@ -73,9 +73,9 @@ export class ProphetRepository {
     prophetId: string,
     amount: Decimal,
     tx?: Tx
-  ): Promise<ProphetEntity> {
+  ): Promise<Prisma.BatchPayload> {
     const db = tx ?? this.prisma
-    return db.prophet.update({
+    return db.prophet.updateMany({
       where: { id: prophetId },
       data: { balance: { increment: amount } },
     })

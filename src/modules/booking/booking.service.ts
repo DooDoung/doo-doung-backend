@@ -112,13 +112,20 @@ export class BookingService {
           tx
         )
 
-        await this.paymentService.markPayoutPaid(bookingInfo.transaction.id, tx)
+        const payout = await this.paymentService.markPayoutPaid(
+          bookingInfo.transaction.id,
+          tx
+        )
+        if (payout.count !== 1)
+          throw new BadRequestException("Payout state changed, try again.")
 
-        await this.prophetService.incrementBalance(
+        const updatedBalance = await this.prophetService.incrementBalance(
           bookingInfo.prophetId,
           bookingInfo.transaction.amount,
           tx
         )
+        if (updatedBalance.count !== 1)
+          throw new BadRequestException("State changed, try again.")
 
         return this.repo.getBookingById(
           bookingId,

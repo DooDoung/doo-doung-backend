@@ -14,6 +14,7 @@ import { JwtAuthGuard } from "./common/guards/jwt-auth.guard"
 import { RolesGuard } from "./common/guards/roles.guard"
 import { BookingModule } from "./modules/booking/booking.module"
 import { PaymentModule } from "./modules/payment/payment.module"
+import { CustomerModule } from "./modules/customer/customer.module"
 @Module({
   imports: [
     AuthModule,
@@ -23,6 +24,7 @@ import { PaymentModule } from "./modules/payment/payment.module"
     ReviewModule,
     PaymentModule,
     BookingModule,
+    CustomerModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [corsConfig, appConfig], // load all separate config files

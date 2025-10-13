@@ -2,6 +2,9 @@ import { Injectable } from "@nestjs/common"
 import { Bank, Prisma } from "@prisma/client"
 import { PrismaService } from "../../db/prisma.service"
 import { NanoidService } from "../../common/utils/nanoid"
+import { Decimal } from "@prisma/client/runtime/library"
+import { Tx } from "@/common/types/transaction-client.type"
+import { ProphetEntity } from "./interface/prophet.interface"
 
 @Injectable()
 export class ProphetRepository {
@@ -65,5 +68,16 @@ export class ProphetRepository {
       where: { prophetId: updatedProphetDetail.id },
     })
     return { ...updatedProphetDetail, txAccount: currentTxAccounts }
+  }
+  async incrementBalance(
+    prophetId: string,
+    amount: Decimal,
+    tx?: Tx
+  ): Promise<ProphetEntity> {
+    const db = tx ?? this.prisma
+    return db.prophet.update({
+      where: { id: prophetId },
+      data: { balance: { increment: amount } },
+    })
   }
 }

@@ -1,39 +1,50 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common"
 import { BookingRepository, CreateBookingInput } from "./booking.repository"
-import { BookingStatus, PayoutStatus } from "@prisma/client"
+import { BookingStatus, PayoutStatus, Prisma } from "@prisma/client"
 import { PaymentService } from "../payment/payment.service"
 import { NanoidService } from "@/common/utils/nanoid"
 import { CustomerService } from "../customer/customer.service"
 import { ProphetService } from "../prophet/prophet.service"
 import { TransactionCreatePayload } from "../payment/payment.service"
 import { CourseService } from "../course/course.service"
+import { PrismaService } from "@/db/prisma.service"
+import { BookingCompleteResponseDto } from "./dto/complete-booking.dto"
 
 export interface CreateBookingPayload {
-  accountId: string;
-  courseId: string;
-  startDateTime: string;
-  endDateTime: string;
+  accountId: string
+  courseId: string
+  startDateTime: string
+  endDateTime: string
 }
 
 @Injectable()
 export class BookingService {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly repo: BookingRepository,
-    private readonly paymentService : PaymentService,
-    private readonly customerService : CustomerService,
-    private readonly prophetService : ProphetService,
-    private readonly nanoidService : NanoidService,
-    private readonly courseService : CourseService
+    private readonly paymentService: PaymentService,
+    private readonly customerService: CustomerService,
+    private readonly prophetService: ProphetService,
+    private readonly nanoidService: NanoidService,
+    private readonly courseService: CourseService
   ) {}
 
-  async createBooking(payload : CreateBookingPayload): Promise<void> {
+  async createBooking(payload: CreateBookingPayload): Promise<void> {
     // TO DO: get prophet id and customer id
     const accountId = payload.accountId
-    const customer = (await this.customerService.getCustomerByAccountId(accountId))
+    const customer =
+      await this.customerService.getCustomerByAccountId(accountId)
     const courseId = payload.courseId
 
     if (!customer || !customer.id) {
-      throw new NotFoundException(`Customer not found for accountId: ${accountId}`);
+      throw new NotFoundException(
+        `Customer not found for accountId: ${accountId}`
+      )
     }
 
     const customerId = customer.id
@@ -41,25 +52,91 @@ export class BookingService {
     const course = await this.courseService.getCourseForBookingById(courseId)
     const coursePrice = course.price
     const prophetId = course.prophetId
-   
-    const input : CreateBookingInput = {
-      id: id, 
+
+    const input: CreateBookingInput = {
+      id: id,
       courseId: courseId,
       customerId: customerId,
       prophetId: prophetId,
       startDateTime: new Date(payload.startDateTime),
       endDateTime: new Date(payload.endDateTime),
-      status: BookingStatus.SCHEDULED
+      status: BookingStatus.SCHEDULED,
     }
 
     const booking = await this.repo.create(input)
     const bookingId = booking.id
 
-    const transactionPayload : TransactionCreatePayload = {
+    const transactionPayload: TransactionCreatePayload = {
       bookingId: bookingId,
-      status : PayoutStatus.PENDING_PAYOUT,
-      amount : coursePrice
+      status: PayoutStatus.PENDING_PAYOUT,
+      amount: coursePrice,
     }
     await this.paymentService.createPayment(transactionPayload)
+  }
+
+  async completeBooking(
+    bookingId: string,
+    actingProphetId: string
+  ): Promise<BookingCompleteResponseDto | null> {
+    return this.prisma.$transaction(
+      async tx => {
+        const bookingInfo = await this.repo.getBookingById(
+          bookingId,
+          {
+            id: true,
+            status: true,
+            prophetId: true,
+            transaction: {
+              select: { id: true, amount: true, payoutStatus: true },
+            },
+          },
+          tx
+        )
+        if (!bookingInfo) throw new BadRequestException("Booking not found.")
+        if (bookingInfo.prophetId !== actingProphetId)
+          throw new ForbiddenException("Not allowed.")
+        if (bookingInfo.status !== BookingStatus.SCHEDULED)
+          throw new BadRequestException(
+            "Only scheduled booking can be completed."
+          )
+        if (!bookingInfo.transaction)
+          throw new BadRequestException("No transaction found.")
+        if (
+          bookingInfo.transaction.payoutStatus !== PayoutStatus.PENDING_PAYOUT
+        )
+          throw new BadRequestException("Payout already processed or invalid.")
+
+        await this.repo.updateBookingStatus(
+          bookingId,
+          BookingStatus.COMPLETED,
+          tx
+        )
+
+        await this.paymentService.markPayoutPaid(bookingInfo.transaction.id, tx)
+
+        await this.prophetService.incrementBalance(
+          bookingInfo.prophetId,
+          bookingInfo.transaction.amount,
+          tx
+        )
+
+        return this.repo.getBookingById(
+          bookingId,
+          {
+            id: true,
+            status: true,
+            prophetId: true,
+            transaction: {
+              select: { id: true, amount: true, payoutStatus: true },
+            },
+            prophet: {
+              select: { balance: true },
+            },
+          },
+          tx
+        )
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    )
   }
 }

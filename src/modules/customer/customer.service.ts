@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common"
+import { Injectable, NotFoundException } from "@nestjs/common"
 import { CustomerRepository } from "./customer.repository"
 import {
   CustomerBasic,
@@ -6,6 +6,7 @@ import {
   CustomerAccount,
 } from "./interface/customer.interface"
 import { ZodiacSign } from "@prisma/client"
+import { PublicResponseDto } from "./dto/public-response.dto"
 
 @Injectable()
 export class CustomerService {
@@ -65,15 +66,33 @@ export class CustomerService {
     return await this.repo.updateCustomerDetail(accountId, userDetail)
   }
 
-  async togglePublic(accountId: string) {
+  async togglePublic(accountId: string): Promise<PublicResponseDto> {
     const customer = await this.repo.findByAccountId(accountId, {
       isPublic: true,
     })
-    
+
     if (!customer) {
-      throw new Error('Customer not found')
+      throw new NotFoundException("Customer not found")
     }
     const newIsPublicStatus = !customer.isPublic
-    return await this.repo.togglePublic(accountId, newIsPublicStatus)
+    await this.repo.togglePublic(accountId, newIsPublicStatus)
+
+    return {
+      accountId,
+      isPublic: newIsPublicStatus,
+    }
+  }
+
+  async getPublicStatus(accountId: string): Promise<PublicResponseDto> {
+    const customer = await this.repo.findByAccountId(accountId, {
+      isPublic: true,
+    })
+    if (!customer) {
+      throw new NotFoundException("Customer not found")
+    }
+    return {
+      accountId,
+      isPublic: customer.isPublic,
+    }
   }
 }

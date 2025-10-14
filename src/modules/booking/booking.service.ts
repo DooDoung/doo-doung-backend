@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  InternalServerErrorException
 } from "@nestjs/common"
 import { BookingRepository, CreateBookingInput } from "./booking.repository"
 import { BookingStatus, PayoutStatus, Prisma } from "@prisma/client"
@@ -55,36 +56,46 @@ export class BookingService {
     const coursePrice = course.price
     const prophetId = course.prophetId
 
-    const result = await this.prisma.$transaction(async tx => {
-      const bookingInput: CreateBookingInput = {
-        id: id,
-        courseId: courseId,
-        customerId: customerId,
-        prophetId: prophetId,
-        startDateTime: new Date(payload.startDateTime),
-        endDateTime: new Date(payload.endDateTime),
-        status: BookingStatus.SCHEDULED,
-      }
+    try {
+      const result = await this.prisma.$transaction(
+        async tx => {
+          const bookingInput: CreateBookingInput = {
+            id: id,
+            courseId: courseId,
+            customerId: customerId,
+            prophetId: prophetId,
+            startDateTime: new Date(payload.startDateTime),
+            endDateTime: new Date(payload.endDateTime),
+            status: BookingStatus.SCHEDULED,
+          }
 
-      // create booking
-      const booking = await this.repo.create(bookingInput, tx)
+          // create booking
+          const booking = await this.repo.create(bookingInput, tx)
 
-      const bookingId = booking.id
-      const transactionPayload: TransactionCreatePayload = {
-        bookingId: bookingId,
-        status: PayoutStatus.PENDING_PAYOUT,
-        amount: coursePrice,
-      }
+          const bookingId = booking.id
+          const transactionPayload: TransactionCreatePayload = {
+            bookingId: bookingId,
+            status: PayoutStatus.PENDING_PAYOUT,
+            amount: coursePrice,
+          }
 
-      // create payment transaction
-      const transaction = await this.paymentService.createPayment(
-        transactionPayload,
-        tx
+          // create payment transaction
+          const transaction = await this.paymentService.createPayment(
+            transactionPayload,
+            tx
+          )
+          return { booking, transaction }
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
       )
-      return { booking, transaction }
-    })
+      return result
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new BadRequestException(`Database error: ${error.message}`)
+      }
 
-    return result
+      throw new InternalServerErrorException("Booking transaction failed, please try again")
+    }
   }
 
   async completeBooking(

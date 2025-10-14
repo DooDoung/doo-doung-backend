@@ -12,7 +12,8 @@ import { AvailabilityModule } from "./modules/prophet/availability/availability.
 import { APP_GUARD } from "@nestjs/core"
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard"
 import { RolesGuard } from "./common/guards/roles.guard"
-import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
+import { BookingModule } from "./modules/booking/booking.module"
+import { PaymentModule } from "./modules/payment/payment.module"
 import { CustomerModule } from "./modules/customer/customer.module"
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { CustomerModule } from "./modules/customer/customer.module"
     AccountModule,
     ReportModule,
     ReviewModule,
-    TransactionAccountModule,
+    PaymentModule,
+    BookingModule,
     CustomerModule,
     ConfigModule.forRoot({
       isGlobal: true,

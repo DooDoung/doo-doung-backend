@@ -104,7 +104,7 @@ The JWT payload returned by `JwtStrategy.validate()` looks like this:
 
 ```ts
 {
-  id: string
+  id: string //Account id! not Customer/Prophet ID
   username: string
   email: string
   role: RoleEnum

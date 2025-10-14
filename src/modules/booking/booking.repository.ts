@@ -18,8 +18,9 @@ export interface CreateBookingInput {
 export class BookingRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateBookingInput): Promise<BookingEntity> {
-    return await this.prisma.booking.create({ data })
+  async create(data: CreateBookingInput, tx?: Tx): Promise<BookingEntity> {
+    const db = tx ?? this.prisma
+    return db.booking.create({ data })
   }
 
   getBookingById<S extends Prisma.BookingSelect>(

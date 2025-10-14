@@ -19,14 +19,15 @@ export class PaymentService {
   ) {}
 
   async createPayment(
-    input: TransactionCreatePayload
+    input: TransactionCreatePayload,
+    tx?: Tx
   ): Promise<TransactionEntity> {
     const id = await this.nanoidService.generateId()
     const data = {
       id,
       ...input,
     }
-    return this.repo.create(data)
+    return this.repo.create(data, tx)
   }
 
   async markPayoutPaid(

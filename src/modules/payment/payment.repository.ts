@@ -20,8 +20,12 @@ export class PaymentRepository {
     return this.prisma.transaction.findUnique({ where: { id } })
   }
 
-  async create(data: TransactionCreateInput): Promise<TransactionEntity> {
-    return this.prisma.transaction.create({ data })
+  async create(
+    data: TransactionCreateInput,
+    tx?: Tx
+  ): Promise<TransactionEntity> {
+    const db = tx ?? this.prisma
+    return await db.transaction.create({ data })
   }
 
   async markPayoutPaid(

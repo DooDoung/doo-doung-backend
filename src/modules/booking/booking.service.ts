@@ -14,6 +14,7 @@ import { TransactionCreatePayload } from "../payment/payment.service"
 import { CourseService } from "../course/course.service"
 import { PrismaService } from "@/db/prisma.service"
 import { BookingCompleteResponseDto } from "./dto/complete-booking.dto"
+import { CreateBookingResponseDto } from "./dto/create-booking.dto"
 
 export interface CreateBookingPayload {
   accountId: string
@@ -34,8 +35,9 @@ export class BookingService {
     private readonly courseService: CourseService
   ) {}
 
-  async createBooking(payload: CreateBookingPayload): Promise<void> {
-    // TO DO: get prophet id and customer id
+  async createBooking(
+    payload: CreateBookingPayload
+  ): Promise<CreateBookingResponseDto> {
     const accountId = payload.accountId
     const customer =
       await this.customerService.getCustomerByAccountId(accountId)
@@ -53,25 +55,36 @@ export class BookingService {
     const coursePrice = course.price
     const prophetId = course.prophetId
 
-    const input: CreateBookingInput = {
-      id: id,
-      courseId: courseId,
-      customerId: customerId,
-      prophetId: prophetId,
-      startDateTime: new Date(payload.startDateTime),
-      endDateTime: new Date(payload.endDateTime),
-      status: BookingStatus.SCHEDULED,
-    }
+    const result = await this.prisma.$transaction(async tx => {
+      const bookingInput: CreateBookingInput = {
+        id: id,
+        courseId: courseId,
+        customerId: customerId,
+        prophetId: prophetId,
+        startDateTime: new Date(payload.startDateTime),
+        endDateTime: new Date(payload.endDateTime),
+        status: BookingStatus.SCHEDULED,
+      }
 
-    const booking = await this.repo.create(input)
-    const bookingId = booking.id
+      // create booking
+      const booking = await this.repo.create(bookingInput, tx)
 
-    const transactionPayload: TransactionCreatePayload = {
-      bookingId: bookingId,
-      status: PayoutStatus.PENDING_PAYOUT,
-      amount: coursePrice,
-    }
-    await this.paymentService.createPayment(transactionPayload)
+      const bookingId = booking.id
+      const transactionPayload: TransactionCreatePayload = {
+        bookingId: bookingId,
+        status: PayoutStatus.PENDING_PAYOUT,
+        amount: coursePrice,
+      }
+
+      // create payment transaction
+      const transaction = await this.paymentService.createPayment(
+        transactionPayload,
+        tx
+      )
+      return { booking, transaction }
+    })
+
+    return result
   }
 
   async completeBooking(

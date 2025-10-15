@@ -15,6 +15,8 @@ import { RolesGuard } from "./common/guards/roles.guard"
 import { BookingModule } from "./modules/booking/booking.module"
 import { PaymentModule } from "./modules/payment/payment.module"
 import { CustomerModule } from "./modules/customer/customer.module"
+import { ProphetModule } from "./modules/prophet/prophet.module"
+import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
 @Module({
   imports: [
     AuthModule,
@@ -30,6 +32,8 @@ import { CustomerModule } from "./modules/customer/customer.module"
       load: [corsConfig, appConfig], // load all separate config files
     }),
     AvailabilityModule,
+    ProphetModule,
+    TransactionAccountModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

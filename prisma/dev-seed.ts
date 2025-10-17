@@ -395,8 +395,9 @@ async function createDevCustomerBookings() {
         startIndex + slotsNeeded
       )
 
-      const isAlreadyBooked = potentialSlots.some(slot =>
-        bookedSlots.has(`${prophet.id}-${slot.toISOString()}`)
+      const isAlreadyBooked = potentialSlots.some(
+        (slot: { toISOString: () => any }) =>
+          bookedSlots.has(`${prophet.id}-${slot.toISOString()}`)
       )
       if (isAlreadyBooked) continue
 
@@ -435,12 +436,8 @@ async function createDevCustomerBookings() {
           data: {
             id: generateShortId("tx"),
             bookingId: booking.id,
-            status:
-              booking.status === "COMPLETED"
-                ? "COMPLETED"
-                : booking.status === "SCHEDULED"
-                  ? "PROCESSING"
-                  : "FAILED",
+            status: "PAID_OUT",
+            amount: 2300,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -614,12 +611,8 @@ async function createOtherCustomersDevProphetBookings() {
           data: {
             id: generateShortId("devt"),
             bookingId: booking.id,
-            status:
-              booking.status === "COMPLETED"
-                ? "COMPLETED"
-                : booking.status === "SCHEDULED"
-                  ? "PROCESSING"
-                  : "FAILED",
+            status: "PAID_OUT",
+            amount: 1500,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
@@ -761,6 +754,223 @@ async function createDevAdminReports() {
   console.log("✅ Reports resolved by dev admin created")
 }
 
+// Step 10: Create specific 4 bookings between dev_customer and dev_prophet
+// 2 SCHEDULED, 1 UPCOMING, 1 COMPLETED
+async function createDevCustomerDevProphetBookings() {
+  console.log(
+    "📅 Creating 4 specific bookings between dev_customer and dev_prophet..."
+  )
+
+  const now = new Date()
+
+  // Fetch dev prophet's active courses
+  const devProphetCourses = await prisma.course.findMany({
+    where: {
+      prophetId: DEV_PROPHET_ID,
+      isActive: true,
+    },
+  })
+
+  if (devProphetCourses.length === 0) {
+    console.log("Dev prophet has no active courses. Skipping.")
+    return
+  }
+
+  // Fetch dev prophet's available slots
+  const devProphetAvailabilities = await prisma.prophetAvailability.findMany({
+    where: {
+      prophetId: DEV_PROPHET_ID,
+      date: { gte: now },
+    },
+    orderBy: {
+      startTime: "asc",
+    },
+    take: 20, // Get enough slots
+  })
+
+  if (devProphetAvailabilities.length < 4) {
+    console.log("Not enough availability slots. Skipping.")
+    return
+  }
+
+  // Convert to Date objects
+  const availableSlots = devProphetAvailabilities.map(slot => {
+    const startDateTime = new Date(slot.date)
+    startDateTime.setHours(
+      slot.startTime.getHours(),
+      slot.startTime.getMinutes(),
+      slot.startTime.getSeconds()
+    )
+    return startDateTime
+  })
+
+  const bookedSlots = new Set<string>()
+
+  // Booking 1: COMPLETED (past booking)
+  const course1 = devProphetCourses[0]
+  const completedStart = new Date(now.getTime() - 24 * 60 * 60 * 1000) // 24 hours ago
+  const completedEnd = new Date(
+    completedStart.getTime() + course1.durationMin * 60 * 1000
+  )
+
+  await prisma.booking.create({
+    data: {
+      id: generateShortId("devbk"),
+      customerId: DEV_CUSTOMER_ID,
+      courseId: course1.id,
+      prophetId: DEV_PROPHET_ID,
+      startDateTime: completedStart,
+      endDateTime: completedEnd,
+      status: "COMPLETED",
+      createdAt: new Date(now.getTime() - 25 * 60 * 60 * 1000),
+    },
+  })
+
+  await prisma.transaction.create({
+    data: {
+      id: generateShortId("devtx"),
+      bookingId: (await prisma.booking.findFirst({
+        where: {
+          customerId: DEV_CUSTOMER_ID,
+          prophetId: DEV_PROPHET_ID,
+          status: "COMPLETED",
+        },
+        select: { id: true },
+      }))!.id,
+      status: "PAID_OUT",
+      amount: course1.price,
+      createdAt: new Date(now.getTime() - 25 * 60 * 60 * 1000),
+      updatedAt: new Date(now.getTime() - 24 * 60 * 60 * 1000),
+    },
+  })
+
+  // Booking 2: SCHEDULED (future booking)
+  const course2 = devProphetCourses[devProphetCourses.length > 1 ? 1 : 0]
+  const scheduledStart = availableSlots[0]
+  const scheduledEnd = new Date(
+    scheduledStart.getTime() + course2.durationMin * 60 * 1000
+  )
+
+  await prisma.booking.create({
+    data: {
+      id: generateShortId("devbk"),
+      customerId: DEV_CUSTOMER_ID,
+      courseId: course2.id,
+      prophetId: DEV_PROPHET_ID,
+      startDateTime: scheduledStart,
+      endDateTime: scheduledEnd,
+      status: "SCHEDULED",
+      createdAt: new Date(),
+    },
+  })
+
+  const booking2 = await prisma.booking.findFirst({
+    where: {
+      customerId: DEV_CUSTOMER_ID,
+      prophetId: DEV_PROPHET_ID,
+      status: "SCHEDULED",
+    },
+    select: { id: true },
+  })
+
+  await prisma.transaction.create({
+    data: {
+      id: generateShortId("devtx"),
+      bookingId: booking2!.id,
+      status: "PENDING_PAYOUT",
+      amount: course2.price,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  })
+
+  // Booking 3: SCHEDULED (another future booking)
+  const course3 = devProphetCourses[Math.min(2, devProphetCourses.length - 1)]
+  const scheduled2Start = availableSlots[1]
+  const scheduled2End = new Date(
+    scheduled2Start.getTime() + course3.durationMin * 60 * 1000
+  )
+
+  await prisma.booking.create({
+    data: {
+      id: generateShortId("devbk"),
+      customerId: DEV_CUSTOMER_ID,
+      courseId: course3.id,
+      prophetId: DEV_PROPHET_ID,
+      startDateTime: scheduled2Start,
+      endDateTime: scheduled2End,
+      status: "SCHEDULED",
+      createdAt: new Date(),
+    },
+  })
+
+  const booking3 = await prisma.booking.findFirst({
+    where: {
+      customerId: DEV_CUSTOMER_ID,
+      prophetId: DEV_PROPHET_ID,
+      status: "SCHEDULED",
+      startDateTime: scheduled2Start,
+    },
+    select: { id: true },
+  })
+
+  await prisma.transaction.create({
+    data: {
+      id: generateShortId("devtx"),
+      bookingId: booking3!.id,
+      status: "PENDING_PAYOUT",
+      amount: course3.price,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  })
+
+  // Booking 4: UPCOMING/FUTURE (next available booking)
+  const course4 = devProphetCourses[Math.min(3, devProphetCourses.length - 1)]
+  const upcomingStart = availableSlots[2]
+  const upcomingEnd = new Date(
+    upcomingStart.getTime() + course4.durationMin * 60 * 1000
+  )
+
+  await prisma.booking.create({
+    data: {
+      id: generateShortId("devbk"),
+      customerId: DEV_CUSTOMER_ID,
+      courseId: course4.id,
+      prophetId: DEV_PROPHET_ID,
+      startDateTime: upcomingStart,
+      endDateTime: upcomingEnd,
+      status: "SCHEDULED",
+      createdAt: new Date(),
+    },
+  })
+
+  const booking4 = await prisma.booking.findFirst({
+    where: {
+      customerId: DEV_CUSTOMER_ID,
+      prophetId: DEV_PROPHET_ID,
+      status: "SCHEDULED",
+      startDateTime: upcomingStart,
+    },
+    select: { id: true },
+  })
+
+  await prisma.transaction.create({
+    data: {
+      id: generateShortId("devtx"),
+      bookingId: booking4!.id,
+      status: "PENDING_PAYOUT",
+      amount: course4.price,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  })
+
+  console.log(
+    "✅ 4 bookings between dev_customer and dev_prophet created (1 COMPLETED, 3 SCHEDULED)"
+  )
+}
+
 // Main Seeding Function
 async function seedDevData() {
   try {
@@ -773,6 +983,7 @@ async function seedDevData() {
     await createDevProphetTransactionAccounts()
     await createDevCustomerBookings()
     await createOtherCustomersDevProphetBookings()
+    await createDevCustomerDevProphetBookings()
     await createDevCustomerReports()
     await createDevAdminReports()
 

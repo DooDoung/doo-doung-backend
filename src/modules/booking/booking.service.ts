@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-  InternalServerErrorException
+  InternalServerErrorException,
 } from "@nestjs/common"
 import { BookingRepository, CreateBookingInput } from "./booking.repository"
 import { BookingStatus, PayoutStatus, Prisma } from "@prisma/client"
@@ -16,6 +16,7 @@ import { CourseService } from "../course/course.service"
 import { PrismaService } from "@/db/prisma.service"
 import { BookingCompleteResponseDto } from "./dto/complete-booking.dto"
 import { CreateBookingResponseDto } from "./dto/create-booking.dto"
+import { GetBookingResponseDto } from "./dto/get-booking.dto"
 
 export interface CreateBookingPayload {
   accountId: string
@@ -94,7 +95,9 @@ export class BookingService {
         throw new BadRequestException(`Database error: ${error.message}`)
       }
 
-      throw new InternalServerErrorException("Booking transaction failed, please try again")
+      throw new InternalServerErrorException(
+        "Booking transaction failed, please try again"
+      )
     }
   }
 
@@ -169,5 +172,179 @@ export class BookingService {
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     )
+  }
+
+  async getBookingsByUserId(userId: string): Promise<GetBookingResponseDto[]> {
+    // Get the account to determine role
+    const account = await this.prisma.account.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    })
+
+    if (!account) {
+      throw new NotFoundException("User not found")
+    }
+
+    if (account.role === "PROPHET") {
+      // Get bookings where the user is the prophet
+      const bookings = await this.prisma.booking.findMany({
+        where: { prophetId: userId },
+        include: {
+          prophet: {
+            select: {
+              id: true,
+              account: {
+                select: {
+                  email: true,
+                  userDetail: {
+                    select: {
+                      name: true,
+                      lastname: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          customer: {
+            select: {
+              id: true,
+              account: {
+                select: {
+                  email: true,
+                  userDetail: {
+                    select: {
+                      name: true,
+                      lastname: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          course: {
+            select: {
+              id: true,
+              courseName: true,
+              horoscopeSector: true,
+              durationMin: true,
+              price: true,
+            },
+          },
+        },
+      })
+
+      return bookings.map(booking => ({
+        id: booking.id,
+        status: booking.status,
+        startDateTime: booking.startDateTime,
+        endDateTime: booking.endDateTime,
+        createdAt: booking.createdAt,
+        prophet: {
+          id: booking.prophet.id,
+          name: booking.prophet.account.userDetail?.name || "",
+          lastname: booking.prophet.account.userDetail?.lastname || "",
+          email: booking.prophet.account.email,
+        },
+        customer: {
+          id: booking.customer.id,
+          name: booking.customer.account.userDetail?.name || "",
+          lastname: booking.customer.account.userDetail?.lastname || "",
+          email: booking.customer.account.email,
+        },
+        course: {
+          id: booking.course.id,
+          courseName: booking.course.courseName,
+          horoscopeSector: booking.course.horoscopeSector,
+          durationMin: booking.course.durationMin,
+          price: booking.course.price.toNumber(),
+        },
+      }))
+    } else if (account.role === "CUSTOMER") {
+      // Get bookings where the user is the customer
+      const customer = await this.prisma.customer.findUnique({
+        where: { accountId: userId },
+      })
+
+      if (!customer) {
+        throw new NotFoundException("Customer profile not found")
+      }
+
+      const bookings = await this.prisma.booking.findMany({
+        where: { customerId: customer.id },
+        include: {
+          prophet: {
+            select: {
+              id: true,
+              account: {
+                select: {
+                  email: true,
+                  userDetail: {
+                    select: {
+                      name: true,
+                      lastname: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          customer: {
+            select: {
+              id: true,
+              account: {
+                select: {
+                  email: true,
+                  userDetail: {
+                    select: {
+                      name: true,
+                      lastname: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          course: {
+            select: {
+              id: true,
+              courseName: true,
+              horoscopeSector: true,
+              durationMin: true,
+              price: true,
+            },
+          },
+        },
+      })
+
+      return bookings.map(booking => ({
+        id: booking.id,
+        status: booking.status,
+        startDateTime: booking.startDateTime,
+        endDateTime: booking.endDateTime,
+        createdAt: booking.createdAt,
+        prophet: {
+          id: booking.prophet.id,
+          name: booking.prophet.account.userDetail?.name || "",
+          lastname: booking.prophet.account.userDetail?.lastname || "",
+          email: booking.prophet.account.email,
+        },
+        customer: {
+          id: booking.customer.id,
+          name: booking.customer.account.userDetail?.name || "",
+          lastname: booking.customer.account.userDetail?.lastname || "",
+          email: booking.customer.account.email,
+        },
+        course: {
+          id: booking.course.id,
+          courseName: booking.course.courseName,
+          horoscopeSector: booking.course.horoscopeSector,
+          durationMin: booking.course.durationMin,
+          price: booking.course.price.toNumber(),
+        },
+      }))
+    }
+
+    throw new BadRequestException("Invalid user role")
   }
 }

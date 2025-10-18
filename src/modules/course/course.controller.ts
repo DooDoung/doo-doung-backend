@@ -1,22 +1,16 @@
-import {
-  Injectable,
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Query,
-} from "@nestjs/common"
+import { Controller, Get, Post, Body, Param, Query } from "@nestjs/common"
 import { ApiTags } from "@nestjs/swagger"
 import { CourseService } from "./course.service"
 import { CourseDto, CourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { Public } from "@/common/decorators/public.decorator"
 
 @ApiTags("courses")
 @Controller("course")
 export class CourseController {
   constructor(private readonly service: CourseService) {}
 
+  @Public()
   @Get()
   async GetFilteredCourses(
     @Query() query: FilterAndSortCoursesDto

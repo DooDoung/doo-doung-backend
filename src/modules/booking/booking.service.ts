@@ -193,6 +193,7 @@ export class BookingService {
           prophet: {
             select: {
               id: true,
+              lineId: true,
               account: {
                 select: {
                   email: true,
@@ -229,6 +230,22 @@ export class BookingService {
               horoscopeSector: true,
               durationMin: true,
               price: true,
+              horoscopeMethodId: true,
+              horoscopeMethod: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          transaction: {
+            select: {
+              id: true,
+              amount: true,
+              status: true,
+              createdAt: true,
             },
           },
         },
@@ -245,6 +262,7 @@ export class BookingService {
           name: booking.prophet.account.userDetail?.name || "",
           lastname: booking.prophet.account.userDetail?.lastname || "",
           email: booking.prophet.account.email,
+          lineId: booking.prophet.lineId,
         },
         customer: {
           id: booking.customer.id,
@@ -258,7 +276,25 @@ export class BookingService {
           horoscopeSector: booking.course.horoscopeSector,
           durationMin: booking.course.durationMin,
           price: booking.course.price.toNumber(),
+          method: {
+            id: booking.course.horoscopeMethod?.id || 0,
+            slug: booking.course.horoscopeMethod?.slug || "unknown",
+            name: booking.course.horoscopeMethod?.name || "Unknown Method",
+          },
         },
+        payment: booking.transaction
+          ? {
+              id: booking.transaction.id,
+              amount: booking.transaction.amount.toNumber(),
+              status: booking.transaction.status,
+              date: booking.transaction.createdAt,
+            }
+          : {
+              id: `MOCK_${booking.id}`,
+              amount: booking.course.price.toNumber(),
+              status: "PENDING_PAYOUT",
+              date: new Date(),
+            },
       }))
     } else if (account.role === "CUSTOMER") {
       // Get bookings where the user is the customer
@@ -276,6 +312,7 @@ export class BookingService {
           prophet: {
             select: {
               id: true,
+              lineId: true,
               account: {
                 select: {
                   email: true,
@@ -312,6 +349,22 @@ export class BookingService {
               horoscopeSector: true,
               durationMin: true,
               price: true,
+              horoscopeMethodId: true,
+              horoscopeMethod: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          transaction: {
+            select: {
+              id: true,
+              amount: true,
+              status: true,
+              createdAt: true,
             },
           },
         },
@@ -328,6 +381,7 @@ export class BookingService {
           name: booking.prophet.account.userDetail?.name || "",
           lastname: booking.prophet.account.userDetail?.lastname || "",
           email: booking.prophet.account.email,
+          lineId: booking.prophet.lineId,
         },
         customer: {
           id: booking.customer.id,
@@ -341,7 +395,25 @@ export class BookingService {
           horoscopeSector: booking.course.horoscopeSector,
           durationMin: booking.course.durationMin,
           price: booking.course.price.toNumber(),
+          method: {
+            id: booking.course.horoscopeMethod?.id || 0,
+            slug: booking.course.horoscopeMethod?.slug || "unknown",
+            name: booking.course.horoscopeMethod?.name || "Unknown Method",
+          },
         },
+        payment: booking.transaction
+          ? {
+              id: booking.transaction.id,
+              amount: booking.transaction.amount.toNumber(),
+              status: booking.transaction.status,
+              date: booking.transaction.createdAt,
+            }
+          : {
+              id: `MOCK_${booking.id}`,
+              amount: booking.course.price.toNumber(),
+              status: "PENDING_PAYOUT",
+              date: new Date(),
+            },
       }))
     }
 

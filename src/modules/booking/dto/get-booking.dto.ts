@@ -24,6 +24,12 @@ export class ProphetDetailDto {
     description: "Prophet email address",
   })
   email!: string
+
+  @ApiProperty({
+    example: "U1234567890abcd",
+    description: "Prophet's LINE ID for communication",
+  })
+  lineId!: string
 }
 
 export class CustomerDetailDto {
@@ -50,6 +56,26 @@ export class CustomerDetailDto {
     description: "Customer email address",
   })
   email!: string
+}
+
+export class HoroscopeMethodDto {
+  @ApiProperty({
+    example: 1,
+    description: "Horoscope method ID",
+  })
+  id!: number
+
+  @ApiProperty({
+    example: "tarot",
+    description: "Method slug",
+  })
+  slug!: string
+
+  @ApiProperty({
+    example: "Tarot Reading",
+    description: "Method name",
+  })
+  name!: string
 }
 
 export class CourseDetailDto {
@@ -83,6 +109,39 @@ export class CourseDetailDto {
     description: "Course price",
   })
   price!: number
+
+  @ApiProperty({
+    type: HoroscopeMethodDto,
+    description: "Horoscope method used for this course",
+  })
+  method!: HoroscopeMethodDto
+}
+
+export class PaymentDetailDto {
+  @ApiProperty({
+    example: "tx_abc123def456",
+    description: "Transaction ID (or MOCK_bk_xxx if no transaction)",
+  })
+  id!: string
+
+  @ApiProperty({
+    example: 500.0,
+    description: "Amount paid",
+  })
+  amount!: number
+
+  @ApiProperty({
+    example: "PENDING_PAYOUT",
+    enum: ["PENDING_PAYOUT", "PAID_OUT"],
+    description: "Payment status",
+  })
+  status!: string
+
+  @ApiProperty({
+    example: "2025-10-05T12:00:00Z",
+    description: "Payment/Transaction date",
+  })
+  date!: Date
 }
 
 export class GetBookingResponseDto {
@@ -131,7 +190,14 @@ export class GetBookingResponseDto {
 
   @ApiProperty({
     type: CourseDetailDto,
-    description: "Course details associated with this booking",
+    description: "Course details including horoscope method",
   })
   course!: CourseDetailDto
+
+  @ApiProperty({
+    type: PaymentDetailDto,
+    description:
+      "Payment/Transaction information (includes mock data if no transaction exists)",
+  })
+  payment!: PaymentDetailDto
 }

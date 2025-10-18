@@ -165,7 +165,7 @@ export class AccountService {
     } else throw new NotFoundException("Role not found")
   }
   async updateAccount(id: string, dto: any): Promise<AccountResponseDto> {
-    const role = dto.role;
+    const role = dto.role
     if (role === Role.CUSTOMER) {
       dto = dto as CustomerUpdateAccountDtoInput
       const passwordHash = dto.password

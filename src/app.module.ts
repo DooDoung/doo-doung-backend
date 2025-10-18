@@ -17,6 +17,7 @@ import { PaymentModule } from "./modules/payment/payment.module"
 import { CustomerModule } from "./modules/customer/customer.module"
 import { ProphetModule } from "./modules/prophet/prophet.module"
 import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
+import { CourseModule } from "./modules/course/course.module"
 @Module({
   imports: [
     AuthModule,
@@ -27,6 +28,7 @@ import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
     PaymentModule,
     BookingModule,
     CustomerModule,
+    CourseModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [corsConfig, appConfig], // load all separate config files

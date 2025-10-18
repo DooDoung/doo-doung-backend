@@ -9,7 +9,7 @@
 DROP INDEX "public"."prophet_availability_prophet_id_date_start_time_end_time_key";
 
 -- AlterTable
-ALTER TABLE "public"."prophet_availability" DROP COLUMN "end_time";
+ALTER TABLE "prophet_availability" DROP COLUMN "end_time";
 
 -- CreateIndex
-CREATE UNIQUE INDEX "prophet_availability_prophet_id_date_start_time_key" ON "public"."prophet_availability"("prophet_id", "date", "start_time");
+CREATE UNIQUE INDEX "prophet_availability_prophet_id_date_start_time_key" ON "prophet_availability"("prophet_id", "date", "start_time");

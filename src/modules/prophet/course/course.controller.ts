@@ -6,8 +6,8 @@ import { CurrentUser } from "@/common/decorators/current-user.decorator"
 import { ProphetService } from "@/modules/prophet/prophet.service"
 import { Roles } from "@/common/decorators/roles.decorator"
 
-@ApiTags("Prophet Courses")
-@Controller("prophet/courses")
+@ApiTags("prophet course")
+@Controller("prophet/course")
 export class ProphetCourseController {
   constructor(
     private readonly courseService: CourseService,

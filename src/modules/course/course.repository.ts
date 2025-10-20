@@ -3,6 +3,7 @@ import { PrismaService } from "@/db/prisma.service"
 import { Injectable } from "@nestjs/common"
 import { CreateCourseDto, GetCourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 import { Prisma } from "@prisma/client"
 
 @Injectable()
@@ -92,6 +93,8 @@ export class CourseRepository {
         durationMin: true,
         price: true,
         isActive: true,
+        createdAt: true,
+        updatedAt: true,
       },
     })
     if (!course) throw new Error("Course not found")
@@ -116,6 +119,82 @@ export class CourseRepository {
     })) as { name: string; lastname: string }
     if (!name || !lastname) throw new Error("UserDetail not found")
     return { ...course, lineId, name, lastname }
+  }
+
+  async getCoursesByProphetIdCourseList(
+    prophetId: string
+  ): Promise<GetCoursesByProphetDto[]> {
+    const prophet = await this.prisma.prophet.findUnique({
+      where: { id: prophetId },
+      select: {
+        id: true,
+        account: {
+          select: {
+            userDetail: {
+              select: {
+                name: true,
+                lastname: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!prophet) throw new Error("Prophet not found")
+
+    const courses = await this.prisma.course.findMany({
+      where: { prophetId: prophetId, isActive: true },
+      include: {
+        horoscopeMethod: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+          },
+        },
+        bookings: {
+          select: {
+            reviews: {
+              select: {
+                score: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    })
+
+    return courses.map(course => {
+      // Calculate average rating from reviews
+      let totalScore = 0
+      let reviewCount = 0
+      course.bookings.forEach(booking => {
+        booking.reviews.forEach(review => {
+          totalScore += review.score
+          reviewCount++
+        })
+      })
+      const rating = reviewCount > 0 ? totalScore / reviewCount : null
+
+      return {
+        id: course.id,
+        courseName: course.courseName,
+        prophetName: prophet.account?.userDetail?.name || "",
+        prophetLastname: prophet.account?.userDetail?.lastname || "",
+        isPublic: true, // Assuming all active courses are public by default
+        price: course.price.toNumber(),
+        rating: rating ? parseFloat(rating.toFixed(1)) : null,
+        horoscopeSector: course.horoscopeSector,
+        durationMin: course.durationMin,
+        horoscopeMethodId: course.horoscopeMethodId,
+        methodSlug: course.horoscopeMethod?.slug || "",
+        methodName: course.horoscopeMethod?.name || "",
+        createdAt: course.createdAt,
+        isActive: course.isActive,
+      }
+    })
   }
 
   async findById<T extends Prisma.CourseSelect>(

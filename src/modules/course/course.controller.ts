@@ -1,29 +1,27 @@
+import { Controller, Get, Post, Body, Param, Query } from "@nestjs/common"
 import {
-  Controller,
-  Get,
-  Query,
-  NotFoundException,
-  Param,
-  Inject,
-  forwardRef,
-  Post,
-  Body,
-} from "@nestjs/common"
-import { ApiTags, ApiOperation, ApiParam, ApiBearerAuth } from "@nestjs/swagger"
+  GetCourseResponseDto as CourseResponseFromCreate,
+  CreateCourseDto,
+  GetCourseResponseDto,
+} from "./dto/create-course.dto"
+import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
+import { Inject, forwardRef } from "@nestjs/common"
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger"
 import { CourseService } from "./course.service"
-import { CourseResponseDto } from "./dto/course-response.dto"
-import { GetCoursesQueryDto } from "./dto/get-courses-query.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
 import { Public } from "@/common/decorators/public.decorator"
-import { CreateCourseDto, GetCourseResponseDto } from "./dto/create-course.dto"
-import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { ApiOperation, ApiParam } from "@nestjs/swagger"
+import { GetCoursesQueryDto } from "./dto/get-courses-query.dto"
+import { NotFoundException } from "@nestjs/common"
 import { CurrentUser } from "@/common/decorators/current-user.decorator"
+import { CourseResponseDto } from "./dto/course-response.dto"
 
-@ApiTags("Courses")
-@Controller("courses")
+@ApiTags("course")
+@Controller("course")
 export class CourseController {
   constructor(
-    private readonly courseService: CourseService,
+    private readonly service: CourseService,
     @Inject(forwardRef(() => ProphetService))
     private readonly prophetService: ProphetService
   ) {}
@@ -42,14 +40,14 @@ export class CourseController {
       throw new NotFoundException("Prophet not found for the provided account")
     }
 
-    return this.courseService.getCoursesByProphetId(prophet.id, query.isActive)
+    return this.service.getCoursesByProphetId(prophet.id, query.isActive)
   }
 
   @Public()
   @Get()
   async GetFilteredCourses(
     @Query() query: FilterAndSortCoursesDto
-  ): Promise<GetCourseResponseDto[]> {
+  ): Promise<CourseResponseFromCreate[]> {
     const filter = {
       sort_by: query.sort_by,
       price_min: query.price_min,
@@ -59,13 +57,23 @@ export class CourseController {
       limit: query.limit,
       offset: query.offset,
     } as FilterAndSortCoursesDto
-    return await this.courseService.getFilteredCourses(filter)
+    return (await this.service.getFilteredCourses(
+      filter
+    )) as CourseResponseFromCreate[]
+  }
+
+  @Public()
+  @Get("/prophet/:prophetId")
+  async getCoursesByProphet(
+    @Param("prophetId") prophetId: string
+  ): Promise<GetCoursesByProphetDto[]> {
+    return await this.service.getCoursesByProphetIdCourseList(prophetId)
   }
 
   @Get("/:id")
   @Public()
   async getCourse(@Param("id") id: string): Promise<GetCourseResponseDto> {
-    return await this.courseService.getCourseByCourseId(id)
+    return await this.service.getCourseByCourseId(id)
   }
 
   @Post("/prophet")
@@ -74,6 +82,6 @@ export class CourseController {
     @Body() body: CreateCourseDto,
     @CurrentUser("id") accountId: string
   ): Promise<GetCourseResponseDto> {
-    return await this.courseService.createCourse(body, accountId)
+    return await this.service.createCourse(body, accountId)
   }
 }

@@ -34,6 +34,7 @@ import { CourseModule } from "./modules/course/course.module"
       load: [corsConfig, appConfig], // load all separate config files
     }),
     AvailabilityModule,
+    CourseModule,
     ProphetModule,
     TransactionAccountModule,
   ],

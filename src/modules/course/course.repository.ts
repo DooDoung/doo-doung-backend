@@ -4,7 +4,8 @@ import { Injectable } from "@nestjs/common"
 import { CreateCourseDto, GetCourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
 import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
-import { Prisma } from "@prisma/client"
+import { Prisma, HoroscopeSector } from "@prisma/client"
+import { Decimal } from "@prisma/client/runtime/library"
 
 @Injectable()
 export class CourseRepository {
@@ -235,5 +236,30 @@ export class CourseRepository {
       data: { isActive },
       select: { id: true, isActive: true },
     })
+  }
+
+  async updateCourse(
+    courseId: string,
+    data: {
+      courseName?: string
+      horoscopeSector?: string | HoroscopeSector
+      durationMin?: number
+      price?: Decimal | number
+    }
+  ): Promise<GetCourseResponseDto> {
+    await this.prisma.course.update({
+      where: { id: courseId },
+      data: {
+        ...(data.courseName && { courseName: data.courseName }),
+        ...(data.horoscopeSector && {
+          horoscopeSector: data.horoscopeSector as HoroscopeSector,
+        }),
+        ...(data.durationMin && { durationMin: data.durationMin }),
+        ...(data.price !== undefined && {
+          price: new Decimal(String(data.price)),
+        }),
+      },
+    })
+    return this.getCourse(courseId)
   }
 }

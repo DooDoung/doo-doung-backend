@@ -1,18 +1,20 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { CourseRepository } from "./course.repository"
 import { CreateCourseDto, GetCourseResponseDto } from "./dto/create-course.dto"
+import { UpdateCourseDto } from "./dto/update-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
 import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 import { CourseForBookingResponse } from "./interface/course.interface"
 import { CourseActiveResponseDto } from "./dto/course-response.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
 import { CourseResponseDto } from "./dto/course-response.dto"
+import { Decimal } from "@prisma/client/runtime/library"
 
 @Injectable()
 export class CourseService {
   constructor(
     private readonly courseRepo: CourseRepository,
-    private readonly prophetService: ProphetService,
+    private readonly prophetService: ProphetService
   ) {}
 
   async createCourse(
@@ -24,6 +26,34 @@ export class CourseService {
       throw new NotFoundException("Prophet not found")
     }
     return await this.courseRepo.createCourse(data, prophet.id)
+  }
+
+  async updateCourse(
+    courseId: string,
+    data: UpdateCourseDto,
+    accountId: string
+  ): Promise<GetCourseResponseDto> {
+    // Verify the course belongs to this prophet
+    const course = await this.courseRepo.findById(courseId, {
+      prophetId: true,
+    })
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${courseId} not found`)
+    }
+
+    const prophet = await this.prophetService.getProphetByAccountId(accountId)
+    if (!prophet || !prophet.id || course.prophetId !== prophet.id) {
+      throw new NotFoundException(
+        `Course with ID ${courseId} not found or access denied`
+      )
+    }
+
+    return await this.courseRepo.updateCourse(courseId, {
+      courseName: data.courseName,
+      horoscopeSector: data.horoscopeSector,
+      durationMin: data.durationMin,
+      price: data.price ? new Decimal(String(data.price)) : undefined,
+    })
   }
 
   async getCourseByCourseId(courseId: string): Promise<GetCourseResponseDto> {
@@ -164,7 +194,10 @@ export class CourseService {
     }
 
     const isActive = !course.isActive
-    const result = await this.courseRepo.toggleCourseActiveStatus(courseId, isActive)
+    const result = await this.courseRepo.toggleCourseActiveStatus(
+      courseId,
+      isActive
+    )
 
     return {
       id: result.id,

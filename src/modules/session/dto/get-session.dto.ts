@@ -60,3 +60,24 @@ export class GetSessionsResponseDto {
   @ApiProperty({ type: [SessionDto] })
   sessions!: SessionDto[]
 }
+
+export class SessionDetailDto {
+  sessionId!: string
+  courseName!: string
+  horoscopeMethod!: string
+  horoscopeSector!: string
+  startDateTime!: Date
+  endDateTime!: Date
+  prophetName!: string
+  prophetUsername!: string
+  prophetProfileUrl!: string | null
+  transactionId!: string
+  amount!: number
+  payoutStatus!: string
+  transactionCreatedAt!: Date
+  customerName!: string
+  customerUsername!: string
+  txAccountName!: string | null
+  txBank!: string | null
+  txAccountNumber!: string | null
+}

@@ -1,7 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { HoroscopeSector } from "@prisma/client"
 import { Decimal } from "@prisma/client/runtime/library"
-import { IsEnum, IsString, Length, Matches } from "class-validator"
+import {
+  IsEnum,
+  IsString,
+  Length,
+  Matches,
+  IsNumber,
+  IsPositive,
+} from "class-validator"
+import { Type } from "class-transformer"
 
 export class GetCourseResponseDto {
   @ApiProperty()
@@ -52,24 +60,30 @@ export class GetCourseResponseDto {
 }
 
 export class CreateCourseDto {
-  @ApiProperty()
+  @ApiProperty({ description: "Course name", minLength: 1, maxLength: 50 })
   @IsString()
   @Length(1, 50)
   courseName!: string
 
-  @ApiProperty()
+  @ApiProperty({ description: "Horoscope method ID" })
+  @IsNumber()
+  @IsPositive()
+  @Type(() => Number)
   horoscopeMethodId!: number
 
-  @ApiProperty()
+  @ApiProperty({ description: "Horoscope sector", enum: HoroscopeSector })
   @IsEnum(HoroscopeSector)
   horoscopeSector!: HoroscopeSector
 
-  @ApiProperty()
+  @ApiProperty({ description: "Duration in minutes", minimum: 1 })
+  @IsNumber()
+  @IsPositive()
+  @Type(() => Number)
   durationMin!: number
 
-  @ApiProperty()
-  //   @Matches(/^\d+(\.\d{1,2})?$/, {
-  //     message: "Price can have up to 2 decimal places only",
-  //   })
+  @ApiProperty({ description: "Course price" })
+  @IsNumber()
+  @IsPositive()
+  @Type(() => Number)
   price!: Decimal
 }

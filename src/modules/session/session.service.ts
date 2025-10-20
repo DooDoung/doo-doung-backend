@@ -11,6 +11,7 @@ export class SessionService {
 
   async getSessionsByProphetId(prophetId: string) {
     const sessions = await this.sessionRepository.findAllByProphetId(prophetId)
+
     if (!sessions.length) {
       throw new NotFoundException(`No sessions found for prophet ${prophetId}`)
     }
@@ -25,16 +26,26 @@ export class SessionService {
       createdAt: s.createdAt,
       updatedAt: s.updatedAt,
 
-      // optional mapped fields
+      // customer info
       customerName: s.customer?.account?.userDetail
         ? `${s.customer.account.userDetail.name} ${s.customer.account.userDetail.lastname}`
         : null,
       customerProfileUrl: s.customer?.account?.userDetail?.profileUrl || null,
+
+      // course info
       courseName: s.course?.courseName || null,
       horoscopeMethodName: s.course?.horoscopeMethod?.name || null,
+
+      // transaction info
       amount: s.transaction?.amount ? Number(s.transaction.amount) : null,
+
+      // review info
       reviewScore: s.reviews[0]?.score || null,
       reviewDescription: s.reviews[0]?.description || null,
+
+      // prophet info
+      prophetUsername: s.prophet?.account?.username || null,
+      prophetProfileUrl: s.prophet?.account?.userDetail?.profileUrl || null,
     }))
   }
 }

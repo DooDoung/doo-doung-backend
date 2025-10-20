@@ -17,6 +17,16 @@ export class SessionRepository {
             },
           },
         },
+        prophet: {
+          // ✅ Add prophet relation
+          include: {
+            account: {
+              include: {
+                userDetail: true,
+              },
+            },
+          },
+        },
         course: {
           include: {
             horoscopeMethod: true,

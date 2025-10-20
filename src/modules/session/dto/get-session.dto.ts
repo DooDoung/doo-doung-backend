@@ -48,6 +48,12 @@ export class SessionDto {
 
   @ApiProperty()
   updatedAt!: Date
+
+  @ApiPropertyOptional({ example: "proph_username" })
+  prophetUsername?: string | null
+
+  @ApiPropertyOptional({ example: "https://example.com/prophet-avatar.jpg" })
+  prophetProfileUrl?: string | null
 }
 
 export class GetSessionsResponseDto {

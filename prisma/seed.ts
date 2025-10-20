@@ -491,6 +491,7 @@ async function seedTransactions() {
           status: parseValue(row.status, "string") as any,
           createdAt: parseValue(row.created_at, "datetime"),
           updatedAt: parseValue(row.updated_at, "datetime"),
+          amount: parseValue("100.00", "decimal"),
         },
       })
       successCount++

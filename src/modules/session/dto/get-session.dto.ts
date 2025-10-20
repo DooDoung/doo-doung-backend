@@ -41,7 +41,7 @@ export class SessionDetailDto {
   amount!: number
 
   @ApiProperty({ example: "PENDING_PAYOUT" })
-  payoutStatus!: string
+  status!: string
 
   @ApiProperty({ example: "2025-10-21T10:00:00.000Z" })
   transactionCreatedAt!: Date

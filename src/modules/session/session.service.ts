@@ -24,6 +24,7 @@ export class SessionService {
         courseName: s.course.courseName,
         horoscopeMethod: s.course.horoscopeMethod?.name || "",
         horoscopeSector: s.course.horoscopeSector,
+        status: s.status,
         startDateTime: s.startDateTime,
         endDateTime: s.endDateTime,
         prophetName: s.prophet.account.userDetail?.name || "",
@@ -55,6 +56,7 @@ export class SessionService {
       courseName: session.course.courseName,
       horoscopeMethod: session.course.horoscopeMethod?.name || "",
       horoscopeSector: session.course.horoscopeSector,
+      status: session.status,
       startDateTime: session.startDateTime,
       endDateTime: session.endDateTime,
       prophetName: session.prophet.account.userDetail

@@ -5,7 +5,7 @@ import { Decimal } from "@prisma/client/runtime/library"
 export class TransactionSnapshotDto {
   @ApiProperty() id!: string
   @ApiProperty() amount!: Decimal
-  @ApiProperty({ enum: PayoutStatus }) payoutStatus!: PayoutStatus
+  @ApiProperty({ enum: PayoutStatus }) status!: PayoutStatus
 }
 
 export class ProphetSnapshotDto {

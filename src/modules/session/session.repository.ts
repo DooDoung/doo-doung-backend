@@ -17,7 +17,7 @@ export class SessionRepository {
             txAccounts: true,
           },
         },
-        transaction: true,
+        transaction: true
       },
       orderBy: { startDateTime: "desc" },
     })

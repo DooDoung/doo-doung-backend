@@ -114,7 +114,7 @@ export class BookingService {
             status: true,
             prophetId: true,
             transaction: {
-              select: { id: true, amount: true, payoutStatus: true },
+              select: { id: true, amount: true, status: true },
             },
           },
           tx
@@ -128,9 +128,7 @@ export class BookingService {
           )
         if (!bookingInfo.transaction)
           throw new BadRequestException("No transaction found.")
-        if (
-          bookingInfo.transaction.payoutStatus !== PayoutStatus.PENDING_PAYOUT
-        )
+        if (bookingInfo.transaction.status !== PayoutStatus.PENDING_PAYOUT)
           throw new BadRequestException("Payout already processed or invalid.")
 
         await this.repo.updateBookingStatus(
@@ -161,7 +159,7 @@ export class BookingService {
             status: true,
             prophetId: true,
             transaction: {
-              select: { id: true, amount: true, payoutStatus: true },
+              select: { id: true, amount: true, status: true },
             },
             prophet: {
               select: { balance: true },

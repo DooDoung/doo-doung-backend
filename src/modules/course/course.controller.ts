@@ -1,9 +1,18 @@
-import { Controller, Get, Post, Body, Param, Query } from "@nestjs/common"
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  Patch,
+} from "@nestjs/common"
 import {
   GetCourseResponseDto as CourseResponseFromCreate,
   CreateCourseDto,
   GetCourseResponseDto,
 } from "./dto/create-course.dto"
+import { UpdateCourseDto } from "./dto/update-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
 import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 import { Inject, forwardRef } from "@nestjs/common"
@@ -78,10 +87,23 @@ export class CourseController {
 
   @Post("/prophet")
   @ApiBearerAuth()
+  @ApiOperation({ summary: "Create a new course (requires authentication)" })
   async createCourse(
     @Body() body: CreateCourseDto,
     @CurrentUser("id") accountId: string
   ): Promise<GetCourseResponseDto> {
     return await this.service.createCourse(body, accountId)
+  }
+
+  @Patch("/:courseId")
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update course details (requires authentication)" })
+  @ApiParam({ name: "courseId", description: "Course ID", type: String })
+  async updateCourse(
+    @Param("courseId") courseId: string,
+    @Body() body: UpdateCourseDto,
+    @CurrentUser("id") accountId: string
+  ): Promise<GetCourseResponseDto> {
+    return await this.service.updateCourse(courseId, body, accountId)
   }
 }

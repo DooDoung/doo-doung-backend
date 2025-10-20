@@ -29,6 +29,7 @@ import {
 } from "./dto/fileter-course.dto"
 import { CurrentUser } from "@/common/decorators/current-user.decorator"
 import { Decimal } from "@prisma/client/runtime/library"
+
 @ApiTags("courses")
 @Controller("courses")
 export class CourseController {
@@ -71,10 +72,11 @@ export class CourseController {
     } as FilterCoursesQueryDto
     return await this.courseService.getFilteredCourses(filter)
   }
-
+  
+  @Public()
   @Get("/:id")
   async getCourse(@Param("id") id: string): Promise<CourseResponseDto> {
-    return await this.courseService.getCourse(id)
+    return await this.courseService.getCourseById(id)
   }
 
   @Post()
@@ -89,7 +91,6 @@ export class CourseController {
     @Body() body: CreateCourseBodyDto,
     @CurrentUser("id") id: string
   ): Promise<void> {
-    console.log(body)
     const payload = {
       courseName: body.courseName,
       horoscopeSector: body.horoscopeSector,

@@ -140,7 +140,7 @@ export class CourseService {
     await this.courseRepo.createCourse(createCourseData)
   }
 
-  async getCourse(courseId: string): Promise<CourseResponseDto> {
+  async getCourseById(courseId: string): Promise<CourseResponseDto> {
     const course = await this.courseRepo.findById(courseId, {
       id: true,
       prophetId: true,

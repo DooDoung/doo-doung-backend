@@ -22,9 +22,10 @@ They run automatically on all routes.
 
 ---
 
-### 2. Public Routes
+### 2. Public/Private Routes
 
-If a route should be accessible without authentication, mark it with the `@Public()` decorator:
+**2.1 Public routes**  
+Mark it with the `@Public()` decorator:
 
 ```ts
 @Get('health')
@@ -33,7 +34,15 @@ getHealth() {
   return { status: 'ok' }
 }
 ```
-
+**2.2 Private routes (require Bearer)**  
+Mark it with the `@ApiBearerAuth()` decorator so swagger knows to send Bearer token in Auth header:
+```ts
+@Get('me')
+@ApiBearerAuth()
+getMe() {
+  return { status: 'ok' }
+}
+```
 ---
 
 ### 3. Role-Based Access Control
@@ -95,7 +104,7 @@ The JWT payload returned by `JwtStrategy.validate()` looks like this:
 
 ```ts
 {
-  id: string
+  id: string //Account id! not Customer/Prophet ID
   username: string
   email: string
   role: RoleEnum

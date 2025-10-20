@@ -12,8 +12,13 @@ import { AvailabilityModule } from "./modules/prophet/availability/availability.
 import { APP_GUARD } from "@nestjs/core"
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard"
 import { RolesGuard } from "./common/guards/roles.guard"
+import { BookingModule } from "./modules/booking/booking.module"
+import { PaymentModule } from "./modules/payment/payment.module"
+import { CustomerModule } from "./modules/customer/customer.module"
+import { ProphetModule } from "./modules/prophet/prophet.module"
 import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
 import { CourseModule } from "./modules/course/course.module"
+
 @Module({
   imports: [
     AuthModule,
@@ -21,13 +26,17 @@ import { CourseModule } from "./modules/course/course.module"
     AccountModule,
     ReportModule,
     ReviewModule,
-    TransactionAccountModule,
+    PaymentModule,
+    BookingModule,
+    CustomerModule,
+    CourseModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [corsConfig, appConfig], // load all separate config files
     }),
     AvailabilityModule,
-    CourseModule,
+    ProphetModule,
+    TransactionAccountModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

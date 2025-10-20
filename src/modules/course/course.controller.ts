@@ -1,14 +1,48 @@
-import { Controller, Get, Post, Body, Param, Query } from "@nestjs/common"
-import { ApiTags } from "@nestjs/swagger"
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  NotFoundException,
+  Param,
+  Inject,
+  forwardRef,
+} from "@nestjs/common"
+import { ApiTags, ApiOperation, ApiParam } from "@nestjs/swagger"
 import { CourseService } from "./course.service"
-import { CourseDto, CourseResponseDto } from "./dto/create-course.dto"
-import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { CourseResponseDto } from "./dto/course-response.dto"
+import { GetCoursesQueryDto } from "./dto/get-courses-query.dto"
+import { ProphetService } from "@/modules/prophet/prophet.service"
 import { Public } from "@/common/decorators/public.decorator"
+import { CourseDto } from "./dto/create-course.dto"
+import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
 
-@ApiTags("courses")
-@Controller("course")
+@ApiTags("Courses")
+@Controller("courses")
 export class CourseController {
-  constructor(private readonly service: CourseService) {}
+  constructor(
+    private readonly courseService: CourseService,
+    @Inject(forwardRef(() => ProphetService))
+    private readonly prophetService: ProphetService
+  ) {}
+
+  @Get(":accountId")
+  @Public()
+  @ApiOperation({ summary: "Get courses by account ID (public)" })
+  @ApiParam({ name: "accountId", description: "Account ID", type: String })
+  async getCoursesByAccountId(
+    @Param("accountId") accountId: string,
+    @Query() query: GetCoursesQueryDto
+  ): Promise<CourseResponseDto[]> {
+    const prophet = await this.prophetService.getProphetByAccountId(accountId)
+
+    if (!prophet?.id) {
+      throw new NotFoundException("Prophet not found for the provided account")
+    }
+
+    return this.courseService.getCoursesByProphetId(prophet.id, query.isActive)
+  }
 
   @Public()
   @Get()
@@ -24,16 +58,16 @@ export class CourseController {
       limit: query.limit,
       offset: query.offset,
     } as FilterAndSortCoursesDto
-    return await this.service.getFilteredCourses(filter)
+    return await this.courseService.getFilteredCourses(filter)
   }
 
   @Get("/:id")
   async getCourse(@Param("id") id: string): Promise<CourseDto> {
-    return await this.service.getCourse(id)
+    return await this.courseService.getCourse(id)
   }
 
   @Post("/prophet")
   async createCourse(@Body() body: CourseDto): Promise<CourseDto> {
-    return await this.service.createCourse(body)
+    return await this.courseService.createCourse(body)
   }
 }

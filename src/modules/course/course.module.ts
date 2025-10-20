@@ -1,13 +1,14 @@
-import { Module } from "@nestjs/common";
-import { CourseController } from "./course.controller";
-import { CourseService } from "./course.service";
-import { CourseRepository } from "./course.repository";
-import { UtilsModule } from "@/common/utils/utils.module";
+import { Module, forwardRef } from "@nestjs/common"
+import { CourseRepository } from "./course.repository"
+import { CourseService } from "./course.service"
+import { CourseController } from "./course.controller"
+import { ProphetModule } from "@/modules/prophet/prophet.module"
+import { UtilsModule } from "@/common/utils/utils.module"
 
 @Module({
-    imports: [UtilsModule],
-    controllers: [CourseController],
-    providers: [CourseService, CourseRepository],
-    exports: [CourseService],
+  imports: [forwardRef(() => ProphetModule), UtilsModule],
+  controllers: [CourseController],
+  providers: [CourseRepository, CourseService],
+  exports: [CourseService],
 })
 export class CourseModule {}

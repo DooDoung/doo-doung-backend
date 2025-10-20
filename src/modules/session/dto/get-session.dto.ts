@@ -1,20 +1,18 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
+import { ApiProperty } from "@nestjs/swagger"
 
-export class SessionDto {
+export class SessionDetailDto {
   @ApiProperty({ example: "bk_1234567890abcd" })
-  id!: string
+  sessionId!: string
 
-  @ApiProperty({ example: "cus_1234567890abcd" })
-  customerId!: string
+  // Course info
+  @ApiProperty({ example: "Tarot Reading" })
+  courseName!: string
 
-  @ApiProperty({ example: "crs_1234567890abcd" })
-  courseId!: string
+  @ApiProperty({ example: "Tarot" })
+  horoscopeMethod!: string
 
-  @ApiProperty({ example: "pro_1234567890abcd" })
-  prophetId!: string
-
-  @ApiProperty({ example: "scheduled" })
-  status!: string
+  @ApiProperty({ example: "LOVE" })
+  horoscopeSector!: string
 
   @ApiProperty({ example: "2025-10-21T10:00:00.000Z" })
   startDateTime!: Date
@@ -22,62 +20,51 @@ export class SessionDto {
   @ApiProperty({ example: "2025-10-21T10:30:00.000Z" })
   endDateTime!: Date
 
-  @ApiPropertyOptional({ example: "Napat S." })
-  customerName?: string | null
+  // Prophet info
+  @ApiProperty({ example: "Napat S." })
+  prophetName!: string
 
-  @ApiPropertyOptional({ example: "https://example.com/avatar.jpg" })
-  customerProfileUrl?: string | null
+  @ApiProperty({ example: "proph_username" })
+  prophetUsername!: string
 
-  @ApiPropertyOptional({ example: "Tarot Reading" })
-  courseName?: string | null
+  @ApiProperty({
+    example: "https://example.com/prophet-avatar.jpg",
+    nullable: true,
+  })
+  prophetProfileUrl!: string | null
 
-  @ApiPropertyOptional({ example: "Tarot" })
-  horoscopeMethodName?: string | null
+  // Transaction info
+  @ApiProperty({ example: "tx_1234567890abcd" })
+  transactionId!: string
 
-  @ApiPropertyOptional({ example: 500.0 })
-  amount?: number | null
+  @ApiProperty({ example: 500.0 })
+  amount!: number
 
-  @ApiPropertyOptional({ example: 5 })
-  reviewScore?: number | null
+  @ApiProperty({ example: "PENDING_PAYOUT" })
+  payoutStatus!: string
 
-  @ApiPropertyOptional({ example: "Very insightful session!" })
-  reviewDescription?: string | null
+  @ApiProperty({ example: "2025-10-21T10:00:00.000Z" })
+  transactionCreatedAt!: Date
 
-  @ApiProperty()
-  createdAt!: Date
+  // Customer info
+  @ApiProperty({ example: "Napat S." })
+  customerName!: string
 
-  @ApiProperty()
-  updatedAt!: Date
+  @ApiProperty({ example: "cus_username" })
+  customerUsername!: string
 
-  @ApiPropertyOptional({ example: "proph_username" })
-  prophetUsername?: string | null
+  // Prophet transaction account info
+  @ApiProperty({ example: "Napat S. Account", nullable: true })
+  txAccountName!: string | null
 
-  @ApiPropertyOptional({ example: "https://example.com/prophet-avatar.jpg" })
-  prophetProfileUrl?: string | null
+  @ApiProperty({ example: "BBL", nullable: true })
+  txBank!: string | null
+
+  @ApiProperty({ example: "123-456-7890", nullable: true })
+  txAccountNumber!: string | null
 }
 
 export class GetSessionsResponseDto {
-  @ApiProperty({ type: [SessionDto] })
-  sessions!: SessionDto[]
-}
-
-export class SessionDetailDto {
-  sessionId!: string
-  courseName!: string
-  horoscopeMethod!: string
-  horoscopeSector!: string
-  startDateTime!: Date
-  endDateTime!: Date
-  prophetName!: string
-  prophetUsername!: string
-  prophetProfileUrl!: string | null
-  transactionId!: string
-  amount!: number
-  payoutStatus!: string
-  transactionCreatedAt!: Date
-  customerName!: string
-  customerUsername!: string
-  txAccountName!: string | null
-  txBank!: string | null
-  txAccountNumber!: string | null
+  @ApiProperty({ type: [SessionDetailDto] })
+  sessions!: SessionDetailDto[]
 }

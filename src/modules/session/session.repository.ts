@@ -22,4 +22,46 @@ export class SessionRepository {
       orderBy: { startDateTime: "desc" },
     })
   }
+
+  async findById(sessionId: string) {
+    return this.prisma.booking.findUnique({
+      where: { id: sessionId },
+      include: {
+        course: {
+          select: {
+            courseName: true,
+            horoscopeSector: true,
+            horoscopeMethod: { select: { name: true } },
+          },
+        },
+        prophet: {
+          select: {
+            account: {
+              select: {
+                username: true,
+                userDetail: {
+                  select: { name: true, lastname: true, profileUrl: true },
+                },
+              },
+            },
+            txAccounts: {
+              where: { isDefault: true },
+              select: { accountName: true, accountNumber: true, bank: true },
+            },
+          },
+        },
+        customer: {
+          select: {
+            account: {
+              select: {
+                username: true,
+                userDetail: { select: { name: true, lastname: true } },
+              },
+            },
+          },
+        },
+        transaction: true,
+      },
+    })
+  }
 }

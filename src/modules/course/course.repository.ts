@@ -116,7 +116,7 @@ export class CourseRepository {
     return { ...course, lineId, name, lastname }
   }
 
-  async getCoursesByProphetId(
+  async getCoursesByProphetIdCourseList(
     prophetId: string
   ): Promise<GetCoursesByProphetDto[]> {
     const prophet = await this.prisma.prophet.findUnique({
@@ -189,6 +189,46 @@ export class CourseRepository {
         createdAt: course.createdAt,
         isActive: course.isActive,
       }
+    })
+  }
+
+  async findById<T extends Prisma.CourseSelect>(
+    id: string,
+    select: T
+  ): Promise<Prisma.CourseGetPayload<{ select: T }> | null> {
+    return this.prisma.course.findUnique({
+      where: { id },
+      select,
+    })
+  }
+
+  async getCoursesByProphetId<T extends Prisma.CourseSelect>(
+    prophetId: string,
+    select: T,
+    isActive?: boolean
+  ): Promise<Prisma.CourseGetPayload<{ select: T }>[]> {
+    const whereClause: Prisma.CourseWhereInput = { prophetId }
+
+    if (isActive !== undefined) {
+      whereClause.isActive = isActive
+    }
+
+    return this.prisma.course.findMany({
+      where: whereClause,
+      select,
+    })
+  }
+
+  async toggleCourseActiveStatus(
+    courseId: string,
+    isActive: boolean
+  ): Promise<
+    Prisma.CourseGetPayload<{ select: { id: true; isActive: true } }>
+  > {
+    return this.prisma.course.update({
+      where: { id: courseId },
+      data: { isActive },
+      select: { id: true, isActive: true },
     })
   }
 }

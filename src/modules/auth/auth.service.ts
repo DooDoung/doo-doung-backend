@@ -92,9 +92,20 @@ export class AuthService {
     token: string,
     newPassword: string
   ): Promise<void> {
-    const resetToken = await this.tokenRepo.findValidToken(token)
+    const resetToken = await this.tokenRepo.findToken(token)
+
     if (!resetToken) {
-      throw new BadRequestException("Invalid or expired token")
+      throw new BadRequestException("Token not found")
+    }
+
+    if (resetToken.usedAt) {
+      throw new BadRequestException(
+        "This reset link has already been used or invalidated by a newer request"
+      )
+    }
+
+    if (resetToken.expiresAt < new Date()) {
+      throw new BadRequestException("This reset link has expired")
     }
 
     const hashedPassword = await this.hashUtils.hashPassword(newPassword)
@@ -102,10 +113,13 @@ export class AuthService {
       resetToken.accountId,
       hashedPassword
     )
+
     try {
       await this.tokenRepo.markUsed(resetToken.id)
     } catch (err) {
-      throw new InternalServerErrorException(`Token not found: ${err}`)
+      throw new InternalServerErrorException(
+        `Could not mark token as used: ${err}`
+      )
     }
   }
 }

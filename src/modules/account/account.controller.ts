@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Post, Body, Put, UseGuards } from "@nestjs/common"
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  Put,
+  UseGuards,
+} from "@nestjs/common"
 import { AccountService } from "./account.service"
 import {
   AccountResponseDto,
@@ -12,6 +20,7 @@ import {
   ApiExtraModels,
   getSchemaPath,
   ApiBody,
+  ApiBearerAuth,
 } from "@nestjs/swagger"
 import {
   BaseRegisterDto,
@@ -19,8 +28,12 @@ import {
   ProphetRegisterDto,
   ProphetTxAccountDto,
 } from "./dto/register-request.dto"
-import { Public } from "@/common/decorators/public.decorator"
+import {
+  CustomerUpdateAccountRequestDto,
+  ProphetUpdateAccountRequestDto,
+} from "./dto/update-account.dto"
 import { CurrentUser } from "@/common/decorators/current-user.decorator"
+import { Public } from "@/common/decorators/public.decorator"
 
 @ApiTags("account")
 @ApiExtraModels(
@@ -30,11 +43,14 @@ import { CurrentUser } from "@/common/decorators/current-user.decorator"
   ProphetRegisterDto,
   ProphetAccountDto,
   CustomerAccountDto,
-  LimitedCustomerAccountDto
+  LimitedCustomerAccountDto,
+  CustomerUpdateAccountRequestDto,
+  ProphetUpdateAccountRequestDto
 )
 @Controller("account")
 export class AccountController {
   constructor(private readonly service: AccountService) {}
+  @ApiBearerAuth()
   @Get()
   @ApiOkResponse({
     schema: {
@@ -49,6 +65,7 @@ export class AccountController {
     return this.service.getMyAccount(id)
   }
 
+  @Public()
   @Get(":id")
   @ApiOkResponse({
     schema: {
@@ -59,14 +76,16 @@ export class AccountController {
       ],
     },
   })
+  @Public()
   getById(@Param("id") id: string): Promise<AccountResponseDto> {
     return this.service.getAccountById(id)
   }
   @Get("profileUrl/:username")
   getProfileUrl(@Param("username") username: string): Promise<string> {
-    console.log(username)
     return this.service.getProfileUrl(username)
   }
+
+  @Public()
   @Post("register")
   @ApiBody({
     schema: {
@@ -83,15 +102,23 @@ export class AccountController {
     const role = body.role
     return await this.service.createAccount(role, body)
   }
+
+  @ApiBearerAuth()
   @Put()
-  async put(@Body() body: any): Promise<AccountResponseDto> {
-    try {
-      console.log(body)
-      const role = body.role // now works
-      return await this.service.updateAccount(role, body)
-    } catch (e) {
-      console.error(e)
-      throw e
-    }
+  @ApiBody({
+    schema: {
+      oneOf: [
+        { $ref: getSchemaPath(CustomerUpdateAccountRequestDto) },
+        { $ref: getSchemaPath(ProphetUpdateAccountRequestDto) },
+      ],
+      discriminator: { propertyName: "role" },
+    },
+  })
+  async put(
+    @CurrentUser("id") id: string,
+    @Body()
+    body: CustomerUpdateAccountRequestDto | ProphetUpdateAccountRequestDto
+  ): Promise<AccountResponseDto> {
+    return await this.service.updateAccount(id, body)
   }
 }

@@ -30,7 +30,13 @@ export class AccountService {
       email: true,
       role: true,
       userDetail: {
-        select: { phoneNumber: true, gender: true, profileUrl: true },
+        select: {
+          name: true,
+          lastname: true,
+          phoneNumber: true,
+          gender: true,
+          profileUrl: true,
+        },
       },
     })
     if (!account) throw new NotFoundException("Account not found")
@@ -38,6 +44,8 @@ export class AccountService {
     const base = {
       username: account.username,
       email: account.email,
+      name: account.userDetail?.name,
+      lastName: account.userDetail?.lastname,
       phoneNumber: account.userDetail?.phoneNumber,
       gender: account.userDetail?.gender,
       profileUrl: account.userDetail?.profileUrl ?? null,

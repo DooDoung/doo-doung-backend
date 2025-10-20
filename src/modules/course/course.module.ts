@@ -4,6 +4,7 @@ import { CourseService } from "./course.service"
 import { CourseRepository } from "./course.repository"
 import { UtilsModule } from "@/common/utils/utils.module"
 import { ProphetModule } from "@/modules/prophet/prophet.module"
+import { UtilsModule } from "@/common/utils/utils.module"
 
 @Module({
   imports: [forwardRef(() => ProphetModule), UtilsModule],

@@ -1,44 +1,44 @@
-import { ApiProperty } from "@nestjs/swagger"
+import { ApiPropertyOptional } from "@nestjs/swagger"
 import { HoroscopeSector } from "@prisma/client"
 import { Type } from "class-transformer"
 import { IsOptional, IsString, IsNumber, Min, IsEnum } from "class-validator"
 
 export class FilterAndSortCoursesDto {
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   sort_by?: string
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   price_min?: number
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
   price_max?: number
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   horoscope_method?: string
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsEnum(HoroscopeSector)
   horoscope_sector?: HoroscopeSector
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   @Min(0)
   @Type(() => Number)
   limit?: number
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   @Type(() => Number)

@@ -1,35 +1,48 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { CourseRepository } from "./course.repository"
-import { CourseDto, CourseResponseDto } from "./dto/create-course.dto"
+import { CreateCourseDto, GetCourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
 import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 import { CourseForBookingResponse } from "./interface/course.interface"
 import { CourseActiveResponseDto } from "./dto/course-response.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
+import { CourseResponseDto } from "./dto/course-response.dto"
 
 @Injectable()
 export class CourseService {
   constructor(
     private readonly courseRepo: CourseRepository,
-    private readonly prophetService: ProphetService
+    private readonly prophetService: ProphetService,
+    private readonly repo: CourseRepository
   ) {}
 
-  async createCourse(data: CourseDto): Promise<CourseResponseDto> {
-    return await this.courseRepo.createCourse(data)
+  async createCourse(
+    data: CreateCourseDto,
+    accountId: string
+  ): Promise<GetCourseResponseDto> {
+    const prophet = await this.prophetService.getProphetByAccountId(accountId)
+    if (!prophet || !prophet.id) {
+      throw new NotFoundException("Prophet not found")
+    }
+    return await this.repo.createCourse(data, prophet.id)
   }
 
-  async getCourse(courseId: string): Promise<CourseResponseDto> {
-    return await this.courseRepo.getCourse(courseId)
+  async getCourseByCourseId(courseId: string): Promise<GetCourseResponseDto> {
+    return await this.repo.getCourse(courseId)
   }
 
   async getFilteredCourses(
     filter: FilterAndSortCoursesDto
-  ): Promise<CourseResponseDto[]> {
-    return await this.courseRepo.getFilteredCourses(filter)
+  ): Promise<GetCourseResponseDto[]> {
+    return await this.repo.getFilteredCourses(filter)
+  }
+
+  async getCourse(courseId: string): Promise<GetCourseResponseDto> {
+    return await this.courseRepo.getCourse(courseId)
   }
 
   async getCourseForBookingById(id: string): Promise<CourseForBookingResponse> {
-    const course = await this.courseRepo.findById(id, {
+    const course = await this.repo.findById(id, {
       prophetId: true,
       price: true,
     })
@@ -49,6 +62,39 @@ export class CourseService {
     prophetId: string
   ): Promise<GetCoursesByProphetDto[]> {
     return await this.courseRepo.getCoursesByProphetIdCourseList(prophetId)
+  }
+
+  async getCoursesByProphetId(
+    prophetId: string,
+    isActive?: boolean
+  ): Promise<CourseResponseDto[]> {
+    const courses = await this.repo.getCoursesByProphetId(prophetId, {
+      id: true,
+      courseName: true,
+      horoscopeSector: true,
+      durationMin: true,
+      price: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+    })
+
+    // Filter by isActive if specified
+    const filteredCourses =
+      isActive !== undefined
+        ? courses.filter(course => course.isActive === isActive)
+        : courses
+
+    return filteredCourses.map(course => ({
+      id: course.id,
+      courseName: course.courseName,
+      horoscopeSector: course.horoscopeSector,
+      durationMin: course.durationMin,
+      price: Number(course.price),
+      isActive: course.isActive,
+      createdAt: course.createdAt,
+      updatedAt: course.updatedAt,
+    }))
   }
 
   // async getCoursesByProphetId(
@@ -85,7 +131,7 @@ export class CourseService {
   // }
 
   async getProphetIdByCourseId(courseId: string): Promise<string> {
-    const course = await this.courseRepo.findById(courseId, { prophetId: true })
+    const course = await this.repo.findById(courseId, { prophetId: true })
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`)
     }
@@ -102,7 +148,7 @@ export class CourseService {
     if (!prophetId) {
       throw new NotFoundException("Prophet not found")
     }
-    const course = await this.courseRepo.findById(courseId, {
+    const course = await this.repo.findById(courseId, {
       id: true,
       prophetId: true,
       isActive: true,
@@ -119,10 +165,7 @@ export class CourseService {
     }
 
     const isActive = !course.isActive
-    const result = await this.courseRepo.toggleCourseActiveStatus(
-      courseId,
-      isActive
-    )
+    const result = await this.repo.toggleCourseActiveStatus(courseId, isActive)
 
     return {
       id: result.id,

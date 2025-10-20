@@ -1,7 +1,7 @@
 import { NanoidService } from "@/common/utils/nanoid"
 import { PrismaService } from "@/db/prisma.service"
 import { Injectable } from "@nestjs/common"
-import { CourseDto, CourseResponseDto } from "./dto/create-course.dto"
+import { CreateCourseDto, GetCourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
 import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 import { Prisma } from "@prisma/client"
@@ -15,7 +15,7 @@ export class CourseRepository {
 
   async getFilteredCourses(
     filter: FilterAndSortCoursesDto
-  ): Promise<CourseResponseDto[]> {
+  ): Promise<GetCourseResponseDto[]> {
     // Build orderBy object based on filter.sort_by
     let orderBy: Prisma.CourseOrderByWithRelationInput
 
@@ -51,7 +51,7 @@ export class CourseRepository {
         horoscopeMethod: true,
       },
     })
-    const result: CourseResponseDto[] = []
+    const result: GetCourseResponseDto[] = []
     for (const course of courses) {
       const detailedCourse = await this.getCourse(course.id)
       result.push(detailedCourse)
@@ -59,24 +59,27 @@ export class CourseRepository {
     return result
   }
 
-  async createCourse(data: CourseDto): Promise<CourseResponseDto> {
+  async createCourse(
+    data: CreateCourseDto,
+    prophetId: string
+  ): Promise<GetCourseResponseDto> {
     const id = await this.nanoid.generateId()
     await this.prisma.course.create({
       data: {
         id: id,
-        prophetId: data.prophetId,
+        prophetId: prophetId,
         courseName: data.courseName,
         horoscopeMethodId: data.horoscopeMethodId,
         horoscopeSector: data.horoscopeSector,
         durationMin: data.durationMin,
         price: data.price,
-        isActive: data.isActive,
+        isActive: true,
       },
     })
     return this.getCourse(id)
   }
 
-  async getCourse(courseId: string): Promise<CourseResponseDto> {
+  async getCourse(courseId: string): Promise<GetCourseResponseDto> {
     const course = await this.prisma.course.findUnique({
       where: {
         id: courseId,

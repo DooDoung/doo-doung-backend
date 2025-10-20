@@ -90,6 +90,8 @@ export class CourseRepository {
         durationMin: true,
         price: true,
         isActive: true,
+        createdAt: true,
+        updatedAt: true,
       },
     })
     if (!course) throw new Error("Course not found")

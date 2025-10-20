@@ -16,7 +16,10 @@ import { GetCoursesQueryDto } from "./dto/get-courses-query.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
 import { Public } from "@/common/decorators/public.decorator"
 import { CreateCourseBodyDto } from "./dto/create-course.dto"
-import { FilterCoursesQueryDto } from "./dto/fileter-body.dto"
+import {
+  FilterCoursesQueryDto,
+  FilterCourseResponseDto,
+} from "./dto/fileter-course.dto"
 
 @ApiTags("Courses")
 @Controller("courses")
@@ -48,7 +51,7 @@ export class CourseController {
   @Get()
   async GetFilteredCourses(
     @Query() query: FilterCoursesQueryDto
-  ): Promise<CourseResponseDto[]> {
+  ): Promise<FilterCourseResponseDto[]> {
     const filter = {
       sort_by: query.sort_by,
       price_min: query.price_min,

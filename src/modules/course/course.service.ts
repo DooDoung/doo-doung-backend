@@ -4,8 +4,8 @@ import { CourseForBookingResponse } from "./interface/course.interface"
 import { CourseResponseDto } from "./dto/course-response.dto"
 import { CourseActiveResponseDto } from "./dto/course-response.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
-import { CourseDto } from "./dto/create-course.dto"
-import { FilterAndSortCoursesDto } from "./dto/fileter-body.dto"
+import { CreateCourseBodyDto } from "./dto/create-course.dto"
+import { FilterCourseResponseDto, FilterCoursesQueryDto } from "./dto/fileter-course.dto"
 
 @Injectable()
 export class CourseService {
@@ -57,7 +57,7 @@ export class CourseService {
       courseName: course.courseName,
       horoscopeSector: course.horoscopeSector,
       durationMin: course.durationMin,
-      price: Number(course.price),
+      price: course.price,
       isActive: course.isActive,
       createdAt: course.createdAt,
       updatedAt: course.updatedAt,
@@ -110,17 +110,32 @@ export class CourseService {
     }
   }
 
-  async createCourse(data: CourseDto): Promise<CourseResponseDto> {
-    return await this.courseRepo.createCourse(data)
+  async createCourse(data: CreateCourseBodyDto): Promise<void> {
+    await this.courseRepo.createCourse(data)
   }
 
   async getCourse(courseId: string): Promise<CourseResponseDto> {
-    return await this.courseRepo.getCourse(courseId)
+    const course = await this.courseRepo.findById(courseId, {
+      id: true,
+      prophetId: true,
+      courseName: true,
+      horoscopeMethodId: true,
+      horoscopeSector: true,
+      durationMin: true,
+      price: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+    })
+    if (!course) {
+      throw NotFoundException
+    }
+    return course
   }
 
   async getFilteredCourses(
-    filter: FilterAndSortCoursesDto
-  ): Promise<CourseResponseDto[]> {
+    filter: FilterCoursesQueryDto
+  ): Promise<FilterCourseResponseDto[]> {
     return await this.courseRepo.getFilteredCourses(filter)
   }
 }

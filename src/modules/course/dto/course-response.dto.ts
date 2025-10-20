@@ -1,11 +1,12 @@
 import { HoroscopeSector } from "@prisma/client"
+import { Decimal } from "@prisma/client/runtime/library"
 
 export class CourseResponseDto {
   id!: string
   courseName!: string
   horoscopeSector!: HoroscopeSector
   durationMin!: number
-  price!: number
+  price!: Decimal
   isActive!: boolean
   createdAt!: Date
   updatedAt!: Date

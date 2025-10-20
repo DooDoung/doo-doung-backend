@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common"
 import { PrismaService } from "@/db/prisma.service"
 import { Prisma } from "@prisma/client"
 import { NanoidService } from "@/common/utils/nanoid"
-import { CourseDto, CourseResponseDto } from "./dto/create-course.dto"
-import { FilterAndSortCoursesDto } from "./dto/fileter-body.dto"
+import { CreateCourseBodyDto } from "./dto/create-course.dto"
+import { FilterCoursesQueryDto, FilterCourseResponseDto } from "./dto/fileter-course.dto"
 
 @Injectable()
 export class CourseRepository {
@@ -53,8 +53,8 @@ export class CourseRepository {
   }
 
   async getFilteredCourses(
-    filter: FilterAndSortCoursesDto
-  ): Promise<CourseResponseDto[]> {
+    filter: FilterCoursesQueryDto
+  ): Promise<FilterCourseResponseDto[]> {
     // Build orderBy object based on filter.sort_by
     let orderBy: Prisma.CourseOrderByWithRelationInput
 
@@ -90,15 +90,15 @@ export class CourseRepository {
         horoscopeMethod: true,
       },
     })
-    const result: CourseResponseDto[] = []
+    const result: FilterCourseResponseDto[] = []
     for (const course of courses) {
-      const detailedCourse = await this.getCourse(course.id)
+      const detailedCourse = await this.getCourseWithProphet(course.id)
       result.push(detailedCourse)
     }
     return result
   }
 
-  async createCourse(data: CourseDto): Promise<CourseResponseDto> {
+  async createCourse(data: CreateCourseBodyDto): Promise<void> {
     const id = await this.nanoid.generateId()
     await this.prisma.course.create({
       data: {
@@ -112,10 +112,11 @@ export class CourseRepository {
         isActive: data.isActive,
       },
     })
-    return this.getCourse(id)
   }
 
-  async getCourse(courseId: string): Promise<CourseResponseDto> {
+  async getCourseWithProphet(
+    courseId: string
+  ): Promise<FilterCourseResponseDto> {
     const course = await this.prisma.course.findUnique({
       where: {
         id: courseId,

@@ -18,6 +18,7 @@ import { CustomerModule } from "./modules/customer/customer.module"
 import { ProphetModule } from "./modules/prophet/prophet.module"
 import { TransactionAccountModule } from "./modules/prophet/tx-account.module"
 import { CourseModule } from "./modules/course/course.module"
+import { SessionModule } from "./modules/session/session.module"
 @Module({
   imports: [
     AuthModule,
@@ -36,6 +37,7 @@ import { CourseModule } from "./modules/course/course.module"
     AvailabilityModule,
     ProphetModule,
     TransactionAccountModule,
+    SessionModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

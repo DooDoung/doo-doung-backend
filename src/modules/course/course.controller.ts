@@ -15,8 +15,8 @@ import { CourseResponseDto } from "./dto/course-response.dto"
 import { GetCoursesQueryDto } from "./dto/get-courses-query.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
 import { Public } from "@/common/decorators/public.decorator"
-import { CourseDto } from "./dto/create-course.dto"
-import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { CreateCourseBodyDto } from "./dto/create-course.dto"
+import { FilterCoursesQueryDto } from "./dto/fileter-body.dto"
 
 @ApiTags("Courses")
 @Controller("courses")
@@ -47,7 +47,7 @@ export class CourseController {
   @Public()
   @Get()
   async GetFilteredCourses(
-    @Query() query: FilterAndSortCoursesDto
+    @Query() query: FilterCoursesQueryDto
   ): Promise<CourseResponseDto[]> {
     const filter = {
       sort_by: query.sort_by,
@@ -57,17 +57,17 @@ export class CourseController {
       horoscope_sector: query.horoscope_sector,
       limit: query.limit,
       offset: query.offset,
-    } as FilterAndSortCoursesDto
+    } as FilterCoursesQueryDto
     return await this.courseService.getFilteredCourses(filter)
   }
 
   @Get("/:id")
-  async getCourse(@Param("id") id: string): Promise<CourseDto> {
+  async getCourse(@Param("id") id: string): Promise<CourseResponseDto> {
     return await this.courseService.getCourse(id)
   }
 
   @Post("/prophet")
-  async createCourse(@Body() body: CourseDto): Promise<CourseDto> {
-    return await this.courseService.createCourse(body)
+  async createCourse(@Body() body: CreateCourseBodyDto): Promise<void> {
+    await this.courseService.createCourse(body)
   }
 }

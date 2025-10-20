@@ -5,7 +5,7 @@ import { CourseResponseDto } from "./dto/course-response.dto"
 import { CourseActiveResponseDto } from "./dto/course-response.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
 import { CourseDto } from "./dto/create-course.dto"
-import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { FilterAndSortCoursesDto } from "./dto/fileter-body.dto"
 
 @Injectable()
 export class CourseService {

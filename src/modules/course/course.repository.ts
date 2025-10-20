@@ -3,7 +3,7 @@ import { PrismaService } from "@/db/prisma.service"
 import { Prisma } from "@prisma/client"
 import { NanoidService } from "@/common/utils/nanoid"
 import { CourseDto, CourseResponseDto } from "./dto/create-course.dto"
-import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { FilterAndSortCoursesDto } from "./dto/fileter-body.dto"
 
 @Injectable()
 export class CourseRepository {

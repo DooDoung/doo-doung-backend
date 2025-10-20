@@ -3,7 +3,7 @@ import { HoroscopeSector } from "@prisma/client"
 import { Type } from "class-transformer"
 import { IsOptional, IsString, IsNumber, Min, IsEnum } from "class-validator"
 
-export class FilterAndSortCoursesDto {
+export class FilterCoursesQueryDto {
   @ApiProperty()
   @IsOptional()
   @IsString()

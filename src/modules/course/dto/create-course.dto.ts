@@ -3,7 +3,7 @@ import { HoroscopeSector } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { IsEnum, IsString, Length, Matches} from "class-validator";
 
-export class CourseDto {
+export class CreateCourseBodyDto {
     @ApiProperty()
     @IsString()
     @Length(16)
@@ -35,18 +35,4 @@ export class CourseDto {
 
     @ApiProperty()
     isActive !: boolean;
-}
-
-export class CourseResponseDto extends CourseDto {
-    @IsString()
-    @Length(16)
-    name !: string;
-
-    @IsString()
-    @Length(16)
-    lastname !: string;
-
-    @IsString()
-    @Length(20)
-    lineId !: string;
 }

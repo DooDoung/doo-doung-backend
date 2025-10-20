@@ -1,4 +1,11 @@
-import { UseInterceptors, Controller, Get, Patch, Body } from "@nestjs/common"
+import {
+  UseInterceptors,
+  Controller,
+  Get,
+  Patch,
+  Body,
+  Param,
+} from "@nestjs/common"
 import { AvailabilityService } from "./availability.service"
 import { PatchAvailabilityDto } from "./dto/patch-availability.dto"
 import { AvailabilityFormatInterceptor } from "./availability.interceptor"
@@ -14,6 +21,11 @@ export class AvailabilityController {
   @Get("")
   async getMyAvailability(@CurrentUser("id") id: string) {
     return this.availabilityService.getMyAvailability(id)
+  }
+
+  @Get(":courseId")
+  async getAvailabilityByCourseId(@Param("courseId") courseId: string) {
+    return this.availabilityService.getAvailabilityByCourseId(courseId)
   }
 
   @Patch("")

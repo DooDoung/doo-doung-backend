@@ -22,6 +22,18 @@ export class AvailabilityService {
     })
   }
 
+  async getAvailabilityByCourseId(courseId: string) {
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+      select: { prophetId: true },
+    })
+    if (!course) throw new NotFoundException("Course not found")
+
+    return this.prisma.prophetAvailability.findMany({
+      where: { prophetId: course.prophetId },
+    })
+  }
+
   // Patch current prophet availability
   async patchMyAvailability(dto: PatchAvailabilityDto, id: string) {
     const prophet = await this.prophetRepo.findByAccountId(id, {

@@ -3,6 +3,7 @@ import { ApiTags } from "@nestjs/swagger"
 import { CourseService } from "./course.service"
 import { CourseDto, CourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 import { Public } from "@/common/decorators/public.decorator"
 
 @ApiTags("courses")
@@ -25,6 +26,14 @@ export class CourseController {
       offset: query.offset,
     } as FilterAndSortCoursesDto
     return await this.service.getFilteredCourses(filter)
+  }
+
+  @Public()
+  @Get("/byprophet/:prophetId")
+  async getCoursesByProphet(
+    @Param("prophetId") prophetId: string
+  ): Promise<GetCoursesByProphetDto[]> {
+    return await this.service.getCoursesByProphetId(prophetId)
   }
 
   @Get("/:id")

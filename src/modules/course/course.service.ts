@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { CourseRepository } from "./course.repository"
 import { CourseDto, CourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
+import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 
 @Injectable()
 export class CourseService {
@@ -19,5 +20,11 @@ export class CourseService {
     filter: FilterAndSortCoursesDto
   ): Promise<CourseResponseDto[]> {
     return await this.repo.getFilteredCourses(filter)
+  }
+
+  async getCoursesByProphetId(
+    prophetId: string
+  ): Promise<GetCoursesByProphetDto[]> {
+    return await this.repo.getCoursesByProphetId(prophetId)
   }
 }

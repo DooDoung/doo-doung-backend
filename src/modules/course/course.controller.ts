@@ -17,7 +17,7 @@ import { NotFoundException } from "@nestjs/common"
 import { CurrentUser } from "@/common/decorators/current-user.decorator"
 import { CourseResponseDto } from "./dto/course-response.dto"
 
-@ApiTags("courses")
+@ApiTags("course")
 @Controller("course")
 export class CourseController {
   constructor(
@@ -63,7 +63,7 @@ export class CourseController {
   }
 
   @Public()
-  @Get("/byprophet/:prophetId")
+  @Get("/prophet/:prophetId")
   async getCoursesByProphet(
     @Param("prophetId") prophetId: string
   ): Promise<GetCoursesByProphetDto[]> {

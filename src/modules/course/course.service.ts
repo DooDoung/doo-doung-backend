@@ -13,7 +13,6 @@ export class CourseService {
   constructor(
     private readonly courseRepo: CourseRepository,
     private readonly prophetService: ProphetService,
-    private readonly repo: CourseRepository
   ) {}
 
   async createCourse(
@@ -24,17 +23,17 @@ export class CourseService {
     if (!prophet || !prophet.id) {
       throw new NotFoundException("Prophet not found")
     }
-    return await this.repo.createCourse(data, prophet.id)
+    return await this.courseRepo.createCourse(data, prophet.id)
   }
 
   async getCourseByCourseId(courseId: string): Promise<GetCourseResponseDto> {
-    return await this.repo.getCourse(courseId)
+    return await this.courseRepo.getCourse(courseId)
   }
 
   async getFilteredCourses(
     filter: FilterAndSortCoursesDto
   ): Promise<GetCourseResponseDto[]> {
-    return await this.repo.getFilteredCourses(filter)
+    return await this.courseRepo.getFilteredCourses(filter)
   }
 
   async getCourse(courseId: string): Promise<GetCourseResponseDto> {
@@ -42,7 +41,7 @@ export class CourseService {
   }
 
   async getCourseForBookingById(id: string): Promise<CourseForBookingResponse> {
-    const course = await this.repo.findById(id, {
+    const course = await this.courseRepo.findById(id, {
       prophetId: true,
       price: true,
     })
@@ -68,7 +67,7 @@ export class CourseService {
     prophetId: string,
     isActive?: boolean
   ): Promise<CourseResponseDto[]> {
-    const courses = await this.repo.getCoursesByProphetId(prophetId, {
+    const courses = await this.courseRepo.getCoursesByProphetId(prophetId, {
       id: true,
       courseName: true,
       horoscopeSector: true,
@@ -101,7 +100,7 @@ export class CourseService {
   //   prophetId: string,
   //   isActive?: boolean
   // ): Promise<CourseResponseDto[]> {
-  //   const courses = await this.courseRepo.getCoursesByProphetId(prophetId, {
+  //   const courses = await this.coursecourseRepo.getCoursesByProphetId(prophetId, {
   //     id: true,
   //     courseName: true,
   //     horoscopeSector: true,
@@ -131,7 +130,7 @@ export class CourseService {
   // }
 
   async getProphetIdByCourseId(courseId: string): Promise<string> {
-    const course = await this.repo.findById(courseId, { prophetId: true })
+    const course = await this.courseRepo.findById(courseId, { prophetId: true })
     if (!course) {
       throw new NotFoundException(`Course with ID ${courseId} not found`)
     }
@@ -148,7 +147,7 @@ export class CourseService {
     if (!prophetId) {
       throw new NotFoundException("Prophet not found")
     }
-    const course = await this.repo.findById(courseId, {
+    const course = await this.courseRepo.findById(courseId, {
       id: true,
       prophetId: true,
       isActive: true,
@@ -165,7 +164,7 @@ export class CourseService {
     }
 
     const isActive = !course.isActive
-    const result = await this.repo.toggleCourseActiveStatus(courseId, isActive)
+    const result = await this.courseRepo.toggleCourseActiveStatus(courseId, isActive)
 
     return {
       id: result.id,

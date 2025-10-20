@@ -1,16 +1,27 @@
 import { Injectable } from "@nestjs/common"
 import { PrismaService } from "@/db/prisma.service"
 import { Prisma } from "@prisma/client"
-import { NanoidService } from "@/common/utils/nanoid"
-import { CreateCourseBodyDto } from "./dto/create-course.dto"
-import { FilterCoursesQueryDto, FilterCourseResponseDto } from "./dto/fileter-course.dto"
+import {
+  FilterCoursesQueryDto,
+  FilterCourseResponseDto,
+} from "./dto/fileter-course.dto"
+import { HoroscopeSector } from "@prisma/client"
+import { Decimal } from "@prisma/client/runtime/library"
+
+interface CreateCourseBodyData {
+  id: string
+  prophetId: string
+  courseName: string
+  horoscopeMethodId: number
+  horoscopeSector: HoroscopeSector
+  durationMin: number
+  price: Decimal
+  isActive: boolean
+}
 
 @Injectable()
 export class CourseRepository {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly nanoid: NanoidService
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findById<T extends Prisma.CourseSelect>(
     id: string,
@@ -98,20 +109,8 @@ export class CourseRepository {
     return result
   }
 
-  async createCourse(data: CreateCourseBodyDto): Promise<void> {
-    const id = await this.nanoid.generateId()
-    await this.prisma.course.create({
-      data: {
-        id: id,
-        prophetId: data.prophetId,
-        courseName: data.courseName,
-        horoscopeMethodId: data.horoscopeMethodId,
-        horoscopeSector: data.horoscopeSector,
-        durationMin: data.durationMin,
-        price: data.price,
-        isActive: data.isActive,
-      },
-    })
+  async createCourse(data: CreateCourseBodyData): Promise<void> {
+    await this.prisma.course.create({ data })
   }
 
   async getCourseWithProphet(

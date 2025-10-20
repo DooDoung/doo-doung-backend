@@ -2,7 +2,6 @@ import type { TxAccount } from "@/common/types/payment/tx-account.type"
 import {
   ProphetDetail,
   ProphetBasic,
-  ProphetEntity,
 } from "./interface/prophet.interface"
 import { Injectable } from "@nestjs/common"
 import { ProphetRepository } from "./prophet.repository"
@@ -74,5 +73,12 @@ export class ProphetService {
     tx?: Tx
   ): Promise<Prisma.BatchPayload> {
     return this.repo.incrementBalance(prophetId, amount, tx)
+  }
+
+  async getProphetByProphetId(prophetId: string): Promise<ProphetBasic> {
+    const prophet = await this.repo.findByProphetId(prophetId, {
+      id: true,
+    })
+    return { id: prophet?.id }
   }
 }

@@ -7,7 +7,7 @@ import {
   RequestResetPasswordDto,
   ConfirmResetPasswordDto,
 } from "./dto/reset-password.dto"
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger"
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger"
 import { Public } from "@/common/decorators/public.decorator"
 
 @ApiTags("auth")
@@ -19,7 +19,6 @@ export class AuthController {
   @Post("login")
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ type: LoginResponseDto })
-  @ApiBearerAuth()
   async login(@Body() body: LoginRequestDto): Promise<LoginResponseDto> {
     return this.auth.login(body.username, body.password)
   }
@@ -32,7 +31,7 @@ export class AuthController {
   ): Promise<void> {
     await this.auth.requestResetPassword(body.email)
   }
-  
+
   @Public()
   @Post("reset-password/confirm")
   @HttpCode(HttpStatus.OK)

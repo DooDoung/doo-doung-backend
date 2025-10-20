@@ -4,14 +4,28 @@ import { CourseForBookingResponse } from "./interface/course.interface"
 import { CourseResponseDto } from "./dto/course-response.dto"
 import { CourseActiveResponseDto } from "./dto/course-response.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
-import { CreateCourseBodyDto } from "./dto/create-course.dto"
-import { FilterCourseResponseDto, FilterCoursesQueryDto } from "./dto/fileter-course.dto"
+import {
+  FilterCourseResponseDto,
+  FilterCoursesQueryDto,
+} from "./dto/fileter-course.dto"
+import { HoroscopeSector } from "@prisma/client"
+import { Decimal } from "@prisma/client/runtime/library"
+import { NanoidService } from "../../common/utils/nanoid"
 
+interface CreateCourseBodyPayload {
+  courseName: string
+  horoscopeMethodId: number
+  horoscopeSector: HoroscopeSector
+  durationMin: number
+  price: Decimal
+  isActive: boolean
+}
 @Injectable()
 export class CourseService {
   constructor(
     private readonly courseRepo: CourseRepository,
-    private readonly prophetService: ProphetService
+    private readonly prophetService: ProphetService,
+    private readonly nanoidService: NanoidService
   ) {}
 
   async getCourseForBookingById(id: string): Promise<CourseForBookingResponse> {
@@ -110,8 +124,20 @@ export class CourseService {
     }
   }
 
-  async createCourse(data: CreateCourseBodyDto): Promise<void> {
-    await this.courseRepo.createCourse(data)
+  async createCourse(
+    payload: CreateCourseBodyPayload,
+    userId: string
+  ): Promise<void> {
+    const prophetId = await (
+      await this.prophetService.getProphetByAccountId(userId)
+    ).id
+    if (!prophetId) {
+      throw new NotFoundException("Prophet not found")
+    }
+    const id = await this.nanoidService.generateId()
+    const createCourseData = { ...payload, prophetId, id }
+
+    await this.courseRepo.createCourse(createCourseData)
   }
 
   async getCourse(courseId: string): Promise<CourseResponseDto> {

@@ -4,7 +4,6 @@ import { PrismaService } from "../../db/prisma.service"
 import { NanoidService } from "../../common/utils/nanoid"
 import { Decimal } from "@prisma/client/runtime/library"
 import { Tx } from "@/common/types/transaction-client.type"
-import { ProphetEntity } from "./interface/prophet.interface"
 
 @Injectable()
 export class ProphetRepository {
@@ -22,6 +21,17 @@ export class ProphetRepository {
       select,
     })
   }
+
+  async findByProphetId<S extends Prisma.ProphetSelect>(
+    prophetId: string,
+    select: S
+  ): Promise<Prisma.ProphetGetPayload<{ select: S }> | null> {
+    return this.prisma.prophet.findUnique({
+      where: { id: prophetId },
+      select,
+    })
+  }
+
   async createProphet(
     accountId: string,
     lineId: string,

@@ -9,7 +9,14 @@ import {
   Inject,
   forwardRef,
 } from "@nestjs/common"
-import { ApiTags, ApiOperation, ApiParam } from "@nestjs/swagger"
+import {
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from "@nestjs/swagger"
 import { CourseService } from "./course.service"
 import { CourseResponseDto } from "./dto/course-response.dto"
 import { GetCoursesQueryDto } from "./dto/get-courses-query.dto"
@@ -20,8 +27,9 @@ import {
   FilterCoursesQueryDto,
   FilterCourseResponseDto,
 } from "./dto/fileter-course.dto"
-
-@ApiTags("Courses")
+import { CurrentUser } from "@/common/decorators/current-user.decorator"
+import { Decimal } from "@prisma/client/runtime/library"
+@ApiTags("courses")
 @Controller("courses")
 export class CourseController {
   constructor(
@@ -69,8 +77,27 @@ export class CourseController {
     return await this.courseService.getCourse(id)
   }
 
-  @Post("/prophet")
-  async createCourse(@Body() body: CreateCourseBodyDto): Promise<void> {
-    await this.courseService.createCourse(body)
+  @Post()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Create a new course for a prophet" })
+  @ApiBody({
+    description: "Course creation payload",
+    type: CreateCourseBodyDto,
+  })
+  @ApiResponse({ status: 201, description: "Course created successfully" })
+  async createCourse(
+    @Body() body: CreateCourseBodyDto,
+    @CurrentUser("id") id: string
+  ): Promise<void> {
+    console.log(body)
+    const payload = {
+      courseName: body.courseName,
+      horoscopeSector: body.horoscopeSector,
+      horoscopeMethodId: Number(body.horoscopeMethodId),
+      durationMin: Number(body.durationMin),
+      price: new Decimal(body.price),
+      isActive: body.isActive,
+    }
+    await this.courseService.createCourse(payload, id)
   }
 }

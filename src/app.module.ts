@@ -35,6 +35,7 @@ import { SessionModule } from "./modules/session/session.module"
       load: [corsConfig, appConfig], // load all separate config files
     }),
     AvailabilityModule,
+    CourseModule,
     ProphetModule,
     TransactionAccountModule,
     SessionModule,

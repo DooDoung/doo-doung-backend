@@ -8,6 +8,12 @@ export class BaseAccountDto {
   email!: string
 
   @ApiPropertyOptional()
+  name?: string | null
+
+  @ApiPropertyOptional()
+  lastName?: string | null
+
+  @ApiPropertyOptional()
   phoneNumber?: string | null
 
   @ApiPropertyOptional()

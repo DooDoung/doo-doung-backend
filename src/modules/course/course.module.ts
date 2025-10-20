@@ -1,11 +1,12 @@
 import { Module, forwardRef } from "@nestjs/common"
-import { CourseRepository } from "./course.repository"
-import { CourseService } from "./course.service"
 import { CourseController } from "./course.controller"
+import { CourseService } from "./course.service"
+import { CourseRepository } from "./course.repository"
 import { ProphetModule } from "@/modules/prophet/prophet.module"
+import { UtilsModule } from "@/common/utils/utils.module"
 
 @Module({
-  imports: [forwardRef(() => ProphetModule)],
+  imports: [forwardRef(() => ProphetModule), UtilsModule],
   controllers: [CourseController],
   providers: [CourseRepository, CourseService],
   exports: [CourseService],

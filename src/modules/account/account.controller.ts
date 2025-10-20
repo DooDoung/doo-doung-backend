@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Post,
-  Body,
-  Put,
-  UseGuards,
-} from "@nestjs/common"
+import { Controller, Get, Param, Post, Body, Put } from "@nestjs/common"
 import { AccountService } from "./account.service"
 import {
   AccountResponseDto,

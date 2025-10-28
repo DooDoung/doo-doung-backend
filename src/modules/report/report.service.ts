@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common"
 import { ReportRepository } from "./report.repository"
 import { CustomerService } from "../customer/customer.service"
 import { AccountService } from "../account/account.service"
 import { ReportDto, GetReportsResponseDto } from "./dto/get-report.dto"
-import { Role } from "@prisma/client"
+import { GetAdminReportsResponseDto } from "./dto/admin-report.dto"
+import { Role, ReportStatus, ReportType } from "@prisma/client"
 
 @Injectable()
 export class ReportService {
@@ -139,31 +144,98 @@ export class ReportService {
     throw new NotFoundException("neither Customer nor Admin")
   }
 
-  async getReportByCustomerId(
-    customerId: string
-  ): Promise<GetReportsResponseDto> {
-    const customer =
-      await this.customerService.getAccountByCustomerId(customerId)
-    if (!customer?.id) {
-      throw new NotFoundException("Customer not found")
-    }
-    const accountId = customer.accountId
-    if (!accountId) {
-      throw new NotFoundException("Account not found")
-    }
-    const accountData = await this.accountService.getAccountById(accountId)
-    const reportData = await this.repo.findByCustomerId(customerId)
+  async getAdminReports(
+    statuses: ("ALL" | "PENDING" | "DONE" | "DISCARD")[],
+    page: number = 1,
+    limit: number = 15
+  ): Promise<GetAdminReportsResponseDto> {
+    let statusFilters: ReportStatus[] = []
 
-    const reports = reportData.map(r => ({
-      customer: accountData.username,
-      admin: r.adminId,
-      reportType: r.reportType,
-      topic: r.topic,
-      description: r.description,
-      reportStatus: r.reportStatus,
-      profileUrl: accountData.profileUrl,
-      createdAt: r.createdAt,
-    }))
-    return { reports }
+    if (statuses.includes("ALL")) {
+      statusFilters = [
+        ReportStatus.PENDING,
+        ReportStatus.DONE,
+        ReportStatus.DISCARD,
+      ]
+    } else {
+      statusFilters = statuses.map(s => s as ReportStatus).filter(Boolean)
+      if (statusFilters.length === 0) {
+        statusFilters = [ReportStatus.PENDING]
+      }
+    }
+
+    const { reports, total } = await this.repo.getAdminReports(
+      statusFilters,
+      page,
+      limit
+    )
+
+    const cleanReports = await Promise.all(
+      reports.map(async r => {
+        const customer = await this.customerService.getAccountByCustomerId(
+          r.customerId
+        )
+        if (!customer?.accountId) {
+          throw new NotFoundException("Customer not found")
+        }
+        const custAccount = await this.accountService.getAccountById(
+          customer.accountId
+        )
+
+        return {
+          id: r.id,
+          customer: custAccount?.username ?? "Unknown",
+          reportType: r.reportType as ReportType,
+          topic: r.topic,
+          description: r.description,
+          reportStatus: r.reportStatus,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+          adminId: r.adminId,
+        }
+      })
+    )
+
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      reports: cleanReports,
+      total,
+      page,
+      totalPages,
+    }
+  }
+
+  async updateReportStatus(
+    reportId: string,
+    status: "DONE" | "DISCARD",
+    adminId: string
+  ): Promise<{ id: string; reportStatus: string; updatedAt: Date }> {
+    // Verify report exists and is PENDING
+    const existingReport = await this.repo.findReportById(reportId)
+    if (!existingReport) {
+      throw new NotFoundException("Report not found")
+    }
+
+    if (existingReport.reportStatus !== ReportStatus.PENDING) {
+      throw new BadRequestException(
+        `Only PENDING reports can be updated. Current status: ${existingReport.reportStatus}`
+      )
+    }
+
+    const updated = await this.repo.updateReportStatus(
+      reportId,
+      status,
+      adminId
+    )
+    if (!updated) {
+      throw new NotFoundException("Report not found")
+    }
+
+    return {
+      id: updated.id,
+      reportStatus: updated.reportStatus,
+      updatedAt: updated.updatedAt,
+    }
   }
 }

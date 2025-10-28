@@ -47,12 +47,15 @@ export class ReportController {
   }
 
   @Get("me")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOkResponse({
     type: GetReportsResponseDto,
   })
-  get(): Promise<GetReportsResponseDto> {
-    const tmpcustomerId = "3ad80e2e4bdc4b7a"
-    return this.service.getReportByAccountId(tmpcustomerId)
+  getByCurrentUser(
+    @CurrentUser("id") id: string
+  ): Promise<GetReportsResponseDto> {
+    return this.service.getReportByAccountId(id)
   }
 
   @Get("account/:id")
@@ -71,17 +74,7 @@ export class ReportController {
     return this.service.getReportByAccountId(id)
   }
 
-  @Get("admin/:id")
-  @ApiOkResponse({
-    type: GetReportsResponseDto,
-  })
-  getByAdminId(@Param("id") id: string): Promise<GetReportsResponseDto> {
-    return this.service.getReportByAccountId(id)
-  }
-
-  // ===== ADMIN ENDPOINTS =====
-
-  @Get("/admin/reports")
+  @Get("admin/reports")
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
@@ -103,12 +96,6 @@ export class ReportController {
     required: false,
     description: "Page number (1-indexed, default: 1)",
   })
-  @ApiQuery({
-    name: "limit",
-    type: Number,
-    required: false,
-    description: "Reports per page (default: 15)",
-  })
   @ApiOkResponse({
     type: GetAdminReportsResponseDto,
     description: "List of reports with pagination info",
@@ -122,7 +109,7 @@ export class ReportController {
     return this.service.getAdminReports(statuses, query.page, query.limit)
   }
 
-  @Patch("/admin/reports/:reportId")
+  @Patch("admin/reports/:reportId")
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({

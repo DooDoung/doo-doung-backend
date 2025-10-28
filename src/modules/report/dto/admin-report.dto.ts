@@ -5,15 +5,17 @@ import { Type } from "class-transformer"
 
 export class GetAdminReportsQueryDto {
   @ApiProperty({
-    description: "Report status filter (can be multiple: PENDING,DONE,DISCARD)",
-    enum: ReportStatus,
+    description:
+      "Report status filter (can be multiple: ALL, PENDING, DONE, DISCARD)",
+    enum: ["ALL", ...Object.values(ReportStatus)],
     default: "PENDING",
     required: false,
   })
-  @IsEnum(ReportStatus, { each: true })
+  @IsEnum(["ALL", ...Object.values(ReportStatus)], { each: true })
   @IsOptional()
   @Type(() => String)
-  status?: ReportStatus | ReportStatus[] = ReportStatus.PENDING
+  status?: ("ALL" | ReportStatus) | ("ALL" | ReportStatus)[] =
+    ReportStatus.PENDING
 
   @ApiProperty({
     description: "Page number (1-indexed)",

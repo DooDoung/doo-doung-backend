@@ -50,6 +50,7 @@ export class CourseService {
 
     return await this.courseRepo.updateCourse(courseId, {
       courseName: data.courseName,
+      courseDescription: data.courseDescription,
       horoscopeSector: data.horoscopeSector,
       durationMin: data.durationMin,
       price: data.price ? new Decimal(String(data.price)) : undefined,
@@ -100,6 +101,7 @@ export class CourseService {
     const courses = await this.courseRepo.getCoursesByProphetId(prophetId, {
       id: true,
       courseName: true,
+      courseDescription: true,
       horoscopeSector: true,
       durationMin: true,
       price: true,
@@ -117,6 +119,7 @@ export class CourseService {
     return filteredCourses.map(course => ({
       id: course.id,
       courseName: course.courseName,
+      courseDescription: course.courseDescription,
       horoscopeSector: course.horoscopeSector,
       durationMin: course.durationMin,
       price: Number(course.price),

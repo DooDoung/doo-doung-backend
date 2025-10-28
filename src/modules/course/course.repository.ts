@@ -70,6 +70,7 @@ export class CourseRepository {
         id: id,
         prophetId: prophetId,
         courseName: data.courseName,
+        courseDescription: data.courseDescription,
         horoscopeMethodId: data.horoscopeMethodId,
         horoscopeSector: data.horoscopeSector,
         durationMin: data.durationMin,
@@ -89,6 +90,7 @@ export class CourseRepository {
         id: true,
         prophetId: true,
         courseName: true,
+        courseDescription: true,
         horoscopeMethodId: true,
         horoscopeSector: true,
         durationMin: true,
@@ -182,6 +184,7 @@ export class CourseRepository {
       return {
         id: course.id,
         courseName: course.courseName,
+        courseDescription: course.courseDescription,
         prophetName: prophet.account?.userDetail?.name || "",
         prophetLastname: prophet.account?.userDetail?.lastname || "",
         isPublic: true, // Assuming all active courses are public by default
@@ -242,6 +245,7 @@ export class CourseRepository {
     courseId: string,
     data: {
       courseName?: string
+      courseDescription?: string
       horoscopeSector?: string | HoroscopeSector
       durationMin?: number
       price?: Decimal | number
@@ -251,6 +255,9 @@ export class CourseRepository {
       where: { id: courseId },
       data: {
         ...(data.courseName && { courseName: data.courseName }),
+        ...(data.courseDescription && {
+          courseDescription: data.courseDescription,
+        }),
         ...(data.horoscopeSector && {
           horoscopeSector: data.horoscopeSector as HoroscopeSector,
         }),

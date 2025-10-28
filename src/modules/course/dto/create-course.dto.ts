@@ -28,6 +28,10 @@ export class GetCourseResponseDto {
   courseName!: string
 
   @ApiProperty()
+  @IsString()
+  courseDescription!: string
+
+  @ApiProperty()
   horoscopeMethodId!: number
 
   @ApiProperty()
@@ -64,6 +68,10 @@ export class CreateCourseDto {
   @IsString()
   @Length(1, 50)
   courseName!: string
+
+  @ApiProperty({ description: "Course description" })
+  @IsString()
+  courseDescription!: string
 
   @ApiProperty({ description: "Horoscope method ID" })
   @IsNumber()

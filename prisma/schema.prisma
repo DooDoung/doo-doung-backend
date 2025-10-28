@@ -203,6 +203,7 @@ model Course {
   id                String          @id @map("id") @db.VarChar(16)
   prophetId         String          @map("prophet_id") @db.VarChar(16)
   courseName        String          @map("course_name") @db.VarChar(50)
+  courseDescription String          @map("course_description") @db.Text
   horoscopeMethodId Int             @map("horoscope_method_id")
   horoscopeSector   HoroscopeSector @map("horoscope_sector")
   durationMin       Int             @map("duration_min")

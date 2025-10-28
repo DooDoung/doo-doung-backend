@@ -23,6 +23,14 @@ export class UpdateCourseDto {
   courseName?: string
 
   @ApiProperty({
+    description: "Course description",
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  courseDescription?: string
+
+  @ApiProperty({
     description: "Horoscope sector",
     enum: HoroscopeSector,
     required: false,

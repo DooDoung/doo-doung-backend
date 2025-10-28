@@ -32,4 +32,14 @@ export class ReviewService {
       return { reviews: [] }
     }
   }
+
+  async getReviewByCourseId(courseId: string): Promise<GetReviewsResponseDto> {
+    const reviewData = await this.repo.findByCourseId(courseId)
+    const reviews = reviewData.map(r => ({
+      score: r.score,
+      description: r.description,
+      courseName: r.booking.course.courseName,
+    }))
+    return { reviews }
+  }
 }

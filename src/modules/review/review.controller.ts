@@ -27,4 +27,13 @@ export class ReviewController {
   getById(@Param("id") id: string): Promise<GetReviewsResponseDto> {
     return this.service.getReviewByAccountId(id)
   }
+
+  @Get("course/:id")
+  @Public()
+  @ApiOkResponse({
+    type: GetReviewsResponseDto,
+  })
+  getByCourseId(@Param("id") id: string): Promise<GetReviewsResponseDto> {
+    return this.service.getReviewByCourseId(id)
+  }
 }

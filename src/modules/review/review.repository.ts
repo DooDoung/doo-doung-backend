@@ -31,4 +31,33 @@ export class ReviewRepository {
       },
     })
   }
+
+  findByCourseId(courseId: string): Promise<
+    Array<{
+      score: number
+      description: string | null
+      booking: { course: { courseName: string } }
+    }>
+  > {
+    return this.prisma.review.findMany({
+      where: {
+        booking: {
+          courseId: courseId,
+        },
+      },
+      select: {
+        score: true,
+        description: true,
+        booking: {
+          select: {
+            course: {
+              select: {
+                courseName: true,
+              },
+            },
+          },
+        },
+      },
+    })
+  }
 }

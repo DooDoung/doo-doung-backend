@@ -1,13 +1,18 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
-import { ReviewRepository } from "./review.repository"
-import { CustomerService } from "../customer/customer.service"
-import { GetReviewsResponseDto } from "./dto/get-review.dto"
+import { ReviewRepository } from "@/modules/review/review.repository"
+import { CustomerService } from "@/modules/customer/customer.service"
+import {
+  GetReviewsResponseDto,
+  GetReviewsForCourseResponseDto,
+} from "@/modules/review/dto/get-review.dto"
+import { AccountService } from "@/modules/account/account.service"
 
 @Injectable()
 export class ReviewService {
   constructor(
     private readonly repo: ReviewRepository,
-    private readonly customerService: CustomerService
+    private readonly customerService: CustomerService,
+    private readonly accountService: AccountService
   ) {}
 
   async getReviewByAccountId(
@@ -33,12 +38,21 @@ export class ReviewService {
     }
   }
 
-  async getReviewByCourseId(courseId: string): Promise<GetReviewsResponseDto> {
+  async getReviewByCourseId(
+    courseId: string
+  ): Promise<GetReviewsForCourseResponseDto> {
     const reviewData = await this.repo.findByCourseId(courseId)
-    const reviews = reviewData.map(r => ({
+    const accountDataList = await Promise.all(
+      reviewData.map(r =>
+        this.accountService.getAccountById(r.booking.customer.accountId)
+      )
+    )
+    const reviews = reviewData.map((r, i) => ({
       score: r.score,
       description: r.description,
       courseName: r.booking.course.courseName,
+      userName: accountDataList[i]?.username ?? r.booking.customer.accountId,
+      profileUrl: accountDataList[i]?.profileUrl ?? "",
     }))
     return { reviews }
   }

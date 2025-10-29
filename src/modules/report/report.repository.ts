@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { PrismaService } from "../../db/prisma.service"
+import { ReportStatus } from "@prisma/client"
 
 @Injectable()
 export class ReportRepository {
@@ -110,6 +111,97 @@ export class ReportRepository {
         description: true,
         reportStatus: true,
         createdAt: true,
+      },
+    })
+  }
+
+  async getAdminReports(
+    statuses: ReportStatus[],
+    page: number = 1,
+    limit: number = 15
+  ): Promise<{
+    reports: Array<{
+      id: string
+      customerId: string
+      reportType: string
+      topic: string
+      description: string
+      reportStatus: ReportStatus
+      createdAt: Date
+      updatedAt: Date
+      adminId: string | null
+    }>
+    total: number
+  }> {
+    const skip = (page - 1) * limit
+
+    const reports = await this.prisma.report.findMany({
+      where: {
+        reportStatus: {
+          in: statuses,
+        },
+      },
+      select: {
+        id: true,
+        customerId: true,
+        reportType: true,
+        topic: true,
+        description: true,
+        reportStatus: true,
+        createdAt: true,
+        updatedAt: true,
+        adminId: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip,
+      take: limit,
+    })
+
+    const total = await this.prisma.report.count({
+      where: {
+        reportStatus: {
+          in: statuses,
+        },
+      },
+    })
+
+    return { reports, total }
+  }
+
+  async updateReportStatus(
+    reportId: string,
+    status: "DONE" | "DISCARD",
+    adminId: string
+  ): Promise<{
+    id: string
+    reportStatus: ReportStatus
+    updatedAt: Date
+  } | null> {
+    return this.prisma.report.update({
+      where: { id: reportId },
+      data: {
+        reportStatus: status as ReportStatus,
+        adminId: adminId,
+      },
+      select: {
+        id: true,
+        reportStatus: true,
+        updatedAt: true,
+      },
+    })
+  }
+
+  async findReportById(reportId: string): Promise<{
+    id: string
+    reportStatus: ReportStatus
+  } | null> {
+    return this.prisma.report.findUnique({
+      where: { id: reportId },
+      select: {
+        id: true,
+        reportStatus: true,
       },
     })
   }

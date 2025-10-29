@@ -35,7 +35,6 @@ export class UpdateCourseDto {
     enum: HoroscopeSector,
     required: false,
   })
-  @IsEnum(HoroscopeSector)
   @IsOptional()
   horoscopeMethod?: string
 

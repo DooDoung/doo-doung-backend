@@ -25,7 +25,25 @@ export class CourseService {
     if (!prophet || !prophet.id) {
       throw new NotFoundException("Prophet not found")
     }
-    return await this.courseRepo.createCourse(data, prophet.id)
+    const courseNameSlug = data.courseName
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+    const horoscopeMethod = await this.courseRepo.createHoroscopeMethod(
+      data.courseName,
+      courseNameSlug
+    )
+    const courseData = {
+      courseName: data.courseName,
+      courseDescription: data.courseDescription,
+      horoscopeMethodId: horoscopeMethod.id,
+      horoscopeSector: data.horoscopeSector,
+      durationMin: data.durationMin,
+      price: data.price,
+    }
+    return await this.courseRepo.createCourse(courseData, prophet.id)
   }
 
   async updateCourse(
@@ -102,6 +120,7 @@ export class CourseService {
       id: true,
       courseName: true,
       courseDescription: true,
+      horoscopeMethod: true,
       horoscopeSector: true,
       durationMin: true,
       price: true,
@@ -120,6 +139,7 @@ export class CourseService {
       id: course.id,
       courseName: course.courseName,
       courseDescription: course.courseDescription,
+      horoscopeMethod: course.horoscopeMethod.name,
       horoscopeSector: course.horoscopeSector,
       durationMin: course.durationMin,
       price: Number(course.price),

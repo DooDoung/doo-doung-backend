@@ -37,6 +37,15 @@ export class UpdateCourseDto {
   })
   @IsEnum(HoroscopeSector)
   @IsOptional()
+  horoscopeMethod?: string
+
+  @ApiProperty({
+    description: "Horoscope sector",
+    enum: HoroscopeSector,
+    required: false,
+  })
+  @IsEnum(HoroscopeSector)
+  @IsOptional()
   horoscopeSector?: HoroscopeSector
 
   @ApiProperty({

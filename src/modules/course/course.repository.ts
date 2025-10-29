@@ -1,11 +1,12 @@
 import { NanoidService } from "@/common/utils/nanoid"
 import { PrismaService } from "@/db/prisma.service"
 import { Injectable } from "@nestjs/common"
-import { CreateCourseDto, GetCourseResponseDto } from "./dto/create-course.dto"
+import { GetCourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
 import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 import { Prisma, HoroscopeSector } from "@prisma/client"
 import { Decimal } from "@prisma/client/runtime/library"
+import { CreateCourseInterface } from "./interface/create-course.interface"
 
 @Injectable()
 export class CourseRepository {
@@ -61,7 +62,7 @@ export class CourseRepository {
   }
 
   async createCourse(
-    data: CreateCourseDto,
+    data: CreateCourseInterface,
     prophetId: string
   ): Promise<GetCourseResponseDto> {
     const id = await this.nanoid.generateId()
@@ -91,7 +92,11 @@ export class CourseRepository {
         prophetId: true,
         courseName: true,
         courseDescription: true,
-        horoscopeMethodId: true,
+        horoscopeMethod: {
+          select: {
+            name: true,
+          },
+        },
         horoscopeSector: true,
         durationMin: true,
         price: true,
@@ -121,7 +126,15 @@ export class CourseRepository {
       },
     })) as { name: string; lastname: string }
     if (!name || !lastname) throw new Error("UserDetail not found")
-    return { ...course, lineId, name, lastname }
+
+    const { horoscopeMethod, createdAt, updatedAt, ...restCourse } = course
+    return {
+      ...restCourse,
+      horoscopeMethod: horoscopeMethod?.name ?? null,
+      lineId,
+      name,
+      lastname,
+    }
   }
 
   async getCoursesByProphetIdCourseList(
@@ -192,7 +205,7 @@ export class CourseRepository {
         rating: rating ? parseFloat(rating.toFixed(1)) : null,
         horoscopeSector: course.horoscopeSector,
         durationMin: course.durationMin,
-        horoscopeMethodId: course.horoscopeMethodId,
+        horoscopeMethod: course.horoscopeMethod.name,
         methodSlug: course.horoscopeMethod?.slug || "",
         methodName: course.horoscopeMethod?.name || "",
         createdAt: course.createdAt,
@@ -238,6 +251,22 @@ export class CourseRepository {
       where: { id: courseId },
       data: { isActive },
       select: { id: true, isActive: true },
+    })
+  }
+
+  async createHoroscopeMethod(
+    name: string,
+    slug: string
+  ): Promise<
+    Prisma.HoroscopeMethodGetPayload<{
+      select: { id: true; name: true; slug: true }
+    }>
+  > {
+    return this.prisma.horoscopeMethod.create({
+      data: {
+        slug: slug,
+        name: name,
+      },
     })
   }
 

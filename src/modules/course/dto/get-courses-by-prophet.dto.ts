@@ -67,7 +67,7 @@ export class GetCoursesByProphetDto {
     example: 1,
     description: "Horoscope method ID",
   })
-  horoscopeMethodId!: number
+  horoscopeMethod!: string
 
   @ApiProperty({
     example: "tarot",

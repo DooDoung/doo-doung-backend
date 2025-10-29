@@ -4,6 +4,7 @@ export class CourseResponseDto {
   id!: string
   courseName!: string
   courseDescription!: string
+  horoscopeMethod!: string
   horoscopeSector!: HoroscopeSector
   durationMin!: number
   price!: number

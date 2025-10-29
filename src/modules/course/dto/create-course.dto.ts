@@ -74,9 +74,7 @@ export class CreateCourseDto {
   courseDescription!: string
 
   @ApiProperty({ description: "Horoscope method ID" })
-  @IsNumber()
-  @IsPositive()
-  @Type(() => Number)
+  @IsString()
   horoscopeMethod!: string
 
   @ApiProperty({ description: "Horoscope sector", enum: HoroscopeSector })

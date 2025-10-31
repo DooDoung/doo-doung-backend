@@ -243,6 +243,7 @@ async function createDevProphetCourses() {
         id: generateShortId("cs"),
         prophetId: DEV_PROPHET_ID,
         courseName: course.name,
+        courseDescription: course.description,
         horoscopeMethodId: method.methodId,
         horoscopeSector: course.sector as any,
         durationMin: course.duration,

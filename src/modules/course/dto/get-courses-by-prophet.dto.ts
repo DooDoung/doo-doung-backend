@@ -15,6 +15,12 @@ export class GetCoursesByProphetDto {
   courseName!: string
 
   @ApiProperty({
+    example: "Love Tarot Reading",
+    description: "Course description",
+  })
+  courseDescription!: string
+
+  @ApiProperty({
     example: "Dev",
     description: "Prophet first name",
   })
@@ -61,7 +67,7 @@ export class GetCoursesByProphetDto {
     example: 1,
     description: "Horoscope method ID",
   })
-  horoscopeMethodId!: number
+  horoscopeMethod!: string
 
   @ApiProperty({
     example: "tarot",

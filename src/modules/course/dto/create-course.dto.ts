@@ -28,7 +28,11 @@ export class GetCourseResponseDto {
   courseName!: string
 
   @ApiProperty()
-  horoscopeMethodId!: number
+  @IsString()
+  courseDescription!: string
+
+  @ApiProperty()
+  horoscopeMethod!: string
 
   @ApiProperty()
   @IsEnum(HoroscopeSector)
@@ -65,11 +69,13 @@ export class CreateCourseDto {
   @Length(1, 50)
   courseName!: string
 
+  @ApiProperty({ description: "Course description" })
+  @IsString()
+  courseDescription!: string
+
   @ApiProperty({ description: "Horoscope method ID" })
-  @IsNumber()
-  @IsPositive()
-  @Type(() => Number)
-  horoscopeMethodId!: number
+  @IsString()
+  horoscopeMethod!: string
 
   @ApiProperty({ description: "Horoscope sector", enum: HoroscopeSector })
   @IsEnum(HoroscopeSector)

@@ -412,6 +412,7 @@ async function seedCourses() {
         id: parseValue(row.id, "string"),
         prophetId: parseValue(row.prophet_id, "string"),
         courseName: parseValue(row.course_name, "string"),
+        courseDescription: "",
         horoscopeMethodId: parseValue(row.horoscope_method_id, "number"),
         horoscopeSector: parseValue(row.horoscope_sector, "string") as any,
         durationMin: parseValue(row.duration_min, "number"),

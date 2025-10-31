@@ -9,6 +9,9 @@ export class ReviewDto {
 
   @ApiProperty()
   courseName!: string
+
+  @ApiProperty()
+  updatedAt!: Date
 }
 
 export class GetReviewsResponseDto {

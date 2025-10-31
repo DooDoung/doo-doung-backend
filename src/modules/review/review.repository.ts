@@ -10,6 +10,7 @@ export class ReviewRepository {
       score: number
       description: string | null
       booking: { course: { courseName: string } }
+      updatedAt: Date
     }>
   > {
     return this.prisma.review.findMany({
@@ -28,6 +29,7 @@ export class ReviewRepository {
             },
           },
         },
+        updatedAt: true,
       },
     })
   }
@@ -36,7 +38,11 @@ export class ReviewRepository {
     Array<{
       score: number
       description: string | null
-      booking: { course: { courseName: string }, customer: { accountId: string } }
+      booking: {
+        course: { courseName: string }
+        customer: { accountId: string }
+      }
+      updatedAt: Date
     }>
   > {
     return this.prisma.review.findMany({

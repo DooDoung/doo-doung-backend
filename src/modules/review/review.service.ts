@@ -31,6 +31,7 @@ export class ReviewService {
         score: r.score,
         description: r.description,
         courseName: r.booking.course.courseName,
+        updatedAt: r.updatedAt,
       }))
       return { reviews }
     } else {
@@ -53,6 +54,7 @@ export class ReviewService {
       courseName: r.booking.course.courseName,
       userName: accountDataList[i]?.username ?? r.booking.customer.accountId,
       profileUrl: accountDataList[i]?.profileUrl ?? "",
+      updatedAt: r.updatedAt,
     }))
     return { reviews }
   }

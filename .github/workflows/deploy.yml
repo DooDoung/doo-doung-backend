@@ -36,7 +36,7 @@ jobs:
       # optional: deploy to Cloud Run
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy dd-be \
+          gcloud run deploy dd-be-1 \
             --image asia-southeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/doo-doung/dd-be-1:latest \
             --region asia-southeast1 \
             --platform managed \

@@ -9,6 +9,8 @@ import { CourseActiveResponseDto } from "./dto/course-response.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
 import { CourseResponseDto } from "./dto/course-response.dto"
 import { Decimal } from "@prisma/client/runtime/library"
+import { TxAccount } from "../../../dist/modules/account/interface/get-account.interface"
+import { Length } from "class-validator"
 
 @Injectable()
 export class CourseService {
@@ -24,6 +26,12 @@ export class CourseService {
     const prophet = await this.prophetService.getProphetByAccountId(accountId)
     if (!prophet || !prophet.id) {
       throw new NotFoundException("Prophet not found")
+    }
+
+    if (!prophet.txAccounts || prophet.txAccounts.length == 0) {
+      throw new NotFoundException(
+        "Transaction account needs to be set up before creating a course"
+      )
     }
     const courseNameSlug = data.courseName
       .toLowerCase()

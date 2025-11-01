@@ -127,4 +127,28 @@ export class BookingController {
   ): Promise<GetBookingResponseDto[]> {
     return this.service.getBookingsByUserId(accountId)
   }
+
+  @Public()
+  @Get("detail/:bookingId")
+  @ApiParam({
+    name: "bookingId",
+    type: String,
+    description: "Booking ID to fetch details",
+    example: "bk_abc123",
+  })
+  @ApiOperation({
+    summary: "Get booking detail by ID",
+    description: "Returns single booking with related prophet, customer, and course info",
+  })
+  @ApiOkResponse({
+    type: GetBookingResponseDto,
+    description: "Booking found and returned successfully",
+  })
+  @ApiNotFoundResponse({
+    description: "Booking not found",
+  })
+  async getBookingDetail(@Param("bookingId") bookingId: string) {
+    const booking = await this.service.getBookingById(bookingId)
+    return { data: booking }
+  }
 }

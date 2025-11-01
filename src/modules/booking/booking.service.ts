@@ -417,4 +417,65 @@ export class BookingService {
 
     throw new BadRequestException("Invalid user role")
   }
+
+  async getBookingById(bookingId: string) {
+    const booking = await this.repo.getBookingById(
+      bookingId,
+      {
+        id: true,
+        status: true,
+        startDateTime: true,
+        endDateTime: true,
+        createdAt: true,
+        course: {
+          select: {
+            id: true,
+            courseName: true,
+            durationMin: true,
+            price: true,
+            horoscopeSector: true,
+          },
+        },
+        prophet: {
+          select: {
+            id: true,
+            account: {
+              select: {
+                email: true,
+                userDetail: {
+                  select: {
+                    name: true,
+                    lastname: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        customer: {
+          select: {
+            id: true,
+            account: {
+              select: {
+                email: true,
+                userDetail: {
+                  select: {
+                    name: true,
+                    lastname: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      }
+    )
+
+    if (!booking) {
+      throw new Error(`Booking not found for id: ${bookingId}`)
+    }
+
+    return booking
+  }
+
 }

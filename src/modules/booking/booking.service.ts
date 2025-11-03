@@ -113,6 +113,7 @@ export class BookingService {
             id: true,
             status: true,
             prophetId: true,
+            endDateTime: true,
             transaction: {
               select: { id: true, amount: true, status: true },
             },
@@ -130,6 +131,12 @@ export class BookingService {
           throw new BadRequestException("No transaction found.")
         if (bookingInfo.transaction.status !== PayoutStatus.PENDING_PAYOUT)
           throw new BadRequestException("Payout already processed or invalid.")
+
+        const dateNow = Date.now();
+        const sessionEndTime = new Date(bookingInfo?.endDateTime || "").getTime();
+        if(dateNow < sessionEndTime){
+          throw new BadRequestException("Cannot complete booking before session end time.");
+        }
 
         await this.repo.updateBookingStatus(
           bookingId,

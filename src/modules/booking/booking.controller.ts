@@ -20,6 +20,7 @@ import { BookingCompleteResponseDto } from "./dto/complete-booking.dto"
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard"
 import { GetBookingResponseDto } from "./dto/get-booking.dto"
 import { Public } from "@/common/decorators/public.decorator"
+import { ProphetService } from "../prophet/prophet.service"
 
 @ApiTags("booking")
 @ApiBearerAuth()
@@ -27,7 +28,10 @@ import { Public } from "@/common/decorators/public.decorator"
 @Controller("booking")
 @UseGuards(JwtAuthGuard)
 export class BookingController {
-  constructor(private readonly service: BookingService) {}
+  constructor(
+    private readonly service: BookingService,
+    private readonly prophetService: ProphetService
+  ) {}
 
   @Post()
   @ApiBody({
@@ -60,8 +64,11 @@ export class BookingController {
   })
   async postBookingComplete(
     @Param("bookingId") bookingId: string,
-    @CurrentUser("id") prophetId: string
+    @CurrentUser("id") accountId: string
   ): Promise<BookingCompleteResponseDto | null> {
+    const prophet = await this.prophetService.getProphetByAccountId(accountId)
+    if (!prophet.id) throw new Error("Prophet not found")
+    const prophetId: string = prophet.id;
     return this.service.completeBooking(bookingId, prophetId)
   }
 
@@ -126,5 +133,29 @@ export class BookingController {
     @Param("accountId") accountId: string
   ): Promise<GetBookingResponseDto[]> {
     return this.service.getBookingsByUserId(accountId)
+  }
+
+  @Public()
+  @Get("detail/:bookingId")
+  @ApiParam({
+    name: "bookingId",
+    type: String,
+    description: "Booking ID to fetch details",
+    example: "bk_abc123",
+  })
+  @ApiOperation({
+    summary: "Get booking detail by ID",
+    description: "Returns single booking with related prophet, customer, and course info",
+  })
+  @ApiOkResponse({
+    type: GetBookingResponseDto,
+    description: "Booking found and returned successfully",
+  })
+  @ApiNotFoundResponse({
+    description: "Booking not found",
+  })
+  async getBookingDetail(@Param("bookingId") bookingId: string) {
+    const booking = await this.service.getBookingById(bookingId)
+    return { data: booking }
   }
 }

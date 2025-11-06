@@ -649,6 +649,7 @@ async function seedReports() {
           id: parseValue(row.id, "string"),
           customerId: customerId,
           adminId: adminId,
+          courseId: parseValue(row.course_id, "string") as string,
           reportType: parseValue(row.report_type, "string") as any,
           topic: parseValue(row.topic, "string"),
           description: parseValue(row.description, "string"),

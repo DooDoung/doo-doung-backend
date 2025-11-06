@@ -4,9 +4,10 @@ import { ReportService } from "./report.service"
 import { ReportRepository } from "./report.repository"
 import { CustomerModule } from "../customer/customer.module"
 import { AccountModule } from "../account/account.module"
+import { ProphetModule } from "../prophet/prophet.module"
 
 @Module({
-  imports: [CustomerModule, AccountModule],
+  imports: [CustomerModule, AccountModule, ProphetModule],
   controllers: [ReportController],
   providers: [ReportService, ReportRepository],
   exports: [ReportService],

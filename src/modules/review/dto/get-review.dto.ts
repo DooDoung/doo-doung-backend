@@ -9,9 +9,25 @@ export class ReviewDto {
 
   @ApiProperty()
   courseName!: string
+
+  @ApiProperty()
+  updatedAt!: Date
 }
 
 export class GetReviewsResponseDto {
   @ApiProperty({ type: [ReviewDto] })
   reviews!: ReviewDto[]
+}
+
+export class ReviewForCourseDto extends ReviewDto {
+  @ApiProperty()
+  userName!: string
+
+  @ApiProperty()
+  profileUrl!: string
+}
+
+export class GetReviewsForCourseResponseDto {
+  @ApiProperty({ type: [ReviewForCourseDto] })
+  reviews!: ReviewForCourseDto[]
 }

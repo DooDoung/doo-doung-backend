@@ -1,11 +1,12 @@
 import { NanoidService } from "@/common/utils/nanoid"
 import { PrismaService } from "@/db/prisma.service"
 import { Injectable } from "@nestjs/common"
-import { CreateCourseDto, GetCourseResponseDto } from "./dto/create-course.dto"
+import { GetCourseResponseDto } from "./dto/create-course.dto"
 import { FilterAndSortCoursesDto } from "./dto/sort-and-filter.dto"
 import { GetCoursesByProphetDto } from "./dto/get-courses-by-prophet.dto"
 import { Prisma, HoroscopeSector } from "@prisma/client"
 import { Decimal } from "@prisma/client/runtime/library"
+import { CreateCourseInterface } from "./interface/create-course.interface"
 
 @Injectable()
 export class CourseRepository {
@@ -61,7 +62,7 @@ export class CourseRepository {
   }
 
   async createCourse(
-    data: CreateCourseDto,
+    data: CreateCourseInterface,
     prophetId: string
   ): Promise<GetCourseResponseDto> {
     const id = await this.nanoid.generateId()
@@ -70,6 +71,7 @@ export class CourseRepository {
         id: id,
         prophetId: prophetId,
         courseName: data.courseName,
+        courseDescription: data.courseDescription,
         horoscopeMethodId: data.horoscopeMethodId,
         horoscopeSector: data.horoscopeSector,
         durationMin: data.durationMin,
@@ -89,7 +91,12 @@ export class CourseRepository {
         id: true,
         prophetId: true,
         courseName: true,
-        horoscopeMethodId: true,
+        courseDescription: true,
+        horoscopeMethod: {
+          select: {
+            name: true,
+          },
+        },
         horoscopeSector: true,
         durationMin: true,
         price: true,
@@ -119,7 +126,15 @@ export class CourseRepository {
       },
     })) as { name: string; lastname: string }
     if (!name || !lastname) throw new Error("UserDetail not found")
-    return { ...course, lineId, name, lastname }
+
+    const { horoscopeMethod, createdAt, updatedAt, ...restCourse } = course
+    return {
+      ...restCourse,
+      horoscopeMethod: horoscopeMethod?.name ?? null,
+      lineId,
+      name,
+      lastname,
+    }
   }
 
   async getCoursesByProphetIdCourseList(
@@ -182,6 +197,7 @@ export class CourseRepository {
       return {
         id: course.id,
         courseName: course.courseName,
+        courseDescription: course.courseDescription,
         prophetName: prophet.account?.userDetail?.name || "",
         prophetLastname: prophet.account?.userDetail?.lastname || "",
         isPublic: true, // Assuming all active courses are public by default
@@ -189,7 +205,7 @@ export class CourseRepository {
         rating: rating ? parseFloat(rating.toFixed(1)) : null,
         horoscopeSector: course.horoscopeSector,
         durationMin: course.durationMin,
-        horoscopeMethodId: course.horoscopeMethodId,
+        horoscopeMethod: course.horoscopeMethod.name,
         methodSlug: course.horoscopeMethod?.slug || "",
         methodName: course.horoscopeMethod?.name || "",
         createdAt: course.createdAt,
@@ -238,10 +254,32 @@ export class CourseRepository {
     })
   }
 
+  async createHoroscopeMethod(
+    name: string,
+    slug: string
+  ): Promise<
+    Prisma.HoroscopeMethodGetPayload<{
+      select: { id: true; name: true; slug: true }
+    }>
+  > {
+    return this.prisma.horoscopeMethod.create({
+      data: {
+        slug: slug,
+        name: name,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    })
+  }
+
   async updateCourse(
     courseId: string,
     data: {
       courseName?: string
+      courseDescription?: string
       horoscopeSector?: string | HoroscopeSector
       durationMin?: number
       price?: Decimal | number
@@ -251,6 +289,9 @@ export class CourseRepository {
       where: { id: courseId },
       data: {
         ...(data.courseName && { courseName: data.courseName }),
+        ...(data.courseDescription && {
+          courseDescription: data.courseDescription,
+        }),
         ...(data.horoscopeSector && {
           horoscopeSector: data.horoscopeSector as HoroscopeSector,
         }),

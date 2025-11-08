@@ -36,8 +36,9 @@ export default tseslint.config(
       prettier: prettierPlugin,
     },
     rules: {
-      // General ESLint rules
-      "no-unused-vars": [
+      "no-unused-vars": "warn",
+
+      "@typescript-eslint/no-unused-vars": [
         "warn",
         {
           argsIgnorePattern: "^_",
@@ -45,8 +46,9 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+
       "@typescript-eslint/no-explicit-any": "warn",
-      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-console": ["warn", { allow: ["warn"] }],
       "prefer-const": "error",
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-non-null-assertion": "off",

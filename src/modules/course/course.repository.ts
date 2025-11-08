@@ -267,6 +267,11 @@ export class CourseRepository {
         slug: slug,
         name: name,
       },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
     })
   }
 

@@ -25,6 +25,12 @@ export class CourseService {
     if (!prophet || !prophet.id) {
       throw new NotFoundException("Prophet not found")
     }
+
+    if (!prophet.txAccounts || prophet.txAccounts.length == 0) {
+      throw new NotFoundException(
+        "Transaction account needs to be set up before creating a course"
+      )
+    }
     const courseNameSlug = data.courseName
       .toLowerCase()
       .trim()

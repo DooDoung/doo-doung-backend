@@ -9,8 +9,6 @@ import { CourseActiveResponseDto } from "./dto/course-response.dto"
 import { ProphetService } from "@/modules/prophet/prophet.service"
 import { CourseResponseDto } from "./dto/course-response.dto"
 import { Decimal } from "@prisma/client/runtime/library"
-import { TxAccount } from "../../../dist/modules/account/interface/get-account.interface"
-import { Length } from "class-validator"
 
 @Injectable()
 export class CourseService {

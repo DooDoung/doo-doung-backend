@@ -230,7 +230,11 @@ export class ReportService {
   }
 
   async createReport(body: CreateReportDto): Promise<CreateReportResponseDto> {
-    const newReport = await this.repo.createReport(body)
+    const customer = await this.customerService.getCustomerByAccountId(
+      body.accountId
+    )
+    if (!customer?.id) throw new NotFoundException("Customer not found")
+    const newReport = await this.repo.createReport(customer.id, body)
     return newReport
   }
 

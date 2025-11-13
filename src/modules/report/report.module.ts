@@ -5,11 +5,12 @@ import { ReportRepository } from "./report.repository"
 import { CustomerModule } from "../customer/customer.module"
 import { AccountModule } from "../account/account.module"
 import { ProphetModule } from "../prophet/prophet.module"
+import { NanoidService } from "@/common/utils/nanoid"
 
 @Module({
   imports: [CustomerModule, AccountModule, ProphetModule],
   controllers: [ReportController],
-  providers: [ReportService, ReportRepository],
+  providers: [ReportService, ReportRepository, NanoidService],
   exports: [ReportService],
 })
 export class ReportModule {}

@@ -1,15 +1,23 @@
 import { Injectable } from "@nestjs/common"
 import { PrismaService } from "../../db/prisma.service"
-import { ReportStatus } from "@prisma/client"
+import { ReportStatus, ReportType } from "@prisma/client"
 import {
   ReportDto,
   ProphetReportDto,
   PaginatedReportsResponseDto,
 } from "./dto/get-report.dto"
+import { NanoidService } from "@/common/utils/nanoid"
+import {
+  CreateReportDto,
+  CreateReportResponseDto,
+} from "./dto/create-report.dto"
 
 @Injectable()
 export class ReportRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly nanoid: NanoidService
+  ) {}
 
   findAll(): Promise<ReportDto[]> {
     return this.prisma.report.findMany({
@@ -156,6 +164,34 @@ export class ReportRepository {
     })
 
     return { reports, total } as unknown as PaginatedReportsResponseDto
+  }
+
+  async createReport(body: CreateReportDto): Promise<CreateReportResponseDto> {
+    const id = await this.nanoid.generateId()
+    return this.prisma.report.create({
+      data: {
+        id: id,
+        customerId: body.customerId,
+        courseId: body.courseId || null,
+        reportType: body.reportType,
+        topic: body.topic,
+        description: body.description,
+        reportStatus: ReportStatus.PENDING,
+      },
+      select: {
+        id: true,
+        courseId: true,
+        customerId: true,
+        reportType: true,
+        adminId: true,
+        topic: true,
+        description: true,
+        reportStatus: true,
+        createdAt: true,
+        updatedAt: true,
+        prophetId: true,
+      },
+    }) as unknown as Promise<CreateReportResponseDto>
   }
 
   updateReportStatus(

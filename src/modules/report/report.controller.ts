@@ -6,6 +6,7 @@ import {
   Body,
   Query,
   UseGuards,
+  Post,
 } from "@nestjs/common"
 import {
   ApiOkResponse,
@@ -24,6 +25,10 @@ import {
 } from "./dto/admin-report.dto"
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard"
 import { CurrentUser } from "@/common/decorators/current-user.decorator"
+import {
+  CreateReportDto,
+  CreateReportResponseDto,
+} from "./dto/create-report.dto"
 
 @ApiTags("report")
 @Controller("report")
@@ -72,6 +77,15 @@ export class ReportController {
   })
   getByCustomerId(@Param("id") id: string): Promise<GetReportsResponseDto> {
     return this.service.getReportByAccountId(id)
+  }
+
+  @Post("create")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  createReport(
+    @Body() body: CreateReportDto
+  ): Promise<CreateReportResponseDto> {
+    return this.service.createReport(body)
   }
 
   @Get("admin/reports")

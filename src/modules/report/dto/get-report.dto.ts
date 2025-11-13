@@ -37,8 +37,8 @@ export class ProphetReportDto extends ReportDto {
   @ApiPropertyOptional({ nullable: true })
   prophetId?: string | null
 
-  @ApiProperty()
-  courseId!: string | null
+  @ApiPropertyOptional()
+  courseId?: string | null
 }
 
 export class GetReportsResponseDto {

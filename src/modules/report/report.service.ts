@@ -10,6 +10,10 @@ import { ReportDto, GetReportsResponseDto } from "./dto/get-report.dto"
 import { GetAdminReportsResponseDto } from "./dto/admin-report.dto"
 import { Role, ReportStatus, ReportType } from "@prisma/client"
 import { ProphetService } from "../prophet/prophet.service"
+import {
+  CreateReportDto,
+  CreateReportResponseDto,
+} from "./dto/create-report.dto"
 
 @Injectable()
 export class ReportService {
@@ -223,6 +227,11 @@ export class ReportService {
 
     const totalPages = Math.ceil(total / limit)
     return { reports: cleanReports, total, page, totalPages }
+  }
+
+  async createReport(body: CreateReportDto): Promise<CreateReportResponseDto> {
+    const newReport = await this.repo.createReport(body)
+    return newReport
   }
 
   async updateReportStatus(

@@ -5,7 +5,7 @@ import { IsEnum, IsOptional, IsString } from "class-validator"
 export class CreateReportDto {
   @ApiProperty()
   @IsString()
-  customerId!: string
+  accountId!: string
 
   @ApiPropertyOptional()
   @IsOptional()

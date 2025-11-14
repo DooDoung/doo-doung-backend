@@ -2,10 +2,12 @@ import { Injectable, NotFoundException } from "@nestjs/common"
 import { ReviewRepository } from "@/modules/review/review.repository"
 import { CustomerService } from "@/modules/customer/customer.service"
 import {
+  ReviewDto,
   GetReviewsResponseDto,
   GetReviewsForCourseResponseDto,
 } from "@/modules/review/dto/get-review.dto"
 import { AccountService } from "@/modules/account/account.service"
+import { CreateReviewReqDto } from "./dto/create-review.dto"
 
 @Injectable()
 export class ReviewService {
@@ -18,6 +20,7 @@ export class ReviewService {
   async getReviewByAccountId(
     accountId: string
   ): Promise<GetReviewsResponseDto> {
+    console.log("accountId:", accountId)
     const customer =
       await this.customerService.getCustomerByAccountId(accountId)
     if (!customer?.id) {
@@ -57,5 +60,20 @@ export class ReviewService {
       updatedAt: r.updatedAt,
     }))
     return { reviews }
+  }
+
+  async createReview(body: CreateReviewReqDto): Promise<ReviewDto> {
+    const customer = await this.customerService.getCustomerByAccountId(
+      body.accountId
+    )
+    if (!customer?.id) {
+      throw new NotFoundException("Customer not found")
+    }
+    return this.repo.create({
+      customerId: customer.id,
+      score: body.score,
+      description: body.description,
+      bookingId: body.bookingId,
+    })
   }
 }

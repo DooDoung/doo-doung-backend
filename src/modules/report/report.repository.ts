@@ -166,12 +166,15 @@ export class ReportRepository {
     return { reports, total } as unknown as PaginatedReportsResponseDto
   }
 
-  async createReport(body: CreateReportDto): Promise<CreateReportResponseDto> {
+  async createReport(
+    customerId: string,
+    body: CreateReportDto
+  ): Promise<CreateReportResponseDto> {
     const id = await this.nanoid.generateId()
     return this.prisma.report.create({
       data: {
         id: id,
-        customerId: body.customerId,
+        customerId: customerId,
         courseId: body.courseId || null,
         reportType: body.reportType,
         topic: body.topic,

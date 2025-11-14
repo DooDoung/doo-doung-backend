@@ -306,6 +306,9 @@ model Report {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  prophetId String? @map("prophet_id") @db.VarChar(16)
+  courseId  String? @map("course_id") @db.VarChar(16)
+
   customer Customer @relation(fields: [customerId], references: [id])
   admin    Account? @relation(fields: [adminId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 

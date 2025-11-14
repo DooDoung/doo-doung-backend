@@ -42,7 +42,7 @@ export class AdminReportDto {
   id!: string
 
   @ApiProperty({ description: "Customer username who reported" })
-  customer!: string
+  customerId!: string
 
   @ApiProperty({ description: "Report type" })
   reportType!: ReportType

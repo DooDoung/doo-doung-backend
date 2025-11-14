@@ -186,11 +186,15 @@ export class BookingService {
       select: { role: true },
     })
 
-    if (!account) {
+    const prophet = await this.prisma.prophet.findUnique({
+      where: { id: userId }
+    })
+
+    if (!account && !prophet) {
       throw new NotFoundException("User not found")
     }
 
-    if (account.role === "PROPHET") {
+    if (prophet) {
       // Get bookings where the user is the prophet
       const bookings = await this.prisma.booking.findMany({
         where: { prophetId: userId },
@@ -301,7 +305,7 @@ export class BookingService {
               date: new Date(),
             },
       }))
-    } else if (account.role === "CUSTOMER") {
+    } else if (account?.role === "CUSTOMER") {
       // Get bookings where the user is the customer
       const customer = await this.prisma.customer.findUnique({
         where: { accountId: userId },

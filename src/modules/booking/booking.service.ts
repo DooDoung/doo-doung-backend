@@ -181,15 +181,20 @@ export class BookingService {
 
   async getBookingsByUserId(userId: string): Promise<GetBookingResponseDto[]> {
     // Get the account to determine role
-    const account = await this.prisma.account.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    })
-
     const prophet = await this.prisma.prophet.findUnique({
       where: { id: userId }
     })
-
+    
+    const account = await this.prisma.account.findFirst({
+      where: {
+        OR: [ 
+          { id: userId },
+          { id: prophet?.id},
+        ],
+      },
+      select: { role: true },
+    })
+    
     if (!account && !prophet) {
       throw new NotFoundException("User not found")
     }

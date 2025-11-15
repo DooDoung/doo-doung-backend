@@ -384,34 +384,82 @@ async function seedCourses() {
 async function seedBookings() {
   console.log("📅 Seeding bookings...")
   const data = await readCSV("bookings.csv")
+  let successCount = 0
+  let errorCount = 0
 
   for (const row of data) {
-    const prophetId = parseValue(row.prophet_id, "string")
-    const startDateTime = parseValue(row.start_datetime, "datetime")
-    const endDateTime = parseValue(row.end_datetime, "datetime")
+    try {
+      const prophetId = parseValue(row.prophet_id, "string")
+      const customerId = parseValue(row.customer_id, "string")
+      const courseId = parseValue(row.course_id, "string")
+      const startDateTime = parseValue(row.start_datetime, "datetime")
+      const endDateTime = parseValue(row.end_datetime, "datetime")
 
-    await prisma.booking.upsert({
-      where: {
-        prophetId_startDateTime_endDateTime: {
+      // Check if customer exists
+      const customerExists = await prisma.customer.findUnique({
+        where: { id: customerId },
+      })
+      if (!customerExists) {
+        console.warn(
+          `⚠️  Skipping booking ${row.id}: Customer ${customerId} not found`
+        )
+        errorCount++
+        continue
+      }
+
+      // Check if prophet exists
+      const prophetExists = await prisma.prophet.findUnique({
+        where: { id: prophetId },
+      })
+      if (!prophetExists) {
+        console.warn(
+          `⚠️  Skipping booking ${row.id}: Prophet ${prophetId} not found`
+        )
+        errorCount++
+        continue
+      }
+
+      // Check if course exists
+      const courseExists = await prisma.course.findUnique({
+        where: { id: courseId },
+      })
+      if (!courseExists) {
+        console.warn(
+          `⚠️  Skipping booking ${row.id}: Course ${courseId} not found`
+        )
+        errorCount++
+        continue
+      }
+
+      await prisma.booking.upsert({
+        where: {
+          prophetId_startDateTime_endDateTime: {
+            prophetId: prophetId,
+            startDateTime: startDateTime,
+            endDateTime: endDateTime,
+          },
+        },
+        update: {},
+        create: {
+          id: parseValue(row.id, "string"),
+          customerId: customerId,
+          courseId: courseId,
           prophetId: prophetId,
           startDateTime: startDateTime,
           endDateTime: endDateTime,
+          status: parseValue(row.status, "string") as any,
+          createdAt: parseValue(row.created_at, "datetime"),
         },
-      },
-      update: {},
-      create: {
-        id: parseValue(row.id, "string"),
-        customerId: parseValue(row.customer_id, "string"),
-        courseId: parseValue(row.course_id, "string"),
-        prophetId: prophetId,
-        startDateTime: startDateTime,
-        endDateTime: endDateTime,
-        status: parseValue(row.status, "string") as any,
-        createdAt: parseValue(row.created_at, "datetime"),
-      },
-    })
+      })
+      successCount++
+    } catch (error) {
+      console.warn(`⚠️  Error seeding booking ${row.id}:`, error.message)
+      errorCount++
+    }
   }
-  console.log(`✅ Seeded ${data.length} bookings`)
+  console.log(
+    `✅ Seeded ${successCount} bookings (${errorCount} skipped due to errors)`
+  )
 }
 
 async function seedTransactions() {

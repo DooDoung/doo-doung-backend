@@ -97,13 +97,11 @@ async function clearAllTables() {
   await prisma.transactionAccount.deleteMany()
   await prisma.booking.deleteMany()
   await prisma.course.deleteMany()
-  await prisma.prophetMethod.deleteMany()
   await prisma.prophetAvailability.deleteMany()
   await prisma.prophet.deleteMany()
   await prisma.customer.deleteMany()
   await prisma.userDetail.deleteMany()
   await prisma.account.deleteMany()
-  await prisma.horoscopeMethod.deleteMany()
 
   console.log("✅ All tables cleared")
 }
@@ -124,14 +122,8 @@ async function clearTable(tableName: string) {
     case "prophet":
       await prisma.prophet.deleteMany()
       break
-    case "horoscope_method":
-      await prisma.horoscopeMethod.deleteMany()
-      break
     case "prophet_availability":
       await prisma.prophetAvailability.deleteMany()
-      break
-    case "prophet_method":
-      await prisma.prophetMethod.deleteMany()
       break
     case "course":
       await prisma.course.deleteMany()
@@ -154,25 +146,6 @@ async function clearTable(tableName: string) {
     default:
       console.warn(`Unknown table: ${tableName}`)
   }
-}
-
-// Seed functions
-async function seedHoroscopeMethods() {
-  console.log("🌟 Seeding horoscope methods...")
-  const data = await readCSV("horoscope_methods.csv")
-
-  for (const row of data) {
-    await prisma.horoscopeMethod.upsert({
-      where: { id: parseValue(row.id, "number") },
-      update: {},
-      create: {
-        id: parseValue(row.id, "number"),
-        slug: parseValue(row.slug, "string"),
-        name: parseValue(row.name, "string"),
-      },
-    })
-  }
-  console.log(`✅ Seeded ${data.length} horoscope methods`)
 }
 
 async function seedAccounts() {
@@ -378,28 +351,6 @@ async function seedProphetAvailabilities() {
   )
 }
 
-async function seedProphetMethods() {
-  console.log("🔗 Seeding prophet methods...")
-  const data = await readCSV("prophet_methods.csv")
-
-  for (const row of data) {
-    await prisma.prophetMethod.upsert({
-      where: {
-        prophetId_methodId: {
-          prophetId: parseValue(row.prophet_id, "string"),
-          methodId: parseValue(row.method_id, "number"),
-        },
-      },
-      update: {},
-      create: {
-        prophetId: parseValue(row.prophet_id, "string"),
-        methodId: parseValue(row.method_id, "number"),
-      },
-    })
-  }
-  console.log(`✅ Seeded ${data.length} prophet methods`)
-}
-
 async function seedCourses() {
   console.log("📚 Seeding courses...")
   const data = await readCSV("courses.csv")
@@ -410,16 +361,20 @@ async function seedCourses() {
       update: {},
       create: {
         id: parseValue(row.id, "string"),
-        prophetId: parseValue(row.prophet_id, "string"),
         courseName: parseValue(row.course_name, "string"),
         courseDescription: "",
-        horoscopeMethodId: parseValue(row.horoscope_method_id, "number"),
+        horoscopeMethod: parseValue("Tarot Reading", "string"),
         horoscopeSector: parseValue(row.horoscope_sector, "string") as any,
         durationMin: parseValue(row.duration_min, "number"),
         price: parseValue(row.price, "decimal"),
         isActive: parseValue(row.is_active, "boolean") ?? true,
         createdAt: parseValue(row.created_at, "datetime"),
         updatedAt: parseValue(row.updated_at, "datetime"),
+        prophet: {
+          connect: {
+            id: parseValue(row.prophet_id, "string"),
+          },
+        },
       },
     })
   }
@@ -673,13 +628,11 @@ async function seedAllTables() {
   console.log("🌱 Starting full database seeding...")
 
   // Seed in dependency order
-  await seedHoroscopeMethods()
   await seedAccounts()
   await seedUserDetails()
   await seedCustomers()
   await seedProphets()
   await seedProphetAvailabilities()
-  await seedProphetMethods()
   await seedCourses()
   await seedBookings()
   await seedTransactions()
@@ -694,9 +647,6 @@ async function seedTable(tableName: string) {
   console.log(`🌱 Seeding table: ${tableName}`)
 
   switch (tableName.toLowerCase()) {
-    case "horoscope_method":
-      await seedHoroscopeMethods()
-      break
     case "account":
       await seedAccounts()
       break
@@ -711,9 +661,6 @@ async function seedTable(tableName: string) {
       break
     case "prophet_availability":
       await seedProphetAvailabilities()
-      break
-    case "prophet_method":
-      await seedProphetMethods()
       break
     case "course":
       await seedCourses()

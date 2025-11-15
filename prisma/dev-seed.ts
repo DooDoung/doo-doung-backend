@@ -95,30 +95,6 @@ async function createDevAccounts() {
   console.log("✅ Development accounts created")
 }
 
-// Step 2: Create Prophet Methods for Dev Prophet
-async function createDevProphetMethods() {
-  console.log("📚 Creating prophet methods for dev prophet...")
-
-  // Fetch available horoscope methods
-  const availableMethods = await prisma.horoscopeMethod.findMany()
-
-  // Randomly select 3-5 methods for dev prophet
-  const selectedMethods = availableMethods
-    .sort(() => 0.5 - Math.random())
-    .slice(0, Math.floor(Math.random() * 3) + 3)
-
-  for (const method of selectedMethods) {
-    await prisma.prophetMethod.create({
-      data: {
-        prophetId: DEV_PROPHET_ID,
-        methodId: method.id,
-      },
-    })
-  }
-
-  console.log(`✅ Created ${selectedMethods.length} prophet methods`)
-}
-
 // Step 3: Create Prophet Availabilities
 async function createDevProphetAvailabilities() {
   console.log("📅 Creating prophet availabilities for dev prophet...")
@@ -179,12 +155,6 @@ async function createDevProphetAvailabilities() {
 async function createDevProphetCourses() {
   console.log("📖 Creating courses for dev prophet...")
 
-  // Fetch prophet methods for dev prophet
-  const prophetMethods = await prisma.prophetMethod.findMany({
-    where: { prophetId: DEV_PROPHET_ID },
-    include: { method: true },
-  })
-
   // Course data with variations
   const coursesData = [
     {
@@ -229,14 +199,9 @@ async function createDevProphetCourses() {
     },
   ]
 
-  // Create courses, ensuring we have enough methods
-  for (
-    let i = 0;
-    i < Math.min(coursesData.length, prophetMethods.length);
-    i++
-  ) {
+  // Create courses
+  for (let i = 0; i < coursesData.length; i++) {
     const course = coursesData[i]
-    const method = prophetMethods[i]
 
     await prisma.course.create({
       data: {
@@ -244,7 +209,7 @@ async function createDevProphetCourses() {
         prophetId: DEV_PROPHET_ID,
         courseName: course.name,
         courseDescription: course.description,
-        horoscopeMethodId: method.methodId,
+        horoscopeMethod: course.name,
         horoscopeSector: course.sector as any,
         durationMin: course.duration,
         price: course.price,
@@ -978,7 +943,6 @@ async function seedDevData() {
     console.log("🌱 Starting dev data seeding...")
 
     await createDevAccounts()
-    await createDevProphetMethods()
     await createDevProphetAvailabilities()
     await createDevProphetCourses()
     await createDevProphetTransactionAccounts()

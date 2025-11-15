@@ -1,18 +1,26 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
-import { ReviewRepository } from "./review.repository"
-import { CustomerService } from "../customer/customer.service"
-import { GetReviewsResponseDto } from "./dto/get-review.dto"
+import { ReviewRepository } from "@/modules/review/review.repository"
+import { CustomerService } from "@/modules/customer/customer.service"
+import {
+  ReviewDto,
+  GetReviewsResponseDto,
+  GetReviewsForCourseResponseDto,
+} from "@/modules/review/dto/get-review.dto"
+import { AccountService } from "@/modules/account/account.service"
+import { CreateReviewReqDto } from "./dto/create-review.dto"
 
 @Injectable()
 export class ReviewService {
   constructor(
     private readonly repo: ReviewRepository,
-    private readonly customerService: CustomerService
+    private readonly customerService: CustomerService,
+    private readonly accountService: AccountService
   ) {}
 
   async getReviewByAccountId(
     accountId: string
   ): Promise<GetReviewsResponseDto> {
+    console.log("accountId:", accountId)
     const customer =
       await this.customerService.getCustomerByAccountId(accountId)
     if (!customer?.id) {
@@ -26,10 +34,46 @@ export class ReviewService {
         score: r.score,
         description: r.description,
         courseName: r.booking.course.courseName,
+        updatedAt: r.updatedAt,
       }))
       return { reviews }
     } else {
       return { reviews: [] }
     }
+  }
+
+  async getReviewByCourseId(
+    courseId: string
+  ): Promise<GetReviewsForCourseResponseDto> {
+    const reviewData = await this.repo.findByCourseId(courseId)
+    const accountDataList = await Promise.all(
+      reviewData.map(r =>
+        this.accountService.getAccountById(r.booking.customer.accountId)
+      )
+    )
+    const reviews = reviewData.map((r, i) => ({
+      score: r.score,
+      description: r.description,
+      courseName: r.booking.course.courseName,
+      userName: accountDataList[i]?.username ?? r.booking.customer.accountId,
+      profileUrl: accountDataList[i]?.profileUrl ?? "",
+      updatedAt: r.updatedAt,
+    }))
+    return { reviews }
+  }
+
+  async createReview(body: CreateReviewReqDto): Promise<ReviewDto> {
+    const customer = await this.customerService.getCustomerByAccountId(
+      body.accountId
+    )
+    if (!customer?.id) {
+      throw new NotFoundException("Customer not found")
+    }
+    return this.repo.create({
+      customerId: customer.id,
+      score: body.score,
+      description: body.description,
+      bookingId: body.bookingId,
+    })
   }
 }

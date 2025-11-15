@@ -42,7 +42,7 @@ export class CourseRepository {
           lte: filter.price_max,
         },
         ...(filter.horoscope_method
-          ? { horoscopeMethod: { name: filter.horoscope_method } }
+          ? { horoscopeMethod: filter.horoscope_method }
           : {}),
         horoscopeSector: filter.horoscope_sector,
       },
@@ -50,7 +50,6 @@ export class CourseRepository {
       skip: filter.offset,
       orderBy: orderBy,
       include: {
-        horoscopeMethod: true,
       },
     })
     const result: GetCourseResponseDto[] = []
@@ -72,7 +71,7 @@ export class CourseRepository {
         prophetId: prophetId,
         courseName: data.courseName,
         courseDescription: data.courseDescription,
-        horoscopeMethodId: data.horoscopeMethodId,
+        horoscopeMethod: data.horoscopeMethod,
         horoscopeSector: data.horoscopeSector,
         durationMin: data.durationMin,
         price: data.price,
@@ -92,11 +91,7 @@ export class CourseRepository {
         prophetId: true,
         courseName: true,
         courseDescription: true,
-        horoscopeMethod: {
-          select: {
-            name: true,
-          },
-        },
+        horoscopeMethod: true,
         horoscopeSector: true,
         durationMin: true,
         price: true,
@@ -130,7 +125,7 @@ export class CourseRepository {
     const { horoscopeMethod, createdAt, updatedAt, ...restCourse } = course
     return {
       ...restCourse,
-      horoscopeMethod: horoscopeMethod?.name ?? null,
+      horoscopeMethod: horoscopeMethod ?? null,
       lineId,
       name,
       lastname,
@@ -162,13 +157,6 @@ export class CourseRepository {
     const courses = await this.prisma.course.findMany({
       where: { prophetId: prophetId, isActive: true },
       include: {
-        horoscopeMethod: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-          },
-        },
         bookings: {
           select: {
             reviews: {
@@ -205,9 +193,7 @@ export class CourseRepository {
         rating: rating ? parseFloat(rating.toFixed(1)) : null,
         horoscopeSector: course.horoscopeSector,
         durationMin: course.durationMin,
-        horoscopeMethod: course.horoscopeMethod.name,
-        methodSlug: course.horoscopeMethod?.slug || "",
-        methodName: course.horoscopeMethod?.name || "",
+        horoscopeMethod: course.horoscopeMethod,
         createdAt: course.createdAt,
         isActive: course.isActive,
       }
@@ -254,21 +240,6 @@ export class CourseRepository {
     })
   }
 
-  async createHoroscopeMethod(
-    name: string,
-    slug: string
-  ): Promise<
-    Prisma.HoroscopeMethodGetPayload<{
-      select: { id: true; name: true; slug: true }
-    }>
-  > {
-    return this.prisma.horoscopeMethod.create({
-      data: {
-        slug: slug,
-        name: name,
-      },
-    })
-  }
 
   async updateCourse(
     courseId: string,

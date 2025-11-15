@@ -30,7 +30,8 @@ async function createDevAccounts() {
         create: {
           name: "Dev",
           lastname: "Customer",
-          profileUrl: "https://example.com/profile/dev_customer.jpg",
+          profileUrl:
+            "https://cdn.shortpixel.ai/spai/q_lossy+w_949+to_webp+ret_img/cynthiahester.com/wp-content/uploads/2020/12/st-anna-tribe-of-asher-pd-400x300.jpg",
           phoneNumber: "+66812345678",
           gender: "UNDEFINED",
         },
@@ -58,7 +59,8 @@ async function createDevAccounts() {
         create: {
           name: "Dev",
           lastname: "Prophet",
-          profileUrl: "https://example.com/profile/dev_prophet.jpg",
+          profileUrl:
+            "https://thetablet.org/wp-content/uploads/2021/03/Cropped_Miriams-Song-of-Praise-by-Wilhelm-Hensel-375x375.jpg",
           phoneNumber: "+66812345679",
           gender: "UNDEFINED",
         },
@@ -84,7 +86,8 @@ async function createDevAccounts() {
         create: {
           name: "Dev",
           lastname: "Admin",
-          profileUrl: "https://example.com/profile/dev_admin.jpg",
+          profileUrl:
+            "https://media.istockphoto.com/id/1299672788/th/%E0%B9%80%E0%B8%A7%E0%B8%84%E0%B9%80%E0%B8%95%E0%B8%AD%E0%B8%A3%E0%B9%8C/%E0%B8%AA%E0%B8%95%E0%B8%A3%E0%B8%B5%E0%B9%83%E0%B8%99%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%84%E0%B8%B1%E0%B8%A1%E0%B8%A0%E0%B8%B5%E0%B8%A3%E0%B9%8C%E0%B8%8B%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%AA%E0%B8%B1%E0%B8%95%E0%B8%A2%E0%B9%8C%E0%B8%95%E0%B9%88%E0%B8%AD%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%A2%E0%B8%8B%E0%B8%B9.jpg?s=612x612&w=0&k=20&c=IXBoCG71v_rTfy9gxrYjU8BNnYSzSxe_eR46uOH3OZU=",
           phoneNumber: "+66812345680",
           gender: "UNDEFINED",
         },
@@ -93,30 +96,6 @@ async function createDevAccounts() {
   })
 
   console.log("✅ Development accounts created")
-}
-
-// Step 2: Create Prophet Methods for Dev Prophet
-async function createDevProphetMethods() {
-  console.log("📚 Creating prophet methods for dev prophet...")
-
-  // Fetch available horoscope methods
-  const availableMethods = await prisma.horoscopeMethod.findMany()
-
-  // Randomly select 3-5 methods for dev prophet
-  const selectedMethods = availableMethods
-    .sort(() => 0.5 - Math.random())
-    .slice(0, Math.floor(Math.random() * 3) + 3)
-
-  for (const method of selectedMethods) {
-    await prisma.prophetMethod.create({
-      data: {
-        prophetId: DEV_PROPHET_ID,
-        methodId: method.id,
-      },
-    })
-  }
-
-  console.log(`✅ Created ${selectedMethods.length} prophet methods`)
 }
 
 // Step 3: Create Prophet Availabilities
@@ -179,12 +158,6 @@ async function createDevProphetAvailabilities() {
 async function createDevProphetCourses() {
   console.log("📖 Creating courses for dev prophet...")
 
-  // Fetch prophet methods for dev prophet
-  const prophetMethods = await prisma.prophetMethod.findMany({
-    where: { prophetId: DEV_PROPHET_ID },
-    include: { method: true },
-  })
-
   // Course data with variations
   const coursesData = [
     {
@@ -229,14 +202,9 @@ async function createDevProphetCourses() {
     },
   ]
 
-  // Create courses, ensuring we have enough methods
-  for (
-    let i = 0;
-    i < Math.min(coursesData.length, prophetMethods.length);
-    i++
-  ) {
+  // Create courses
+  for (let i = 0; i < coursesData.length; i++) {
     const course = coursesData[i]
-    const method = prophetMethods[i]
 
     await prisma.course.create({
       data: {
@@ -244,7 +212,7 @@ async function createDevProphetCourses() {
         prophetId: DEV_PROPHET_ID,
         courseName: course.name,
         courseDescription: course.description,
-        horoscopeMethodId: method.methodId,
+        horoscopeMethod: course.name,
         horoscopeSector: course.sector as any,
         durationMin: course.duration,
         price: course.price,
@@ -978,7 +946,6 @@ async function seedDevData() {
     console.log("🌱 Starting dev data seeding...")
 
     await createDevAccounts()
-    await createDevProphetMethods()
     await createDevProphetAvailabilities()
     await createDevProphetCourses()
     await createDevProphetTransactionAccounts()

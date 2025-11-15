@@ -1,17 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
+import { ReportStatus } from "@prisma/client"
 
 export class ReportDto {
   @ApiProperty()
-  customer!: string
+  id!: string
 
   @ApiProperty()
-  createdAt!: Date | null
+  customerId!: string
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ nullable: true })
   profileUrl?: string | null
 
-  @ApiPropertyOptional()
-  admin?: string | null
+  @ApiPropertyOptional({ nullable: true })
+  adminId?: string | null
 
   @ApiProperty()
   reportType!: string
@@ -22,11 +23,36 @@ export class ReportDto {
   @ApiProperty()
   description!: string
 
-  @ApiProperty()
-  reportStatus!: string
+  @ApiProperty({ enum: ReportStatus })
+  reportStatus!: ReportStatus
+
+  @ApiProperty({ type: Date })
+  createdAt!: Date
+
+  @ApiProperty({ type: Date })
+  updatedAt!: Date
+}
+
+export class ProphetReportDto extends ReportDto {
+  @ApiPropertyOptional({ nullable: true })
+  prophetId?: string | null
+
+  @ApiPropertyOptional()
+  courseId?: string | null
 }
 
 export class GetReportsResponseDto {
   @ApiProperty({ type: [ReportDto] })
   reports!: ReportDto[]
+}
+
+export class PaginatedReportsResponseDto extends GetReportsResponseDto {
+  @ApiProperty()
+  total!: number
+
+  @ApiProperty()
+  page!: number
+
+  @ApiProperty()
+  limit!: number
 }

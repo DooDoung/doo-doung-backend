@@ -1,9 +1,9 @@
 import type { TxAccount } from "@/common/types/payment/tx-account.type"
 import { Decimal } from "@prisma/client/runtime/library"
 
-export interface ProphetDetail {
+export interface ProphetDetail extends ProphetBasic {
   lineId?: string | null
-  txAccounts: TxAccount[]
+  txAccounts?: TxAccount[]
 }
 
 export interface ProphetBasic {

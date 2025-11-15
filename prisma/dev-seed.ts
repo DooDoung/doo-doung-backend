@@ -30,7 +30,8 @@ async function createDevAccounts() {
         create: {
           name: "Dev",
           lastname: "Customer",
-          profileUrl: "https://example.com/profile/dev_customer.jpg",
+          profileUrl:
+            "https://cdn.shortpixel.ai/spai/q_lossy+w_949+to_webp+ret_img/cynthiahester.com/wp-content/uploads/2020/12/st-anna-tribe-of-asher-pd-400x300.jpg",
           phoneNumber: "+66812345678",
           gender: "UNDEFINED",
         },
@@ -58,7 +59,8 @@ async function createDevAccounts() {
         create: {
           name: "Dev",
           lastname: "Prophet",
-          profileUrl: "https://example.com/profile/dev_prophet.jpg",
+          profileUrl:
+            "https://thetablet.org/wp-content/uploads/2021/03/Cropped_Miriams-Song-of-Praise-by-Wilhelm-Hensel-375x375.jpg",
           phoneNumber: "+66812345679",
           gender: "UNDEFINED",
         },
@@ -84,7 +86,8 @@ async function createDevAccounts() {
         create: {
           name: "Dev",
           lastname: "Admin",
-          profileUrl: "https://example.com/profile/dev_admin.jpg",
+          profileUrl:
+            "https://media.istockphoto.com/id/1299672788/th/%E0%B9%80%E0%B8%A7%E0%B8%84%E0%B9%80%E0%B8%95%E0%B8%AD%E0%B8%A3%E0%B9%8C/%E0%B8%AA%E0%B8%95%E0%B8%A3%E0%B8%B5%E0%B9%83%E0%B8%99%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B8%84%E0%B8%B1%E0%B8%A1%E0%B8%A0%E0%B8%B5%E0%B8%A3%E0%B9%8C%E0%B8%8B%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%AA%E0%B8%B1%E0%B8%95%E0%B8%A2%E0%B9%8C%E0%B8%95%E0%B9%88%E0%B8%AD%E0%B8%9E%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%A2%E0%B8%8B%E0%B8%B9.jpg?s=612x612&w=0&k=20&c=IXBoCG71v_rTfy9gxrYjU8BNnYSzSxe_eR46uOH3OZU=",
           phoneNumber: "+66812345680",
           gender: "UNDEFINED",
         },

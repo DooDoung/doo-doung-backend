@@ -73,7 +73,7 @@ export class CreateCourseDto {
   @IsString()
   courseDescription!: string
 
-  @ApiProperty({ description: "Horoscope method ID" })
+  @ApiProperty({ description: "Horoscope method string (e.g. Tarot Reading)" })
   @IsString()
   horoscopeMethod!: string
 

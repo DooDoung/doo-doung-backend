@@ -4,7 +4,7 @@ import { HoroscopeSector } from "@prisma/client"
 export interface CreateCourseInterface {
   courseName: string
   courseDescription: string
-  horoscopeMethodId: number
+  horoscopeMethod: string
   horoscopeSector: HoroscopeSector
   durationMin: number
   price: Decimal

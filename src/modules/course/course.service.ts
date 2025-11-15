@@ -37,14 +37,10 @@ export class CourseService {
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "")
-    const horoscopeMethod = await this.courseRepo.createHoroscopeMethod(
-      data.courseName,
-      courseNameSlug
-    )
     const courseData = {
       courseName: data.courseName,
       courseDescription: data.courseDescription,
-      horoscopeMethodId: horoscopeMethod.id,
+      horoscopeMethod: data.horoscopeMethod,
       horoscopeSector: data.horoscopeSector,
       durationMin: data.durationMin,
       price: data.price,
@@ -145,7 +141,7 @@ export class CourseService {
       id: course.id,
       courseName: course.courseName,
       courseDescription: course.courseDescription,
-      horoscopeMethod: course.horoscopeMethod.name,
+      horoscopeMethod: course.horoscopeMethod,
       horoscopeSector: course.horoscopeSector,
       durationMin: course.durationMin,
       price: Number(course.price),

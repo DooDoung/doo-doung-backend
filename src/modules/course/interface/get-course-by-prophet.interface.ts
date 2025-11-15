@@ -12,8 +12,6 @@ export interface GetCoursesByProphet {
   horoscopeSector: HoroscopeSector
   durationMin: number
   horoscopeMethod: string
-  methodSlug: string
-  methodName: string
   createdAt: Date
   isActive: boolean
 }

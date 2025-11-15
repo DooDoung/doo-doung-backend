@@ -17,12 +17,13 @@ export class SessionService {
     const sessions = await this.repo.findByProphetId(prophetId)
 
     return sessions.map(s => {
-      const txAccount = s.prophet.txAccounts.find(a => a.isDefault) || null
+      const txAccount =
+        s.prophet.txAccounts.find((a: any) => a.isDefault) || null
 
       return {
         sessionId: s.id,
         courseName: s.course.courseName,
-        horoscopeMethod: s.course.horoscopeMethod?.name || "",
+        horoscopeMethod: s.course.horoscopeMethod || "",
         horoscopeSector: s.course.horoscopeSector,
         status: s.status,
         startDateTime: s.startDateTime,
@@ -54,7 +55,7 @@ export class SessionService {
     return {
       sessionId: session.id,
       courseName: session.course.courseName,
-      horoscopeMethod: session.course.horoscopeMethod?.name || "",
+      horoscopeMethod: session.course.horoscopeMethod || "",
       horoscopeSector: session.course.horoscopeSector,
       status: session.status,
       startDateTime: session.startDateTime,

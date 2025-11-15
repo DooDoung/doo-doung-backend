@@ -244,14 +244,7 @@ export class BookingService {
               horoscopeSector: true,
               durationMin: true,
               price: true,
-              horoscopeMethodId: true,
-              horoscopeMethod: {
-                select: {
-                  id: true,
-                  slug: true,
-                  name: true,
-                },
-              },
+              horoscopeMethod: true
             },
           },
           transaction: {
@@ -290,11 +283,7 @@ export class BookingService {
           horoscopeSector: booking.course.horoscopeSector,
           durationMin: booking.course.durationMin,
           price: booking.course.price.toNumber(),
-          method: {
-            id: booking.course.horoscopeMethod?.id || 0,
-            slug: booking.course.horoscopeMethod?.slug || "unknown",
-            name: booking.course.horoscopeMethod?.name || "Unknown Method",
-          },
+          method: booking.course.horoscopeMethod,
         },
         payment: booking.transaction
           ? {
@@ -363,14 +352,7 @@ export class BookingService {
               horoscopeSector: true,
               durationMin: true,
               price: true,
-              horoscopeMethodId: true,
-              horoscopeMethod: {
-                select: {
-                  id: true,
-                  slug: true,
-                  name: true,
-                },
-              },
+              horoscopeMethod: true,
             },
           },
           transaction: {
@@ -409,11 +391,7 @@ export class BookingService {
           horoscopeSector: booking.course.horoscopeSector,
           durationMin: booking.course.durationMin,
           price: booking.course.price.toNumber(),
-          method: {
-            id: booking.course.horoscopeMethod?.id || 0,
-            slug: booking.course.horoscopeMethod?.slug || "unknown",
-            name: booking.course.horoscopeMethod?.name || "Unknown Method",
-          },
+          method: booking.course.horoscopeMethod,
         },
         payment: booking.transaction
           ? {

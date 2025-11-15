@@ -20,7 +20,7 @@ export class GetCourseDto {
   courseName!: string
 
   @ApiProperty()
-  horoscopeMethodId!: number
+  horoscopeMethod!: string
 
   @ApiProperty()
   @IsEnum(HoroscopeSector)

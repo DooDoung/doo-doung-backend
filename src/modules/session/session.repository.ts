@@ -10,14 +10,14 @@ export class SessionRepository {
       where: { prophetId },
       include: {
         customer: { include: { account: { include: { userDetail: true } } } },
-        course: { include: { horoscopeMethod: true } },
+        course: true,
         prophet: {
           include: {
             account: { include: { userDetail: true } },
             txAccounts: true,
           },
         },
-        transaction: true
+        transaction: true,
       },
       orderBy: { startDateTime: "desc" },
     })
@@ -31,7 +31,7 @@ export class SessionRepository {
           select: {
             courseName: true,
             horoscopeSector: true,
-            horoscopeMethod: { select: { name: true } },
+            horoscopeMethod: true,
           },
         },
         prophet: {

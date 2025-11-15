@@ -64,22 +64,11 @@ export class GetCoursesByProphetDto {
   durationMin!: number
 
   @ApiProperty({
-    example: 1,
-    description: "Horoscope method ID",
+    example: "Tarot Reading",
+    description: "Horoscope method string (e.g. Tarot Reading)",
   })
   horoscopeMethod!: string
 
-  @ApiProperty({
-    example: "tarot",
-    description: "Horoscope method slug",
-  })
-  methodSlug!: string
-
-  @ApiProperty({
-    example: "Tarot Reading",
-    description: "Horoscope method name",
-  })
-  methodName!: string
 
   @ApiProperty({
     example: "2025-10-05T12:00:00Z",

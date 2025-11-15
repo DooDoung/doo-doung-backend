@@ -52,7 +52,16 @@ export class TransactionAccountService {
       isDefault: false,
     }
 
-    return await this.repo.createTransactionAccount(transactionAccountData)
+    try {
+      return await this.repo.createTransactionAccount(transactionAccountData)
+    } catch (error) {
+      // The repository already handles BadRequestException, so just re-throw
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+      // For any other unexpected errors, wrap them in a generic bad request
+      throw new BadRequestException("Failed to create transaction account")
+    }
   }
 
   async updateTransactionAccount(
@@ -64,7 +73,16 @@ export class TransactionAccountService {
       throw new NotFoundException("Transaction account not found")
     }
 
-    return await this.repo.updateTransactionAccount(id, updateData)
+    try {
+      return await this.repo.updateTransactionAccount(id, updateData)
+    } catch (error) {
+      // The repository already handles BadRequestException, so just re-throw
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+      // For any other unexpected errors, wrap them in a generic bad request
+      throw new BadRequestException("Failed to update transaction account")
+    }
   }
 
   async makeDefaultTransactionAccount(
@@ -93,19 +111,28 @@ export class TransactionAccountService {
       )
     }
 
-    // First, remove default status from all existing accounts for this prophet
-    const existingAccounts = await this.repo.findByProphetId(prophetId)
-    for (const account of existingAccounts) {
-      if (account.id !== newDefaultTransactionAccountId) {
-        await this.repo.removeDefaultTransactionAccount(prophetId, account.id)
+    try {
+      // First, remove default status from all existing accounts for this prophet
+      const existingAccounts = await this.repo.findByProphetId(prophetId)
+      for (const account of existingAccounts) {
+        if (account.id !== newDefaultTransactionAccountId) {
+          await this.repo.removeDefaultTransactionAccount(prophetId, account.id)
+        }
       }
-    }
 
-    // Set the new default account
-    return await this.repo.makeDefaultTransactionAccount(
-      prophetId,
-      newDefaultTransactionAccountId
-    )
+      // Set the new default account
+      return await this.repo.makeDefaultTransactionAccount(
+        prophetId,
+        newDefaultTransactionAccountId
+      )
+    } catch (error) {
+      // The repository already handles BadRequestException, so just re-throw
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+      // For any other unexpected errors, wrap them in a generic bad request
+      throw new BadRequestException("Failed to set default transaction account")
+    }
   }
 
   async deleteTransactionAccount(id: string): Promise<TransactionAccountDto> {
@@ -124,7 +151,16 @@ export class TransactionAccountService {
       )
     }
 
-    return await this.repo.deleteTransactionAccount(id)
+    try {
+      return await this.repo.deleteTransactionAccount(id)
+    } catch (error) {
+      // The repository already handles BadRequestException, so just re-throw
+      if (error instanceof BadRequestException) {
+        throw error
+      }
+      // For any other unexpected errors, wrap them in a generic bad request
+      throw new BadRequestException("Failed to delete transaction account")
+    }
   }
 
   async getTransactionAccountById(id: string): Promise<TransactionAccountDto> {

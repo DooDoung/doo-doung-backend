@@ -111,10 +111,10 @@ export class CourseDetailDto {
   price!: number
 
   @ApiProperty({
-    type: HoroscopeMethodDto,
+    type: String,
     description: "Horoscope method used for this course",
   })
-  method!: HoroscopeMethodDto
+  method!: string
 }
 
 export class PaymentDetailDto {

@@ -7,8 +7,9 @@ generator clientDefault {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ENUMS
@@ -154,7 +155,6 @@ model Prophet {
 
   account      Account               @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   availability ProphetAvailability[]
-  methods      ProphetMethod[]
   courses      Course[]
   bookings     Booking[]
   txAccounts   TransactionAccount[]
@@ -176,36 +176,14 @@ model ProphetAvailability {
   @@map("prophet_availability")
 }
 
-model HoroscopeMethod {
-  id   Int    @id @default(autoincrement()) @map("id")
-  slug String @unique @map("slug") @db.VarChar(32)
-  name String @map("name") @db.VarChar(64)
-
-  prophetMethods ProphetMethod[]
-  courses        Course[]
-
-  @@map("horoscope_method")
-}
-
-model ProphetMethod {
-  prophetId String @map("prophet_id") @db.VarChar(16)
-  methodId  Int    @map("method_id")
-
-  prophet Prophet         @relation(fields: [prophetId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  method  HoroscopeMethod @relation(fields: [methodId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([prophetId, methodId])
-  @@index([methodId])
-  @@map("prophet_method")
-}
 
 model Course {
   id                String          @id @map("id") @db.VarChar(16)
   prophetId         String          @map("prophet_id") @db.VarChar(16)
   courseName        String          @map("course_name") @db.VarChar(50)
   courseDescription String          @map("course_description") @db.Text @default("")
-  horoscopeMethodId Int             @map("horoscope_method_id")
-  horoscopeSector   HoroscopeSector @map("horoscope_sector")
+  horoscopeMethod String        @map("horoscope_method") @db.VarChar(64)
+  horoscopeSector     HoroscopeSector @map("horoscope_sector")
   durationMin       Int             @map("duration_min")
   price             Decimal         @map("price") @db.Decimal(7, 2)
   isActive          Boolean         @default(true) @map("is_active")
@@ -213,12 +191,10 @@ model Course {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  prophet         Prophet         @relation(fields: [prophetId], references: [id])
-  horoscopeMethod HoroscopeMethod @relation(fields: [horoscopeMethodId], references: [id])
-  bookings        Booking[]
+  prophet  Prophet   @relation(fields: [prophetId], references: [id])
+  bookings Booking[]
 
   @@index([prophetId])
-  @@index([horoscopeMethodId])
   @@map("course")
 }
 

@@ -71,7 +71,13 @@ export class AccountService {
       email: true,
       role: true,
       userDetail: {
-        select: { phoneNumber: true, gender: true, profileUrl: true },
+        select: {
+          phoneNumber: true,
+          gender: true,
+          profileUrl: true,
+          name: true,
+          lastname: true,
+        },
       },
     })
     if (!account) throw new NotFoundException("Account not found")
@@ -81,6 +87,8 @@ export class AccountService {
       phoneNumber: account.userDetail?.phoneNumber,
       gender: account.userDetail?.gender,
       profileUrl: account.userDetail?.profileUrl ?? null,
+      name: account.userDetail?.name,
+      lastname: account.userDetail?.lastname,
     }
     if (account.role === Role.CUSTOMER) {
       const { isPublic, ...customer } =
@@ -112,6 +120,12 @@ export class AccountService {
       email: true,
       role: true,
       passwordHash: true,
+      userDetail: {
+        select: {
+          name: true,
+          lastname: true,
+        },
+      },
     })
     if (!account) throw new NotFoundException("Account not found")
 

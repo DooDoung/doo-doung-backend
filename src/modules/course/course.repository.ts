@@ -49,15 +49,53 @@ export class CourseRepository {
       take: filter.limit,
       skip: filter.offset,
       orderBy: orderBy,
-      include: {
+      select: {
+        id: true,
+        prophetId: true,
+        courseName: true,
+        courseDescription: true,
+        horoscopeMethod: true,
+        horoscopeSector: true,
+        durationMin: true,
+        price: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        prophet: {
+          select: {
+            lineId: true,
+            accountId: true,
+            account: {
+              select: {
+                userDetail: {
+                  select: {
+                    name: true,
+                    lastname: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     })
-    const result: GetCourseResponseDto[] = []
-    for (const course of courses) {
-      const detailedCourse = await this.getCourse(course.id)
-      result.push(detailedCourse)
-    }
-    return result
+
+    return courses.map(course => {
+      const { prophet, horoscopeMethod, createdAt, updatedAt, ...restCourse } =
+        course
+
+      if (!prophet?.account?.userDetail) {
+        throw new Error("Prophet or UserDetail not found")
+      }
+
+      return {
+        ...restCourse,
+        horoscopeMethod: horoscopeMethod ?? null,
+        lineId: prophet.lineId,
+        name: prophet.account.userDetail.name,
+        lastname: prophet.account.userDetail.lastname,
+      }
+    })
   }
 
   async createCourse(
@@ -65,7 +103,7 @@ export class CourseRepository {
     prophetId: string
   ): Promise<GetCourseResponseDto> {
     const id = await this.nanoid.generateId()
-    await this.prisma.course.create({
+    const course = await this.prisma.course.create({
       data: {
         id: id,
         prophetId: prophetId,
@@ -77,8 +115,54 @@ export class CourseRepository {
         price: data.price,
         isActive: true,
       },
+      select: {
+        id: true,
+        prophetId: true,
+        courseName: true,
+        courseDescription: true,
+        horoscopeMethod: true,
+        horoscopeSector: true,
+        durationMin: true,
+        price: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        prophet: {
+          select: {
+            lineId: true,
+            accountId: true,
+            account: {
+              select: {
+                userDetail: {
+                  select: {
+                    name: true,
+                    lastname: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     })
-    return this.getCourse(id)
+
+    if (!course.prophet?.accountId) throw new Error("Account not found")
+    if (
+      !course.prophet?.account?.userDetail?.name ||
+      !course.prophet?.account?.userDetail?.lastname
+    ) {
+      throw new Error("UserDetail not found")
+    }
+
+    const { prophet, horoscopeMethod, createdAt, updatedAt, ...restCourse } =
+      course
+    return {
+      ...restCourse,
+      horoscopeMethod: horoscopeMethod ?? null,
+      lineId: prophet.lineId,
+      name: prophet.account!.userDetail!.name,
+      lastname: prophet.account!.userDetail!.lastname,
+    }
   }
 
   async getCourse(courseId: string): Promise<GetCourseResponseDto> {
@@ -98,53 +182,18 @@ export class CourseRepository {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-      },
-    })
-    if (!course) throw new Error("Course not found")
-    const { accountId, lineId } = (await this.prisma.prophet.findUnique({
-      where: {
-        id: course?.prophetId,
-      },
-      select: {
-        accountId: true,
-        lineId: true,
-      },
-    })) as { accountId: string; lineId: string }
-    if (!accountId) throw new Error("Account not found")
-    const { name, lastname } = (await this.prisma.userDetail.findUnique({
-      where: {
-        accountId: accountId,
-      },
-      select: {
-        name: true,
-        lastname: true,
-      },
-    })) as { name: string; lastname: string }
-    if (!name || !lastname) throw new Error("UserDetail not found")
-
-    const { horoscopeMethod, createdAt, updatedAt, ...restCourse } = course
-    return {
-      ...restCourse,
-      horoscopeMethod: horoscopeMethod ?? null,
-      lineId,
-      name,
-      lastname,
-    }
-  }
-
-  async getCoursesByProphetIdCourseList(
-    prophetId: string
-  ): Promise<GetCoursesByProphetDto[]> {
-    const prophet = await this.prisma.prophet.findUnique({
-      where: { id: prophetId },
-      select: {
-        id: true,
-        account: {
+        prophet: {
           select: {
-            userDetail: {
+            lineId: true,
+            accountId: true,
+            account: {
               select: {
-                name: true,
-                lastname: true,
+                userDetail: {
+                  select: {
+                    name: true,
+                    lastname: true,
+                  },
+                },
               },
             },
           },
@@ -152,8 +201,29 @@ export class CourseRepository {
       },
     })
 
-    if (!prophet) throw new Error("Prophet not found")
+    if (!course) throw new Error("Course not found")
+    if (!course.prophet?.accountId) throw new Error("Account not found")
+    if (
+      !course.prophet?.account?.userDetail?.name ||
+      !course.prophet?.account?.userDetail?.lastname
+    ) {
+      throw new Error("UserDetail not found")
+    }
 
+    const { prophet, horoscopeMethod, createdAt, updatedAt, ...restCourse } =
+      course
+    return {
+      ...restCourse,
+      horoscopeMethod: horoscopeMethod ?? null,
+      lineId: prophet.lineId,
+      name: prophet.account!.userDetail!.name,
+      lastname: prophet.account!.userDetail!.lastname,
+    }
+  }
+
+  async getCoursesByProphetIdCourseList(
+    prophetId: string
+  ): Promise<GetCoursesByProphetDto[]> {
     const courses = await this.prisma.course.findMany({
       where: { prophetId: prophetId, isActive: true },
       include: {
@@ -166,9 +236,33 @@ export class CourseRepository {
             },
           },
         },
+        prophet: {
+          select: {
+            id: true,
+            account: {
+              select: {
+                userDetail: {
+                  select: {
+                    name: true,
+                    lastname: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     })
+
+    if (courses.length === 0) {
+      // Check if prophet exists when no courses found
+      const prophet = await this.prisma.prophet.findUnique({
+        where: { id: prophetId },
+        select: { id: true },
+      })
+      if (!prophet) throw new Error("Prophet not found")
+    }
 
     return courses.map(course => {
       // Calculate average rating from reviews
@@ -186,8 +280,8 @@ export class CourseRepository {
         id: course.id,
         courseName: course.courseName,
         courseDescription: course.courseDescription,
-        prophetName: prophet.account?.userDetail?.name || "",
-        prophetLastname: prophet.account?.userDetail?.lastname || "",
+        prophetName: course.prophet?.account?.userDetail?.name || "",
+        prophetLastname: course.prophet?.account?.userDetail?.lastname || "",
         isPublic: true, // Assuming all active courses are public by default
         price: course.price.toNumber(),
         rating: rating ? parseFloat(rating.toFixed(1)) : null,
@@ -240,7 +334,6 @@ export class CourseRepository {
     })
   }
 
-
   async updateCourse(
     courseId: string,
     data: {
@@ -251,7 +344,7 @@ export class CourseRepository {
       price?: Decimal | number
     }
   ): Promise<GetCourseResponseDto> {
-    await this.prisma.course.update({
+    const course = await this.prisma.course.update({
       where: { id: courseId },
       data: {
         ...(data.courseName && { courseName: data.courseName }),
@@ -266,7 +359,53 @@ export class CourseRepository {
           price: new Decimal(String(data.price)),
         }),
       },
+      select: {
+        id: true,
+        prophetId: true,
+        courseName: true,
+        courseDescription: true,
+        horoscopeMethod: true,
+        horoscopeSector: true,
+        durationMin: true,
+        price: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        prophet: {
+          select: {
+            lineId: true,
+            accountId: true,
+            account: {
+              select: {
+                userDetail: {
+                  select: {
+                    name: true,
+                    lastname: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     })
-    return this.getCourse(courseId)
+
+    if (!course.prophet?.accountId) throw new Error("Account not found")
+    if (
+      !course.prophet?.account?.userDetail?.name ||
+      !course.prophet?.account?.userDetail?.lastname
+    ) {
+      throw new Error("UserDetail not found")
+    }
+
+    const { prophet, horoscopeMethod, createdAt, updatedAt, ...restCourse } =
+      course
+    return {
+      ...restCourse,
+      horoscopeMethod: horoscopeMethod ?? null,
+      lineId: prophet.lineId,
+      name: prophet.account!.userDetail!.name,
+      lastname: prophet.account!.userDetail!.lastname,
+    }
   }
 }

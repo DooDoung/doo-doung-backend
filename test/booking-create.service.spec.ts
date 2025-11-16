@@ -1,7 +1,7 @@
 import {
   createBookingFunction,
   CreateBookingPayload,
-} from "../src/modules/booking/booking-create.service"
+} from "./booking-create.service"
 import { BookingStatus, PayoutStatus, Prisma } from "@prisma/client"
 import { Decimal } from "@prisma/client/runtime/library"
 import {
@@ -11,15 +11,8 @@ import {
 } from "@nestjs/common"
 
 describe("BookingCreateService - createBooking (100% Coverage)", () => {
-  let createBooking: (payload: CreateBookingPayload) => Promise<{ booking: unknown; transaction: unknown }>
-  let mockDeps: {
-    prisma: { $transaction: jest.Mock }
-    repo: { create: jest.Mock }
-    paymentService: { createPayment: jest.Mock }
-    customerService: { getCustomerByAccountId: jest.Mock }
-    nanoidService: { generateId: jest.Mock }
-    courseService: { getCourseForBookingById: jest.Mock }
-  }
+  let createBooking: (payload: CreateBookingPayload) => Promise<any>
+  let mockDeps: Record<string, any>
 
   beforeEach(() => {
     mockDeps = {
@@ -87,7 +80,7 @@ describe("BookingCreateService - createBooking (100% Coverage)", () => {
     )
     mockDeps.nanoidService.generateId.mockResolvedValue(mockBookingId)
     mockDeps.courseService.getCourseForBookingById.mockResolvedValue(mockCourse)
-    mockDeps.prisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
+    mockDeps.prisma.$transaction.mockImplementation(async (callback: any) => {
       mockDeps.repo.create.mockResolvedValue(mockBooking)
       mockDeps.paymentService.createPayment.mockResolvedValue(mockTransaction)
       return callback({})
@@ -237,7 +230,7 @@ describe("BookingCreateService - createBooking (100% Coverage)", () => {
       price: new Decimal(500),
     })
 
-    mockDeps.prisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
+    mockDeps.prisma.$transaction.mockImplementation(async (callback: any) => {
       mockDeps.repo.create.mockResolvedValue({ id: "booking_xyz" })
       mockDeps.paymentService.createPayment.mockResolvedValue({ id: "tx_123" })
       return callback({})
@@ -275,7 +268,7 @@ describe("BookingCreateService - createBooking (100% Coverage)", () => {
       price: new Decimal(500),
     })
 
-    mockDeps.prisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<unknown>) => {
+    mockDeps.prisma.$transaction.mockImplementation(async (callback: any) => {
       mockDeps.repo.create.mockResolvedValue({ id: "booking_xyz" })
       mockDeps.paymentService.createPayment.mockResolvedValue({ id: "tx_123" })
       return callback({})
